@@ -1,0 +1,25 @@
+{
+  "name": "TWM Check List",
+  "short_name": "TWM Check",
+  "description": "TWM Transportes Especiais - Check List de Frota",
+  "start_url": "./check_list_twm_oficial-.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#7B2FBE",
+  "theme_color": "#7B2FBE",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "lang": "pt-BR"
+}
