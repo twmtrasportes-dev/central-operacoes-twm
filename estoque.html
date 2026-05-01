@@ -250,6 +250,22 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
     <div class="modal-title" style="font-size:14px;margin-bottom:12px">ALTERAR STATUS</div>
     <div class="status-options" id="statusOpcoes"></div>
 
+    <!-- Campo frota (aparece ao selecionar Em Uso) -->
+    <div id="campo-frota" style="display:none;margin-top:12px">
+      <div class="mfg">
+        <label>Frota (VP / RB)</label>
+        <select class="modal-select" id="det-frota-input">
+          <option value="">Selecione o veículo...</option>
+        </select>
+      </div>
+      <div class="mfg">
+        <label>Posição no Veículo</label>
+        <select class="modal-select" id="det-posicao-input">
+          <option value="">Selecione a posição...</option>
+        </select>
+      </div>
+    </div>
+
     <!-- Campo empresa reformadora (aparece ao selecionar reforma) -->
     <div id="campo-empresa" style="display:none;margin-top:12px">
       <div class="mfg">
@@ -318,6 +334,7 @@ const VIDA_LABEL = {
 
 // ── ESTADO ────────────────────────────────────────────────────
 let estoque = [];
+let frotas = { cavalos: [], carretas: [] };
 let curPneu = null;
 let curTab  = 'todos';
 let novoStatus = null;
@@ -325,6 +342,7 @@ let novoStatus = null;
 // ── INIT ──────────────────────────────────────────────────────
 function init() {
   estoque = lerLocal('twm_estoque') || [];
+  frotas  = lerLocal('twm_frotas_cache') || { cavalos: [], carretas: [] };
   render();
   setTimeout(sincronizar, 1000);
 }
@@ -332,6 +350,8 @@ function init() {
 // ── SYNC ──────────────────────────────────────────────────────
 function sincronizar() {
   setSyncBar('⏳ Sincronizando...');
+
+  // Busca estoque
   fetch(SCRIPT_URL + '?action=getEstoque')
     .then(r => r.json())
     .then(d => {
@@ -343,6 +363,17 @@ function sincronizar() {
       setSyncBar('✅ Sincronizado', 2000);
     })
     .catch(() => setSyncBar('📵 Offline — dados locais', 2000));
+
+  // Busca lista de frotas dinamicamente da planilha
+  fetch(SCRIPT_URL + '?action=getFrota')
+    .then(r => r.json())
+    .then(d => {
+      if (d.ok) {
+        frotas = { cavalos: d.cavalos || [], carretas: d.carretas || [] };
+        salvarLocal('twm_frotas_cache', frotas);
+      }
+    })
+    .catch(() => {});
 }
 
 function setSyncBar(msg, hideAfter) {
@@ -590,6 +621,15 @@ function selecionarStatus(s) {
     if (el.getAttribute('onclick') === `selecionarStatus('${s}')`) el.classList.add('sel');
   });
 
+  // Mostra campo frota se Em Uso
+  const campoFrota = document.getElementById('campo-frota');
+  if (s === 'em_uso') {
+    campoFrota.style.display = 'block';
+    preencherSelectFrota();
+  } else {
+    campoFrota.style.display = 'none';
+  }
+
   // Mostra campo empresa se aguardando ou reformadora
   document.getElementById('campo-empresa').style.display =
     ['aguardando','reformadora'].includes(s) ? 'block' : 'none';
@@ -597,6 +637,32 @@ function selecionarStatus(s) {
   // Mostra campo data venda se vendido
   document.getElementById('campo-venda-data').style.display =
     s === 'vendido' ? 'block' : 'none';
+}
+
+function preencherSelectFrota() {
+  const sel = document.getElementById('det-frota-input');
+  const todos = [
+    ...frotas.cavalos.map(v => v.f),
+    ...frotas.carretas.map(v => v.f)
+  ].sort();
+  sel.innerHTML = '<option value="">Selecione o veículo...</option>' +
+    todos.map(f => `<option value="${f}" ${f === (curPneu&&curPneu.frota) ? 'selected' : ''}>${f}</option>`).join('');
+
+  // Ao selecionar frota, preenche posições
+  sel.onchange = function() {
+    preencherSelectPosicao(this.value);
+  };
+  if (curPneu && curPneu.frota) preencherSelectPosicao(curPneu.frota);
+}
+
+function preencherSelectPosicao(frota) {
+  const sel = document.getElementById('det-posicao-input');
+  const all = [...frotas.cavalos, ...frotas.carretas];
+  const v = all.find(x => x.f === frota);
+  if (!v) { sel.innerHTML = '<option value="">—</option>'; return; }
+  const posicoes = Object.keys(v.t);
+  sel.innerHTML = '<option value="">Selecione a posição...</option>' +
+    posicoes.map(p => `<option value="${p}" ${p === (curPneu&&curPneu.posicao) ? 'selected' : ''}>${p}</option>`).join('');
 }
 
 function salvarAlteracao() {
@@ -616,6 +682,10 @@ function salvarAlteracao() {
     if (novoStatus === 'reformadora' && !empresa) {
       showToast('⚠ Informe o nome da empresa reformadora'); return;
     }
+  }
+  if (novoStatus === 'em_uso') {
+    const frotaSel = document.getElementById('det-frota-input').value;
+    if (!frotaSel) { showToast('⚠ Selecione o veículo'); return; }
   }
   if (novoStatus === 'vendido' && !dataVenda) {
     showToast('⚠ Informe a data da venda'); return;
@@ -638,7 +708,12 @@ function salvarAlteracao() {
     vida,
     data_venda: novoStatus === 'vendido' ? formatarData(dataVenda) : estoque[idx].data_venda,
     // Limpa frota se saiu de em_uso
-    frota: novoStatus === 'em_uso' ? (estoque[idx].frota||'') : (novoStatus === 'disponivel' ? '' : estoque[idx].frota),
+    frota: novoStatus === 'em_uso'
+      ? (document.getElementById('det-frota-input').value || estoque[idx].frota || '')
+      : (novoStatus === 'disponivel' ? '' : estoque[idx].frota),
+    posicao: novoStatus === 'em_uso'
+      ? (document.getElementById('det-posicao-input').value || estoque[idx].posicao || '')
+      : (novoStatus === 'disponivel' ? '' : estoque[idx].posicao),
   };
 
   salvarLocal('twm_estoque', estoque);
