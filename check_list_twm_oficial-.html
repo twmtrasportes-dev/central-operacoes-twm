@@ -953,7 +953,7 @@ function showPage(page) {
   } else if (page === 'servico') {
     document.getElementById('page-servico').style.display = 'block';
     document.getElementById('nav-servico').classList.add('active');
-    document.getElementById('header-title').textContent = 'SERVIÇO';
+    document.getElementById('header-title').textContent = 'CARROS DE APOIO';
     history.pushState({ screen: 'app', page: 'servico' }, '');
     carregarCarrosServico();
   } else if (page === 'historico') {
@@ -1799,6 +1799,11 @@ document.getElementById('login-senha').addEventListener('keypress', e => { if (e
     const tempoPassado = Date.now() - (u.loginTime || 0);
     if (tempoPassado < OITO_HORAS) {
       entrarNoApp(u);
+      // Detecta se veio do DataLink com hash específico
+      const hash = window.location.hash;
+      if (hash === '#carros-servico') {
+        setTimeout(() => showPage('servico'), 100);
+      }
     }
   } catch(e) {}
 })();
