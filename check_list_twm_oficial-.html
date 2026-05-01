@@ -460,7 +460,7 @@
     </div>
     <div class="header-right">
       <button id="btn-voltar-datalink" onclick="voltarDataLink()"
-        style="display:none;background:rgba(255,255,255,0.1);border:none;border-radius:8px;padding:6px 12px;color:white;font-size:12px;font-weight:600;cursor:pointer;align-items:center;gap:6px;letter-spacing:0.5px;">
+        style="display:none;background:rgba(255,255,255,0.1);border:none;border-radius:8px;padding:6px 14px;color:white;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:0.5px;">
         ← Voltar
       </button>
       <span class="user-chip" id="user-chip"></span>
@@ -1806,7 +1806,7 @@ function voltarDataLink() {
   // Mostra botão voltar após carregar
   window.addEventListener('DOMContentLoaded', function() {
     const btn = document.getElementById('btn-voltar-datalink');
-    if (btn) btn.style.display = 'flex';
+    if (btn) btn.style.display = 'block';
   });
 })();
 
