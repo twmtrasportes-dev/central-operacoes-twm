@@ -412,39 +412,34 @@ function init() {
   hist = carregarLocalStorage();
   renderList(CAV, 'lC', '');
   renderList(CAR, 'lR', '');
-  // Tenta carregar dados do servidor após 1s sem bloquear a UI
-  setTimeout(carregarDadosServidor, 1000);
+  // Sincroniza com servidor em background sem bloquear UI
+  setTimeout(sincronizar, 800);
 }
 
-function carregarDadosServidor() {
+function sincronizar() {
   if (!navigator.onLine) return;
-  // Busca fogo atual com timeout de 5s
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 5000);
-  fetch(SCRIPT_URL + '?action=getPneus', {redirect:'follow', signal:ctrl.signal})
+  // GET funciona normalmente com Apps Script (sem CORS)
+  fetch(SCRIPT_URL + '?action=getPneus')
     .then(r => r.json())
     .then(dados => {
-      clearTimeout(timer);
       if (dados.ok && dados.dados) {
         Object.assign(pneusLocal, dados.dados);
         localStorage.setItem('twm_pneus_local', JSON.stringify(pneusLocal));
         if (curV) renderDetail();
       }
     })
-    .catch(() => clearTimeout(timer));
-  // Busca histórico com timeout de 5s
-  const ctrl2 = new AbortController();
-  const timer2 = setTimeout(() => ctrl2.abort(), 5000);
-  fetch(SCRIPT_URL + '?action=getHistoricoPneus', {redirect:'follow', signal:ctrl2.signal})
+    .catch(() => {});
+
+  fetch(SCRIPT_URL + '?action=getHistoricoPneus')
     .then(r => r.json())
     .then(dadosH => {
-      clearTimeout(timer2);
       if (dadosH.ok && dadosH.historico && dadosH.historico.length) {
         hist = dadosH.historico;
         localStorage.setItem('twm_pneus_hist', JSON.stringify(hist));
+        if (curTab === 'h') renderHist();
       }
     })
-    .catch(() => clearTimeout(timer2));
+    .catch(() => {});
 }
 
 // ── TABS ──────────────────────────────────────────────────────
@@ -676,19 +671,21 @@ async function saveT() {
   } catch(e) {}
 
   btn.textContent = '✓ Confirmar'; btn.classList.remove('loading');
-  // Envia para o servidor em background
-  if (navigator.onLine) {{
-    fetch(SCRIPT_URL, {{
-      method:'POST', mode:'no-cors',
-      headers:{{'Content-Type':'application/json'}},
-      body: JSON.stringify({{action:'salvarTroca',...registro}})
-    }}).catch(()=>{{}});
-  }}
+
+  // Envia ao servidor em background (no-cors para POST)
+  if (navigator.onLine) {
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({action: 'salvarTroca', ...registro})
+    }).catch(() => {});
+  }
 
   closeM();
   renderDetail();
   showToast('✅ Troca registrada!');
-}}
+}
 
 // ── LOCALSTORAGE ──────────────────────────────────────────────
 function carregarLocalStorage() {
