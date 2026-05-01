@@ -1789,7 +1789,30 @@ document.getElementById('login-senha').addEventListener('keypress', e => { if (e
 
 
 function voltarDataLink() {
-  history.back();
+  const goto = sessionStorage.getItem('twm_goto');
+
+  // Carros de Apoio → sempre volta para index.html
+  if (goto === 'servico') {
+    window.location.href = 'index.html';
+    return;
+  }
+
+  // Check List → respeita o fluxo interno de telas
+  const formAtivo = document.getElementById('screen-form')?.classList.contains('active');
+  if (formAtivo) {
+    showScreen('app');
+    showPage('detalhe');
+    return;
+  }
+
+  const detalheAtivo = document.getElementById('page-detalhe')?.style.display === 'block';
+  if (detalheAtivo) {
+    showPage('caminhoes');
+    return;
+  }
+
+  // Está na lista de caminhões → volta para index.html
+  window.location.href = 'index.html';
 }
 
 // ===== MODO DE NAVEGAÇÃO — aplica imediatamente =====
