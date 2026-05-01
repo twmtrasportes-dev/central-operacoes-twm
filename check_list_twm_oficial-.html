@@ -459,6 +459,10 @@
       <span id="header-title">CAMINHÕES</span>
     </div>
     <div class="header-right">
+      <button id="btn-voltar-datalink" onclick="voltarDataLink()"
+        style="display:none;background:rgba(255,255,255,0.1);border:none;border-radius:8px;padding:6px 12px;color:white;font-size:12px;font-weight:600;cursor:pointer;align-items:center;gap:6px;letter-spacing:0.5px;">
+        ← Voltar
+      </button>
       <span class="user-chip" id="user-chip"></span>
     </div>
   </header>
@@ -1784,11 +1788,15 @@ function showToast(msg) {
 document.getElementById('login-senha').addEventListener('keypress', e => { if (e.key === 'Enter') fazerLogin(); });
 
 
+function voltarDataLink() {
+  sessionStorage.removeItem('twm_goto');
+  window.location.href = './index.html';
+}
+
 // ===== MODO DE NAVEGAÇÃO — aplica imediatamente =====
 (function aplicarModo() {
   const goto = sessionStorage.getItem('twm_goto');
   if (!goto) return;
-  // Injeta CSS imediatamente para esconder abas antes de renderizar
   const style = document.createElement('style');
   if (goto === 'servico') {
     style.textContent = '#nav-caminhoes, #nav-historico { display: none !important; }';
@@ -1796,6 +1804,11 @@ document.getElementById('login-senha').addEventListener('keypress', e => { if (e
     style.textContent = '#nav-servico { display: none !important; }';
   }
   document.head.appendChild(style);
+  // Mostra botão voltar após carregar
+  window.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('btn-voltar-datalink');
+    if (btn) btn.style.display = 'flex';
+  });
 })();
 
 // ===== LOGIN PERSISTENTE — verifica ao abrir =====
