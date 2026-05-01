@@ -1789,8 +1789,7 @@ document.getElementById('login-senha').addEventListener('keypress', e => { if (e
 
 
 function voltarDataLink() {
-  sessionStorage.removeItem('twm_goto');
-  window.location.href = './index.html';
+  history.back();
 }
 
 // ===== MODO DE NAVEGAÇÃO — aplica imediatamente =====
@@ -1827,23 +1826,12 @@ function voltarDataLink() {
     if (tempoPassado < OITO_HORAS) {
       entrarNoApp(u);
       const goto = sessionStorage.getItem('twm_goto');
-      if (goto) {
+      if (goto === 'servico') {
         sessionStorage.removeItem('twm_goto');
-        setTimeout(() => {
-          if (goto === 'servico') {
-            // Modo Carros de Apoio — esconde Caminhões e Histórico
-            showPage('servico');
-            document.getElementById('nav-caminhoes').style.display = 'none';
-            document.getElementById('nav-historico').style.display = 'none';
-          } else if (goto === 'checklist') {
-            // Modo Check List — esconde Carros de Apoio
-            showPage('caminhoes');
-            document.getElementById('nav-servico').style.display = 'none';
-          }
-        }, 300);
-      } else {
-        const hash = window.location.hash;
-        if (hash === '#carros-servico') setTimeout(() => showPage('servico'), 300);
+        showPage('servico');
+      } else if (goto === 'checklist') {
+        sessionStorage.removeItem('twm_goto');
+        showPage('caminhoes');
       }
     }
   } catch(e) {}
