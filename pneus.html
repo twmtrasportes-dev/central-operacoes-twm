@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0A0A0F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>TWM — Controle de Pneus</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icone-192.png">
+<link rel="icon" type="image/png" href="icone-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0A0F;--bg2:#0F0F18;--bg3:#13131E;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.12);
+  --text:#F0EEF8;--muted:#7A7890;
+  --accent:#7B3FE4;--accent2:#A855F7;--accent3:#C084FC;
+  --orange:#F97316;--green:#10B981;--red:#EF4444;--gold:#F59E0B;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;overscroll-behavior:none}
+
+/* ── HEADER ── */
+.app-header{background:var(--bg2);border-bottom:1px solid var(--border2);padding:0 16px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header-left{display:flex;align-items:center;gap:10px}
+.btn-back{width:34px;height:34px;background:rgba(255,255,255,.06);border:1px solid var(--border2);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;transition:background .2s}
+.btn-back:active{background:rgba(255,255,255,.12)}
+.header-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;letter-spacing:1px;color:var(--text);text-transform:uppercase}
+.header-badge{background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:8px;padding:3px 8px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:white;letter-spacing:1px}
+
+/* ── TABS ── */
+.tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:58px;z-index:99}
+.tab{flex:1;padding:12px 4px;font-size:12px;font-weight:600;text-align:center;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:.2s;letter-spacing:.5px;text-transform:uppercase}
+.tab.on{color:var(--accent3);border-bottom-color:var(--accent)}
+
+/* ── TELAS ── */
+.scr{display:none}.scr.on{display:block}
+.pad{padding:16px}
+
+/* ── BUSCA ── */
+.srch-wrap{position:relative;margin-bottom:14px}
+.srch{width:100%;padding:12px 16px 12px 40px;font-size:14px;border:1.5px solid var(--border2);border-radius:12px;background:var(--bg3);color:var(--text);outline:none;transition:border-color .2s;font-family:'Barlow',sans-serif}
+.srch:focus{border-color:var(--accent)}
+.srch::placeholder{color:var(--muted)}
+.srch-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted)}
+
+/* ── LISTA DE VEÍCULOS ── */
+.list-card{background:var(--bg3);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.vrow{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
+.vrow:last-child{border-bottom:none}
+.vrow:active{background:rgba(123,63,228,.08)}
+.vf{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:var(--text);letter-spacing:.5px}
+.vi{font-size:11px;color:var(--muted);margin-top:2px}
+.varr{color:var(--accent3);font-size:20px}
+
+/* ── HISTÓRICO ── */
+.hr-item{padding:14px 16px;border-bottom:1px solid var(--border)}
+.hr-item:last-child{border-bottom:none}
+.hr-veiculo{font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.hr-fogos{display:flex;gap:8px;align-items:center;margin-bottom:4px}
+.hr-antigo{font-family:'Barlow Condensed',sans-serif;font-size:15px;color:var(--muted);text-decoration:line-through}
+.hr-novo{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--accent3)}
+.hr-meta{font-size:11px;color:var(--muted)}
+.empty{padding:40px 16px;text-align:center;color:var(--muted);font-size:13px}
+
+/* ── DETALHE VEÍCULO ── */
+.svg-wrap{padding:12px 16px 0;text-align:center}
+.tire-list{padding:12px 16px 32px}
+.grp-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin:16px 0 8px;padding:0 2px}
+.ti{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;margin-bottom:6px;cursor:pointer;transition:all .15s}
+.ti:active,.ti:hover{border-color:var(--accent);background:rgba(123,63,228,.06)}
+.ti.sel{border:2px solid var(--accent);background:rgba(123,63,228,.1)}
+.tn{font-size:13px;color:var(--text);font-weight:500}
+.tc{font-size:10px;color:var(--muted);font-family:monospace;margin-top:2px}
+.tf{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--accent3)}
+.tf.vz{color:var(--muted)}
+.ts{font-size:11px;color:var(--accent3);margin-left:10px;font-weight:600}
+
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.7);align-items:flex-end;justify-content:center;padding:0}
+.modal-overlay.open{display:flex;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-box{background:var(--bg3);border:1px solid var(--border2);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:480px;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;color:var(--text);margin-bottom:16px;letter-spacing:.5px;text-transform:uppercase}
+.modal-handle{width:40px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 20px}
+.mfg{margin-bottom:14px}
+.mfg label{display:block;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.mfv{background:var(--bg2);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--muted)}
+.mfv.fogo{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--accent3)}
+.modal-input{width:100%;padding:13px 16px;border:1.5px solid var(--border2);border-radius:12px;font-size:20px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:2px;color:var(--text);background:var(--bg2);outline:none;transition:border-color .2s;text-transform:uppercase}
+.modal-input:focus{border-color:var(--accent)}
+.modal-input::placeholder{color:var(--muted);font-size:14px;font-family:'Barlow',sans-serif;font-weight:400;letter-spacing:0}
+.modal-input2{width:100%;padding:13px 16px;border:1.5px solid var(--border2);border-radius:12px;font-size:15px;font-family:'Barlow',sans-serif;color:var(--text);background:var(--bg2);outline:none;transition:border-color .2s}
+.modal-input2:focus{border-color:var(--accent)}
+.modal-input2::placeholder{color:var(--muted)}
+.modal-btns{display:flex;gap:10px;margin-top:20px}
+.btn-cancel{flex:0 0 auto;padding:14px 18px;border:1.5px solid var(--border2);border-radius:12px;background:transparent;font-size:14px;color:var(--muted);cursor:pointer;font-family:'Barlow',sans-serif;transition:all .2s}
+.btn-cancel:active{background:var(--bg2)}
+.btn-confirm{flex:1;padding:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:12px;color:white;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:opacity .2s}
+.btn-confirm:active{opacity:.8}
+.btn-confirm.loading{opacity:.6;pointer-events:none}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:12px 20px;border-radius:24px;font-size:13px;font-weight:600;z-index:300;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.toast.show{opacity:1}
+
+/* ── LOADER ── */
+.loader{display:flex;align-items:center;justify-content:center;padding:48px;gap:8px;color:var(--muted);font-size:13px}
+.spin{width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="app-header">
+  <div class="header-left">
+    <a class="btn-back" href="index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    </a>
+    <div class="header-title">Pneus</div>
+  </div>
+  <div class="header-badge">FROTA</div>
+</div>
+
+<!-- TABS -->
+<div class="tabs" id="mTabs">
+  <div class="tab on" onclick="showTab('c')">Cavalos</div>
+  <div class="tab" onclick="showTab('r')">Carretas</div>
+  <div class="tab" onclick="showTab('h')">Histórico</div>
+</div>
+
+<!-- CAVALOS -->
+<div id="s-c" class="scr on pad">
+  <div class="srch-wrap">
+    <svg class="srch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input class="srch" placeholder="Buscar frota..." oninput="filt(this.value,'c')">
+  </div>
+  <div class="list-card" id="lC"><div class="loader"><div class="spin"></div> Carregando...</div></div>
+</div>
+
+<!-- CARRETAS -->
+<div id="s-r" class="scr pad">
+  <div class="srch-wrap">
+    <svg class="srch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input class="srch" placeholder="Buscar frota..." oninput="filt(this.value,'r')">
+  </div>
+  <div class="list-card" id="lR"><div class="loader"><div class="spin"></div> Carregando...</div></div>
+</div>
+
+<!-- HISTÓRICO -->
+<div id="s-h" class="scr pad">
+  <div class="list-card" id="lH"><div class="empty">Nenhuma troca registrada ainda.</div></div>
+</div>
+
+<!-- DETALHE VEÍCULO -->
+<div id="s-d" class="scr">
+  <div class="svg-wrap" id="svgW"></div>
+  <div class="tire-list" id="tlW"></div>
+</div>
+
+<!-- MODAL TROCA -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🔧 Registrar Troca</div>
+    <div class="mfg"><label>Veículo</label><div class="mfv" id="mV">—</div></div>
+    <div class="mfg"><label>Posição</label><div class="mfv" id="mP">—</div></div>
+    <div class="mfg"><label>Nº de fogo atual (saindo)</label><div class="mfv fogo" id="mO">—</div></div>
+    <div class="mfg">
+      <label>Nº de fogo novo (entrando)</label>
+      <input class="modal-input" id="mN" placeholder="Ex: 14500" inputmode="numeric">
+    </div>
+    <div class="mfg">
+      <label>Borracheiro</label>
+      <input class="modal-input2" id="mW" placeholder="Nome do borracheiro">
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeM()">Cancelar</button>
+      <button class="btn-confirm" id="btnSave" onclick="saveT()">✓ Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DADOS DA FROTA ────────────────────────────────────────────
+const CAV = [
+  {"f":"VP-168","has_di2":false,"has_tr2":true,"t":{"DI-E":"12309","DI-D":"12310","TR-EE":"12236","TR-EI":"12066","TR-DI":"12210","TR-DE":"12208","TR2-EE":"11484","TR2-EI":"11432","TR2-DI":"11668","TR2-DE":"11593"}},
+  {"f":"VP-169","has_di2":true,"has_tr2":true,"t":{"DI-E":"12403","DI-D":"12404","DI2-E":"12061","DI2-D":"12140","TR-EE":"13254","TR-EI":"10994","TR-DI":"11590","TR-DE":"12482","TR2-EE":"13133","TR2-EI":"13135","TR2-DI":"13131","TR2-DE":"13130"}},
+  {"f":"VP-001","has_di2":false,"has_tr2":false,"t":{"DI-E":"299","DI-D":"298","TR-EE":"303","TR-EI":"302","TR-DI":"301","TR-DE":"300"}},
+  {"f":"VP-002","has_di2":false,"has_tr2":false,"t":{"DI-E":"307","DI-D":"306","TR-EE":"311","TR-EI":"310","TR-DI":"309","TR-DE":"308"}},
+  {"f":"VP-183","has_di2":false,"has_tr2":true,"t":{"DI-E":"14245","DI-D":"14246","TR-EE":"13803","TR-EI":"13805","TR-DI":"13791","TR-DE":"13794","TR2-EE":"12993","TR2-EI":"12996","TR2-DI":"13994","TR2-DE":"13299"}},
+  {"f":"VP-184","has_di2":false,"has_tr2":true,"t":{"DI-E":"14213","DI-D":"14214","TR-EE":"14406","TR-EI":"14410","TR-DI":"14408","TR-DE":"14409","TR2-EE":"11652","TR2-EI":"11794","TR2-DI":"12537","TR2-DE":"13184"}},
+  {"f":"VP-185","has_di2":false,"has_tr2":true,"t":{"DI-E":"14398","DI-D":"14397","TR-EE":"12637","TR-EI":"12974","TR-DI":"13454","TR-DE":"13395","TR2-EE":"13399","TR2-EI":"12720","TR2-DI":"10742","TR2-DE":"11643"}},
+  {"f":"VPL-186","has_di2":false,"has_tr2":true,"t":{"DI-E":"14279","DI-D":"14282","TR-EE":"13170","TR-EI":"14108","TR-DI":"13844","TR-DE":"13848","TR2-EE":"13845","TR2-EI":"13849","TR2-DI":"13037","TR2-DE":"12635"}},
+  {"f":"VPL-187","has_di2":false,"has_tr2":true,"t":{"DI-E":"13764","DI-D":"13767","TR-EE":"13605","TR-EI":"12449","TR-DI":"13603","TR-DE":"13394","TR2-EE":"12886","TR2-EI":"12494","TR2-DI":"13412","TR2-DE":"12938"}},
+  {"f":"VPL-188","has_di2":false,"has_tr2":true,"t":{"DI-E":"14649","DI-D":"14650","TR-EE":"13351","TR-EI":"12979","TR-DI":"12976","TR-DE":"13021","TR2-EE":"14109","TR2-EI":"13947","TR2-DI":"13452","TR2-DE":"13624"}},
+  {"f":"VPL-189","has_di2":false,"has_tr2":true,"t":{"DI-E":"14240","DI-D":"14241","TR-EE":"13363","TR-EI":"14065","TR-DI":"13598","TR-DE":"12607","TR2-EE":"14064","TR2-EI":"13364","TR2-DI":"13807","TR2-DE":"13801"}},
+  {"f":"VPL-190","has_di2":false,"has_tr2":true,"t":{"DI-E":"320","DI-D":"321","TR-EE":"13725","TR-EI":"13279","TR-DI":"12653","TR-DE":"13376","TR2-EE":"12801","TR2-EI":"14061","TR2-DI":"12798","TR2-DE":"14094"}},
+  {"f":"VPL-191","has_di2":false,"has_tr2":true,"t":{"DI-E":"14393","DI-D":"14632","TR-EE":"12423","TR-EI":"13249","TR-DI":"13243","TR-DE":"12509","TR2-EE":"12940","TR2-EI":"12444","TR2-DI":"13361","TR2-DE":"13820"}},
+  {"f":"VP-192","has_di2":true,"has_tr2":true,"t":{"DI-E":"13055","DI-D":"13054","DI2-E":"13461","DI2-D":"14359","TR-EE":"13474","TR-EI":"13477","TR-DI":"12932","TR-DE":"12924","TR2-EE":"12482","TR2-EI":"11415","TR2-DI":"13136","TR2-DE":"11472"}},
+  {"f":"VP-193","has_di2":false,"has_tr2":true,"t":{"DI-E":"14212","DI-D":"14211","TR-EE":"14158","TR-EI":"14159","TR-DI":"14161","TR-DE":"14160","TR2-EE":"14005","TR2-EI":"14150","TR2-DI":"13982","TR2-DE":"13981"}},
+  {"f":"VPL-194","has_di2":false,"has_tr2":true,"t":{"DI-E":"14314","DI-D":"14313","TR-EE":"13366","TR-EI":"12793","TR-DI":"13630","TR-DE":"13755","TR2-EE":"13662","TR2-EI":"13663","TR2-DI":"13664","TR2-DE":"13665"}},
+  {"f":"VPL-195","has_di2":false,"has_tr2":true,"t":{"DI-E":"14647","DI-D":"14196","TR-EE":"13326","TR-EI":"13319","TR-DI":"13324","TR-DE":"13100","TR2-EE":"13709","TR2-EI":"14173","TR2-DI":"13704","TR2-DE":"13705"}},
+  {"f":"VPL-196","has_di2":false,"has_tr2":true,"t":{"DI-E":"14195","DI-D":"14196","TR-EE":"12498","TR-EI":"13309","TR-DI":"13028","TR-DE":"13305","TR2-EE":"13739","TR2-EI":"13678","TR2-DI":"13739","TR2-DE":"13677"}},
+  {"f":"VPL-197","has_di2":false,"has_tr2":true,"t":{"DI-E":"14444","DI-D":"14445","TR-EE":"14553","TR-EI":"14550","TR-DI":"14552","TR-DE":"14551","TR2-EE":"13701","TR2-EI":"13700","TR2-DI":"13698","TR2-DE":"14197"}},
+  {"f":"VP-203","has_di2":true,"has_tr2":true,"t":{"DI-E":"13414","DI-D":"13415","DI2-E":"12920","DI2-D":"12917","TR-EE":"12855","TR-EI":"12854","TR-DI":"12856","TR-DE":"12853","TR2-EE":"11447","TR2-EI":"11429","TR2-DI":"11428","TR2-DE":"11588"}},
+  {"f":"VP-306","has_di2":true,"has_tr2":true,"t":{"DI-E":"12401","DI-D":"12402","DI2-E":"12141","DI2-D":"11589","TR-EE":"12232","TR-EI":"13417","TR-DI":"12927","TR-DE":"11611","TR2-EE":"13944","TR2-EI":"13942","TR2-DI":"13943","TR2-DE":"13941"}},
+  {"f":"VP-307","has_di2":false,"has_tr2":true,"t":{"DI-E":"13966","DI-D":"13965","TR-EE":"13818","TR-EI":"13819","TR-DI":"13815","TR-DE":"13639","TR2-EE":"","TR2-EI":"","TR2-DI":"13983","TR2-DE":"13825"}},
+  {"f":"VP-308","has_di2":false,"has_tr2":false,"t":{"DI-E":"14612","DI-D":"14629","TR-EE":"12938","TR-EI":"13626","TR-DI":"13720","TR-DE":"13726"}},
+  {"f":"VP-309","has_di2":false,"has_tr2":false,"t":{"DI-E":"14256","DI-D":"14242","TR-EE":"26","TR-EI":"13287","TR-DI":"13822","TR-DE":"13604"}},
+  {"f":"VPL-311","has_di2":false,"has_tr2":true,"t":{"DI-E":"14645","DI-D":"14646","TR-EE":"14302","TR-EI":"14361","TR-DI":"14291","TR-DE":"14292","TR2-EE":"12935","TR2-EI":"12907","TR2-DI":"13597","TR2-DE":"11376"}},
+  {"f":"VPL-312","has_di2":false,"has_tr2":true,"t":{"DI-E":"14483","DI-D":"14482","TR-EE":"14138","TR-EI":"14139","TR-DI":"14141","TR-DE":"14140","TR2-EE":"12971","TR2-EI":"12273","TR2-DI":"12969","TR2-DE":"13768"}},
+  {"f":"VPL-313","has_di2":false,"has_tr2":true,"t":{"DI-E":"13772","DI-D":"13773","TR-EE":"13625","TR-EI":"13171","TR-DI":"13815","TR-DE":"13639","TR2-EE":"12400","TR2-EI":"12363","TR2-DI":"12158","TR2-DE":"13034"}},
+  {"f":"VPL-314","has_di2":false,"has_tr2":true,"t":{"DI-E":"14594","DI-D":"14595","TR-EE":"13921","TR-EI":"13920","TR-DI":"13926","TR-DE":"13928","TR2-EE":"13925","TR2-EI":"13924","TR2-DI":"13922","TR2-DE":"13923"}},
+  {"f":"VPL-315","has_di2":false,"has_tr2":true,"t":{"DI-E":"14611","DI-D":"14628","TR-EE":"13985","TR-EI":"13829","TR-DI":"14093","TR-DE":"14175","TR2-EE":"13459","TR2-EI":"12944","TR2-DI":"13016","TR2-DE":"13019"}},
+  {"f":"VPL-316","has_di2":false,"has_tr2":true,"t":{"DI-E":"14538","DI-D":"14537","TR-EE":"12608","TR-EI":"12453","TR-DI":"13781","TR-DE":"12347","TR2-EE":"11972","TR2-EI":"12266","TR2-DI":"12830","TR2-DE":"12821"}},
+  {"f":"VPL-317","has_di2":false,"has_tr2":true,"t":{"DI-E":"14328","DI-D":"14327","TR-EE":"13300","TR-EI":"13336","TR-DI":"13301","TR-DE":"13337","TR2-EE":"14371","TR2-EI":"13551","TR2-DI":"14129","TR2-DE":"13269"}},
+  {"f":"VPL-318","has_di2":false,"has_tr2":true,"t":{"DI-E":"13918","DI-D":"13919","TR-EE":"12039","TR-EI":"12040","TR-DI":"12534","TR-DE":"13399","TR2-EE":"13914","TR2-EI":"13915","TR2-DI":"13552","TR2-DE":"12864"}},
+  {"f":"VPL-319","has_di2":false,"has_tr2":true,"t":{"DI-E":"14485","DI-D":"14484","TR-EE":"13772","TR-EI":"13753","TR-DI":"12883","TR-DE":"13629","TR2-EE":"13746","TR2-EI":"13777","TR2-DI":"13778","TR2-DE":"13779"}},
+  {"f":"VPL-320","has_di2":false,"has_tr2":true,"t":{"DI-E":"14304","DI-D":"14303","TR-EE":"14543","TR-EI":"14542","TR-DI":"14136","TR-DE":"14146","TR2-EE":"14466","TR2-EI":"14465","TR2-DI":"14468","TR2-DE":"14467"}},
+  {"f":"VPL-321","has_di2":false,"has_tr2":true,"t":{"DI-E":"14049","DI-D":"14048","TR-EE":"14289","TR-EI":"14301","TR-DI":"14298","TR-DE":"14299","TR2-EE":"14168","TR2-EI":"14164","TR2-DI":"14162","TR2-DE":"14163"}},
+  {"f":"VPL-322","has_di2":false,"has_tr2":true,"t":{"DI-E":"14311","DI-D":"14312","TR-EE":"14589","TR-EI":"14588","TR-DI":"14586","TR-DE":"14587","TR2-EE":"14591","TR2-EI":"14590","TR2-DI":"14592","TR2-DE":"14593"}},
+  {"f":"VPL-323","has_di2":false,"has_tr2":true,"t":{"DI-E":"14235","DI-D":"14234","TR-EE":"13578","TR-EI":"13638","TR-DI":"14053","TR-DE":"14052","TR2-EE":"12176","TR2-EI":"12123","TR2-DI":"13780","TR2-DE":"12175"}},
+  {"f":"VP-324","has_di2":true,"has_tr2":true,"t":{"DI-E":"14435","DI-D":"14434","DI2-E":"14433","DI2-D":"14432","TR-EE":"12617","TR-EI":"12437","TR-DI":"11987","TR-DE":"11988","TR2-EE":"13522","TR2-EI":"12981","TR2-DI":"13518","TR2-DE":"11989"}},
+  {"f":"VPL-325","has_di2":false,"has_tr2":true,"t":{"DI-E":"14331","DI-D":"14330","TR-EE":"14335","TR-EI":"14334","TR-DI":"14333","TR-DE":"14332","TR2-EE":"14339","TR2-EI":"14338","TR2-DI":"14337","TR2-DE":"14336"}},
+  {"f":"VPL-326","has_di2":false,"has_tr2":true,"t":{"DI-E":"14488","DI-D":"14487","TR-EE":"14528","TR-EI":"14527","TR-DI":"14529","TR-DE":"14530","TR2-EE":"14525","TR2-EI":"14526","TR2-DI":"14532","TR2-DE":"14531"}},
+  {"f":"VP-446","has_di2":true,"has_tr2":true,"t":{"DI-E":"14188","DI-D":"14186","DI2-E":"14187","DI2-D":"14185","TR-EE":"13317","TR-EI":"12305","TR-DI":"12209","TR-DE":"11562","TR2-EE":"12140","TR2-EI":"12979","TR2-DI":"12307","TR2-DE":"12306"}},
+  {"f":"VP-447","has_di2":false,"has_tr2":true,"t":{"DI-E":"14219","DI-D":"14220","TR-EE":"14470","TR-EI":"14469","TR-DI":"14471","TR-DE":"14472","TR2-EE":"15547","TR2-EI":"14544","TR2-DI":"13897","TR2-DE":"13900"}},
+  {"f":"VP-448","has_di2":false,"has_tr2":true,"t":{"DI-E":"14677","DI-D":"14676","TR-EE":"14656","TR-EI":"14563","TR-DI":"14559","TR-DE":"14557","TR2-EE":"14564","TR2-EI":"14556","TR2-DI":"14654","TR2-DE":"14653"}},
+  {"f":"VP-449","has_di2":false,"has_tr2":true,"t":{"DI-E":"14391","DI-D":"14392","TR-EE":"14365","TR-EI":"14366","TR-DI":"14368","TR-DE":"14367","TR2-EE":"14670","TR2-EI":"14369","TR2-DI":"14560","TR2-DE":"14372"}},
+  {"f":"VP-450","has_di2":false,"has_tr2":true,"t":{"DI-E":"14448","DI-D":"14449","TR-EE":"14427","TR-EI":"14426","TR-DI":"14424","TR-DE":"14425","TR2-EE":"14152","TR2-EI":"14153","TR2-DI":"14004","TR2-DE":"14155"}},
+  {"f":"VP-451","has_di2":false,"has_tr2":true,"t":{"DI-E":"14674","DI-D":"14675","TR-EE":"14561","TR-EI":"14562","TR-DI":"14685","TR-DE":"14684","TR2-EE":"14006","TR2-EI":"14003","TR2-DI":"14002","TR2-DE":"14001"}},
+  {"f":"VP-452","has_di2":false,"has_tr2":true,"t":{"DI-E":"13990","DI-D":"14090","TR-EE":"14027","TR-EI":"14170","TR-DI":"12602","TR-DE":"13308","TR2-EE":"13929","TR2-EI":"13927","TR2-DI":"13930","TR2-DE":"13939"}},
+  {"f":"VP-453","has_di2":false,"has_tr2":true,"t":{"DI-E":"14482","DI-D":"13451","TR-EE":"13813","TR-EI":"14372","TR-DI":"13478","TR-DE":"13450","TR2-EE":"12903","TR2-EI":"13750","TR2-DI":"12647","TR2-DE":"13374"}},
+  {"f":"VPL-454","has_di2":false,"has_tr2":true,"t":{"DI-E":"14193","DI-D":"14194","TR-EE":"13202","TR-EI":"13267","TR-DI":"13201","TR-DE":"13198","TR2-EE":"13453","TR2-EI":"13200","TR2-DI":"13197","TR2-DE":"13199"}},
+  {"f":"VPL-455","has_di2":false,"has_tr2":true,"t":{"DI-E":"14500","DI-D":"14499","TR-EE":"14403","TR-EI":"14149","TR-DI":"13792","TR-DE":"13793","TR2-EE":"14518","TR2-EI":"14460","TR2-DI":"14459","TR2-DE":"14458"}},
+  {"f":"VPL-456","has_di2":false,"has_tr2":true,"t":{"DI-E":"14574","DI-D":"14575","TR-EE":"13647","TR-EI":"13832","TR-DI":"12966","TR-DE":"13821","TR2-EE":"13747","TR2-EI":"13748","TR2-DI":"13751","TR2-DE":"13749"}},
+  {"f":"VPL-457","has_di2":false,"has_tr2":true,"t":{"DI-E":"14535","DI-D":"14536","TR-EE":"14363","TR-EI":"14362","TR-DI":"14293","TR-DE":"14364","TR2-EE":"14295","TR2-EI":"14297","TR2-DI":"14296","TR2-DE":"14294"}},
+  {"f":"VPL-458","has_di2":false,"has_tr2":true,"t":{"DI-E":"14259","DI-D":"14243","TR-EE":"14461","TR-EI":"14462","TR-DI":"14464","TR-DE":"14463","TR2-EE":"14520","TR2-EI":"14522","TR2-DI":"14519","TR2-DE":"14521"}},
+  {"f":"VPL-459","has_di2":false,"has_tr2":true,"t":{"DI-E":"14577","DI-D":"14576","TR-EE":"14683","TR-EI":"14682","TR-DI":"13153","TR-DE":"13722","TR2-EE":"14229","TR2-EI":"14225","TR2-DI":"14228","TR2-DE":"14230"}},
+  {"f":"VP-460","has_di2":true,"has_tr2":true,"t":{"DI-E":"13872","DI-D":"13873","DI2-E":"13871","DI2-D":"13874","TR-EE":"13881","TR-EI":"13882","TR-DI":"13408","TR-DE":"13091","TR2-EE":"13878","TR2-EI":"13870","TR2-DI":"13876","TR2-DE":"13875"}},
+  {"f":"VP-461","has_di2":true,"has_tr2":true,"t":{"DI-E":"14357","DI-D":"14360","DI2-E":"13934","DI2-D":"13935","TR-EE":"13933","TR-EI":"13932","TR-DI":"12929","TR-DE":"12923","TR2-EE":"13936","TR2-EI":"13937","TR2-DI":"13938","TR2-DE":"13939"}},
+  {"f":"VP-462","has_di2":false,"has_tr2":true,"t":{"DI-E":"14046","DI-D":"14047","TR-EE":"14054","TR-EI":"14055","TR-DI":"14056","TR-DE":"14057","TR2-EE":"14042","TR2-EI":"14044","TR2-DI":"14043","TR2-DE":"14045"}},
+  {"f":"VP-463","has_di2":false,"has_tr2":true,"t":{"DI-E":"14615","DI-D":"14614","TR-EE":"14032","TR-EI":"14033","TR-DI":"14034","TR-DE":"14035","TR2-EE":"14020","TR2-EI":"14021","TR2-DI":"14022","TR2-DE":"14023"}},
+  {"f":"VP-464","has_di2":false,"has_tr2":true,"t":{"DI-E":"14036","DI-D":"14037","TR-EE":"14655","TR-EI":"14656","TR-DI":"14658","TR-DE":"14657","TR2-EE":"14038","TR2-EI":"14039","TR2-DI":"14040","TR2-DE":"14041"}},
+  {"f":"VP-465","has_di2":false,"has_tr2":true,"t":{"DI-E":"14015","DI-D":"14014","TR-EE":"14028","TR-EI":"14029","TR-DI":"14031","TR-DE":"14050","TR2-EE":"14016","TR2-EI":"14017","TR2-DI":"14019","TR2-DE":"14018"}},
+  {"f":"VP-517","has_di2":false,"has_tr2":true,"t":{"DI-E":"14503","DI-D":"14502","TR-EE":"13851","TR-EI":"13847","TR-DI":"13846","TR-DE":"13850","TR2-EE":"14407","TR2-EI":"14457","TR2-DI":"14405","TR2-DE":"14404"}},
+  {"f":"VP-518","has_di2":false,"has_tr2":true,"t":{"DI-E":"13344","DI-D":"13440","TR-EE":"14517","TR-EI":"14516","TR-DI":"14514","TR-DE":"14515","TR2-EE":"14517","TR2-EI":"14516","TR2-DI":"14514","TR2-DE":"14515"}},
+  {"f":"VP-519","has_di2":false,"has_tr2":true,"t":{"DI-E":"14420","DI-D":"14421","TR-EE":"14430","TR-EI":"14429","TR-DI":"14428","TR-DE":"14431","TR2-EE":"13754","TR2-EI":"13757","TR2-DI":"13631","TR2-DE":"13632"}},
+  {"f":"VP-520","has_di2":false,"has_tr2":true,"t":{"DI-E":"14068","DI-D":"14069","TR-EE":"14227","TR-EI":"14226","TR-DI":"14221","TR-DE":"14422","TR2-EE":"14151","TR2-EI":"14681","TR2-DI":"14224","TR2-DE":"14165"}},
+  {"f":"VP-521","has_di2":false,"has_tr2":false,"t":{"DI-E":"14630","DI-D":"14631","TR-EE":"13818","TR-EI":"13816","TR-DI":"13219","TR-DE":"13220"}},
+  {"f":"VP-522","has_di2":false,"has_tr2":false,"t":{"DI-E":"13987","DI-D":"13977","TR-EE":"13625","TR-EI":"13412","TR-DI":"12973","TR-DE":"13154"}},
+  {"f":"VP-523","has_di2":false,"has_tr2":false,"t":{"DI-E":"14481","DI-D":"14541","TR-EE":"13634","TR-EI":"13636","TR-DI":"13613","TR-DE":"13633"}},
+  {"f":"VP-602","has_di2":false,"has_tr2":true,"t":{"DI-E":"12852","DI-D":"12851","TR-EE":"13078","TR-EI":"13074","TR-DI":"12504","TR-DE":"12503","TR2-EE":"12329","TR2-EI":"12331","TR2-DI":"11686","TR2-DE":"11684"}},
+  {"f":"VP-607","has_di2":false,"has_tr2":true,"t":{"DI-E":"12807","DI-D":"12808","TR-EE":"13168","TR-EI":"13177","TR-DI":"12928","TR-DE":"12801","TR2-EE":"11465","TR2-EI":"12845","TR2-DI":"11450","TR2-DE":"11378"}},
+  {"f":"VP-610","has_di2":false,"has_tr2":true,"t":{"DI-E":"13593","DI-D":"13592","TR-EE":"12961","TR-EI":"12963","TR-DI":"12962","TR-DE":"12963","TR2-EE":"11763","TR2-EI":"11436","TR2-DI":"11439","TR2-DE":"128660"}},
+  {"f":"VP-611","has_di2":false,"has_tr2":true,"t":{"DI-E":"14215","DI-D":"14216","TR-EE":"14167","TR-EI":"14156","TR-DI":"14157","TR-DE":"14166","TR2-EE":"13786","TR2-EI":"13804","TR2-DI":"13795","TR2-DE":"13790"}},
+  {"f":"VP-612","has_di2":false,"has_tr2":true,"t":{"DI-E":"14286","DI-D":"14287","TR-EE":"14661","TR-EI":"14662","TR-DI":"14660","TR-DE":"14659","TR2-EE":"14663","TR2-EI":"14664","TR2-DI":"14554","TR2-DE":"14555"}},
+  {"f":"VP-613","has_di2":false,"has_tr2":true,"t":{"DI-E":"14217","DI-D":"14218","TR-EE":"14288","TR-EI":"14300","TR-DI":"14287","TR-DE":"14290","TR2-EE":"13590","TR2-EI":"13591","TR2-DI":"13588","TR2-DE":"13589"}},
+  {"f":"VA-902","has_di2":true,"has_tr2":true,"t":{"DI-E":"318","DI-D":"319","DI2-E":"230","DI2-D":"231","TR-EE":"170","TR-EI":"169","TR-DI":"222","TR-DE":"221","TR2-EE":"12926","TR2-EI":"12980","TR2-DI":"217","TR2-DE":"13315"}},
+  {"f":"VA-903","has_di2":true,"has_tr2":true,"t":{"DI-E":"261","DI-D":"262","DI2-E":"155","DI2-D":"153","TR-EE":"173","TR-EI":"171","TR-DI":"162","TR-DE":"174","TR2-EE":"218","TR2-EI":"13316","TR2-DI":"176","TR2-DE":"164"}},
+  {"f":"VA-920","has_di2":true,"has_tr2":true,"t":{"DI-E":"225","DI-D":"226","DI2-E":"101","DI2-D":"241","TR-EE":"247","TR-EI":"245","TR-DI":"244","TR-DE":"264","TR2-EE":"159","TR2-EI":"158","TR2-DI":"240","TR2-DE":"133"}},
+  {"f":"VA-945","has_di2":true,"has_tr2":true,"t":{"DI-E":"239","DI-D":"238","DI2-E":"258","DI2-D":"257","TR-EE":"263","TR-EI":"264","TR-DI":"266","TR-DE":"228","TR2-EE":"135","TR2-EI":"163","TR2-DI":"13476","TR2-DE":"265"}},
+  {"f":"VA-929","has_di2":false,"has_tr2":true,"t":{"DI-E":"293","DI-D":"292","TR-EE":"250","TR-EI":"252","TR-DI":"203","TR-DE":"209","TR2-EE":"233","TR2-EI":"191","TR2-DI":"256","TR2-DE":"253"}},
+  {"f":"VA-949","has_di2":false,"has_tr2":true,"t":{"DI-E":"260","DI-D":"259","TR-EE":"297","TR-EI":"296","TR-DI":"294","TR-DE":"295","TR2-EE":"236","TR2-EI":"179","TR2-DI":"237","TR2-DE":"180"}},
+  {"f":"VA-9339","has_di2":false,"has_tr2":true,"t":{"DI-E":"278","DI-D":"277","TR-EE":"268","TR-EI":"267","TR-DI":"280","TR-DE":"279","TR2-EE":"268","TR2-EI":"267","TR2-DI":"282","TR2-DE":"281"}},
+  {"f":"VA-9340","has_di2":false,"has_tr2":true,"t":{"DI-E":"289","DI-D":"290","TR-EE":"204","TR-EI":"207","TR-DI":"206","TR-DE":"200","TR2-EE":"242","TR2-EI":"251","TR2-DI":"249","TR2-DE":"284"}}
+];
+
+const CAR = [
+  {"f":"RB-52","n":3,"t":{"EST-E":"","EST-D":"10220","E1-EE":"12591","E1-EI":"12593","E1-DI":"10869","E1-DE":"12295","E2-EE":"13400","E2-EI":"12538","E2-DI":"11911","E2-DE":"11787","E3-EE":"11834","E3-EI":"11666","E3-DI":"11761","E3-DE":"11897"}},
+  {"f":"RB-53","n":3,"t":{"EST-E":"10660","EST-D":"","E1-EE":"13946","E1-EI":"13945","E1-DI":"13248","E1-DE":"13617","E2-EE":"11774","E2-EI":"11614","E2-DI":"12972","E2-DE":"10671","E3-EE":"12768","E3-EI":"13397","E3-DI":"13223","E3-DE":"13043"}},
+  {"f":"RB-57","n":3,"t":{"EST-E":"","EST-D":"11305","E1-EE":"13339","E1-EI":"13338","E1-DI":"12201","E1-DE":"12322","E2-EE":"12378","E2-EI":"12173","E2-DI":"13859","E2-DE":"13853","E3-EE":"11740","E3-EI":"11810","E3-DI":"11902","E3-DE":"11814"}},
+  {"f":"RB-58","n":3,"t":{"EST-E":"","EST-D":"13333","E1-EE":"12736","E1-EI":"12018","E1-DI":"11297","E1-DE":"11605","E2-EE":"11050","E2-EI":"11148","E2-DI":"12546","E2-DE":"12543","E3-EE":"13411","E3-EI":"13022","E3-DI":"12539","E3-DE":"13637"}},
+  {"f":"RB-69","n":3,"t":{"EST-E":"","EST-D":"","E1-EE":"13389","E1-EI":"11500","E1-DI":"12398","E1-DE":"13434","E2-EE":"12890","E2-EI":"12636","E2-DI":"13732","E2-DE":"13729","E3-EE":"13209","E3-EI":"12909","E3-DI":"14262","E3-DE":"14283"}},
+  {"f":"RB-70","n":3,"t":{"EST-E":"11344","EST-D":"11696","E1-EE":"11979","E1-EI":"12095","E1-DI":"","E1-DE":"12558","E2-EE":"11544","E2-EI":"13048","E2-DI":"14436","E2-DE":"13743","E3-EE":"13033","E3-EI":"13610","E3-DI":"13693","E3-DE":"12869"}},
+  {"f":"RB-71","n":3,"t":{"EST-E":"","EST-D":"10444","E1-EE":"12184","E1-EI":"12148","E1-DI":"13047","E1-DE":"13049","E2-EE":"12182","E2-EI":"12389","E2-DI":"12490","E2-DE":"12491","E3-EE":"13172","E3-EI":"13775","E3-DI":"14275","E3-DE":"14274"}},
+  {"f":"RB-78","n":2,"t":{"EST-E":"8671","EST-D":"10055","E1-EE":"11753","E1-EI":"13599","E1-DI":"11281","E1-DE":"11665","E2-EE":"11743","E2-EI":"11796","E2-DI":"13907","E2-DE":"13675"}},
+  {"f":"RB-79","n":2,"t":{"EST-E":"8671","EST-D":"10055","E1-EE":"11599","E1-EI":"13390","E1-DI":"12676","E1-DE":"12010","E2-EE":"12865","E2-EI":"11640","E2-DI":"12655","E2-DE":"12473"}},
+  {"f":"RB-80","n":2,"t":{"EST-E":"13444","EST-D":"13203","E1-EE":"11227","E1-EI":"12573","E1-DI":"11984","E1-DE":"11944","E2-EE":"13742","E2-EI":"12945","E2-DI":"13036","E2-DE":"12657"}},
+  {"f":"RB-81","n":2,"t":{"EST-E":"10306","EST-D":"13203","E1-EE":"12703","E1-EI":"11803","E1-DI":"12518","E1-DE":"13489","E2-EE":"13094","E2-EI":"12353","E2-DI":"14184","E2-DE":"13877"}},
+  {"f":"RB-82","n":2,"t":{"EST-E":"10942","EST-D":"12243","E1-EE":"12047","E1-EI":"12048","E1-DI":"13245","E1-DE":"12027","E2-EE":"13441","E2-EI":"12040","E2-DI":"12396","E2-DE":"12419"}},
+  {"f":"RB-83","n":2,"t":{"EST-E":"10942","EST-D":"12243","E1-EE":"12414","E1-EI":"11540","E1-DI":"12707","E1-DE":"12716","E2-EE":"11183","E2-EI":"10266","E2-DI":"13864","E2-DE":"13865"}},
+  {"f":"RB-84","n":2,"t":{"EST-E":"9751","EST-D":"10026","E1-EE":"11231","E1-EI":"11479","E1-DI":"12446","E1-DE":"11788","E2-EE":"12355","E2-EI":"12905","E2-DI":"13367","E2-DE":"11939"}},
+  {"f":"RB-85","n":2,"t":{"EST-E":"656","EST-D":"3737","E1-EE":"12184","E1-EI":"10145","E1-DI":"11458","E1-DE":"12575","E2-EE":"13271","E2-EI":"13272","E2-DI":"12622","E2-DE":"12621"}},
+  {"f":"RB-86","n":2,"t":{"EST-E":"11270","EST-D":"10916","E1-EE":"13766","E1-EI":"12436","E1-DI":"12674","E1-DE":"11598","E2-EE":"12584","E2-EI":"10795","E2-DI":"14329","E2-DE":"12589"}},
+  {"f":"RB-87","n":2,"t":{"EST-E":"11270","EST-D":"10916","E1-EE":"11639","E1-EI":"11641","E1-DI":"11557","E1-DE":"11475","E2-EE":"12487","E2-EI":"12486","E2-DI":"13355","E2-DE":"13585"}},
+  {"f":"RB-88","n":2,"t":{"EST-E":"10858","EST-D":"13903","E1-EE":"12975","E1-EI":"12587","E1-DI":"12178","E1-DE":"12279","E2-EE":"13789","E2-EI":"12681","E2-DI":"12974","E2-DE":"12973"}},
+  {"f":"RB-89","n":2,"t":{"EST-E":"10858","EST-D":"11607","E1-EE":"12569","E1-EI":"12092","E1-DI":"11609","E1-DE":"11640","E2-EE":"13331","E2-EI":"13098","E2-DI":"12029","E2-DE":"12499"}},
+  {"f":"RB-90","n":2,"t":{"EST-E":"9530","EST-D":"8823","E1-EE":"12710","E1-EI":"12316","E1-DI":"13061","E1-DE":"12643","E2-EE":"12538","E2-EI":"12538","E2-DI":"13124","E2-DE":"12022"}},
+  {"f":"RB-91","n":2,"t":{"EST-E":"9530","EST-D":"8823","E1-EE":"11738","E1-EI":"13169","E1-DI":"12417","E1-DE":"14012","E2-EE":"14272","E2-EI":"14280","E2-DI":"12163","E2-DE":"12350"}},
+  {"f":"RB-93","n":3,"t":{"EST-E":"13403","EST-D":"","E1-EE":"14113","E1-EI":"14112","E1-DI":"14111","E1-DE":"14110","E2-EE":"14100","E2-EI":"14101","E2-DI":"14103","E2-DE":"14102","E3-EE":"14104","E3-EI":"14105","E3-DI":"14107","E3-DE":"14106"}},
+  {"f":"RB-94","n":3,"t":{"EST-E":"","EST-D":"10699","E1-EE":"11324","E1-EI":"10937","E1-DI":"11854","E1-DE":"11315","E2-EE":"12194","E2-EI":"12192","E2-DI":"12169","E2-DE":"13050","E3-EE":"12995","E3-EI":"12990","E3-DI":"12991","E3-DE":"13023"}},
+  {"f":"RB-96","n":3,"t":{"EST-E":"18369","EST-D":"18369","E1-EE":"12269","E1-EI":"12906","E1-DI":"12303","E1-DE":"13673","E2-EE":"14443","E2-EI":"14442","E2-DI":"11800","E2-DE":"11801","E3-EE":"13992","E3-EI":"13991","E3-DI":"14192","E3-DE":"13419"}},
+  {"f":"RB-97","n":3,"t":{"EST-E":"11178","EST-D":"11178","E1-EE":"12384","E1-EI":"12336","E1-DI":"11506","E1-DE":"13012","E2-EE":"11980","E2-EI":"12195","E2-DI":"12382","E2-DE":"12721","E3-EE":"13998","E3-EI":"13995","E3-DI":"14106","E3-DE":"13993"}},
+  {"f":"RB-98","n":3,"t":{"EST-E":"14478","EST-D":"","E1-EE":"12582","E1-EI":"12956","E1-DI":"12877","E1-DE":"14203","E2-EE":"14276","E2-EI":"14763","E2-DI":"12896","E2-DE":"12895","E3-EE":"14418","E3-EI":"14419","E3-DI":"14130","E3-DE":"14131"}},
+  {"f":"RB-99","n":3,"t":{"EST-E":"","EST-D":"10058","E1-EE":"12803","E1-EI":"12892","E1-DI":"13290","E1-DE":"13015","E2-EE":"14492","E2-EI":"14493","E2-DI":"14270","E2-DE":"14273","E3-EE":"13824","E3-EI":"13823","E3-DI":"13831","E3-DE":"13830"}},
+  {"f":"RB-100","n":3,"t":{"EST-E":"243","EST-D":"10215","E1-EE":"13262","E1-EI":"12087","E1-DI":"12791","E1-DE":"13436","E2-EE":"13555","E2-EI":"13769","E2-DI":"13906","E2-DE":"14124","E3-EE":"14437","E3-EI":"14317","E3-DI":"14579","E3-DE":"14578"}},
+  {"f":"RB-101","n":3,"t":{"EST-E":"11603","EST-D":"","E1-EE":"13032","E1-EI":"12136","E1-DI":"12588","E1-DE":"12682","E2-EE":"14127","E2-EI":"12860","E2-DI":"14174","E2-DE":"13994","E3-EE":"14266","E3-EI":"14267","E3-DI":"14244","E3-DE":"14249"}},
+  {"f":"RB-102","n":3,"t":{"EST-E":"","EST-D":"12893","E1-EE":"12259","E1-EI":"11675","E1-DI":"12610","E1-DE":"12745","E2-EE":"13854","E2-EI":"13857","E2-DI":"12463","E2-DE":"11857","E3-EE":"13961","E3-EI":"13962","E3-DI":"13699","E3-DE":"13999"}},
+  {"f":"RB-103","n":3,"t":{"EST-E":"11391","EST-D":"","E1-EE":"13038","E1-EI":"12357","E1-DI":"13734","E1-DE":"13728","E2-EE":"12605","E2-EI":"12644","E2-DI":"12901","E2-DE":"12000","E3-EE":"13825","E3-EI":"14134","E3-DI":"12189","E3-DE":"12783"}},
+  {"f":"RB-105","n":3,"t":{"EST-E":"11269","EST-D":"13401","E1-EE":"13668","E1-EI":"13902","E1-DI":"13761","E1-DE":"13274","E2-EE":"13443","E2-EI":"13382","E2-DI":"13447","E2-DE":"13359","E3-EE":"14439","E3-EI":"14455","E3-DI":"12275","E3-DE":"14070"}},
+  {"f":"RB-106","n":3,"t":{"EST-E":"11269","EST-D":"13401","E1-EE":"12036","E1-EI":"13898","E1-DI":"12227","E1-DE":"12355","E2-EE":"13837","E2-EI":"13836","E2-DI":"13385","E2-DE":"13384","E3-EE":"12874","E3-EI":"13884","E3-DI":"14253","E3-DE":"14255"}},
+  {"f":"RB-107","n":3,"t":{"EST-E":"11348","EST-D":"12108","E1-EE":"12799","E1-EI":"12783","E1-DI":"12105","E1-DE":"13328","E2-EE":"13354","E2-EI":"13357","E2-DI":"14136","E2-DE":"13986","E3-EE":"14210","E3-EI":"14209","E3-DI":"12859","E3-DE":"14062"}},
+  {"f":"RB-108","n":3,"t":{"EST-E":"11359","EST-D":"12108","E1-EE":"12671","E1-EI":"12519","E1-DI":"12314","E1-DE":"12392","E2-EE":"13879","E2-EI":"13656","E2-DI":"13079","E2-DE":"13080","E3-EE":"14207","E3-EI":"14208","E3-DI":"14258","E3-DE":"14257"}},
+  {"f":"RB-109","n":3,"t":{"EST-E":"13291","EST-D":"13680","E1-EE":"12278","E1-EI":"12274","E1-DI":"13177","E1-DE":"13181","E2-EE":"13570","E2-EI":"13582","E2-DI":"14306","E2-DE":"14305","E3-EE":"14440","E3-EI":"14399","E3-DI":"14508","E3-DE":"14507"}},
+  {"f":"RB-110","n":3,"t":{"EST-E":"13681","EST-D":"9426","E1-EE":"13905","E1-EI":"12087","E1-DI":"12791","E1-DE":"13436","E2-EE":"13906","E2-EI":"12603","E2-DI":"12161","E2-DE":"12157","E3-EE":"12803","E3-EI":"12813","E3-DI":"12515","E3-DE":"13362"}},
+  {"f":"RB-111","n":3,"t":{"EST-E":"13579","EST-D":"10185","E1-EE":"13108","E1-EI":"12187","E1-DI":"12023","E1-DE":"11642","E2-EE":"13623","E2-EI":"13313","E2-DI":"13809","E2-DE":"13812","E3-EE":"14431","E3-EI":"14191","E3-DI":"14095","E3-DE":"13976"}},
+  {"f":"RB-112","n":3,"t":{"EST-E":"9553","EST-D":"11000","E1-EE":"12093","E1-EI":"12464","E1-DI":"12177","E1-DE":"12540","E2-EE":"11842","E2-EI":"13191","E2-DI":"14239","E2-DE":"14281","E3-EE":"14417","E3-EI":"14416","E3-DI":"13972","E3-DE":"13745"}},
+  {"f":"RB-113","n":3,"t":{"EST-E":"11197","EST-D":"13404","E1-EE":"12743","E1-EI":"12744","E1-DI":"11768","E1-DE":"13075","E2-EE":"11856","E2-EI":"12912","E2-DI":"13445","E2-DE":"13102","E3-EE":"14285","E3-EI":"14252","E3-DI":"14325","E3-DE":"14320"}},
+  {"f":"RB-114","n":3,"t":{"EST-E":"12361","EST-D":"12204","E1-EE":"12772","E1-EI":"11985","E1-DI":"13773","E1-DE":"13099","E2-EE":"12973","E2-EI":"13954","E2-DI":"11884","E2-DE":"11840","E3-EE":"13736","E3-EI":"13828","E3-DI":"14583","E3-DE":"14423"}},
+  {"f":"RB-115","n":3,"t":{"EST-E":"9776","EST-D":"8909","E1-EE":"13567","E1-EI":"12315","E1-DI":"12738","E1-DE":"13221","E2-EE":"12804","E2-EI":"13424","E2-DI":"13611","E2-DE":"12451","E3-EE":"14695","E3-EI":"14694","E3-DI":"14692","E3-DE":"14693"}},
+  {"f":"RB-116","n":3,"t":{"EST-E":"7210","EST-D":"11949","E1-EE":"12866","E1-EI":"13448","E1-DI":"12813","E1-DE":"12352","E2-EE":"13702","E2-EI":"13122","E2-DI":"12968","E2-DE":"13365","E3-EE":"12316","E3-EI":"13713","E3-DI":"12958","E3-DE":"14394"}},
+  {"f":"RB-117","n":3,"t":{"EST-E":"Estepe agr.","EST-D":"Estepe agr.","E1-EE":"12700","E1-EI":"12699","E1-DI":"12170","E1-DE":"12327","E2-EE":"13409","E2-EI":"13367","E2-DI":"12867","E2-DE":"13885","E3-EE":"14309","E3-EI":"14310","E3-DI":"14067","E3-DE":"14066"}},
+  {"f":"RB-118","n":3,"t":{"EST-E":"13609","EST-D":"","E1-EE":"12349","E1-EI":"12198","E1-DI":"13801","E1-DE":"12885","E2-EE":"12987","E2-EI":"12986","E2-DI":"13771","E2-DE":"12916","E3-EE":"14126","E3-EI":"12351","E3-DI":"14264","E3-DE":"14284"}},
+  {"f":"RB-119","n":3,"t":{"EST-E":"","EST-D":"12268","E1-EE":"12239","E1-EI":"12241","E1-DI":"12672","E1-DE":"13006","E2-EE":"13107","E2-EI":"12191","E2-DI":"12786","E2-DE":"12792","E3-EE":"14278","E3-EI":"14257","E3-DI":"14326","E3-DE":"14324"}},
+  {"f":"RB-121","n":3,"t":{"EST-E":"11365","EST-D":"8959","E1-EE":"12346","E1-EI":"12264","E1-DI":"12966","E1-DE":"13161","E2-EE":"13413","E2-EI":"11855","E2-DI":"12033","E2-DE":"12319","E3-EE":"12380","E3-EI":"12367","E3-DI":"11939","E3-DE":"13432"}},
+  {"f":"RB-122","n":3,"t":{"EST-E":"11704","EST-D":"9661","E1-EE":"12997","E1-EI":"13025","E1-DI":"11630","E1-DE":"11628","E2-EE":"11756","E2-EI":"11734","E2-DI":"13016","E2-DE":"13019","E3-EE":"13971","E3-EI":"13716","E3-DI":"13016","E3-DE":"13015"}},
+  {"f":"RB-125","n":3,"t":{"EST-E":"7842","EST-D":"12411","E1-EE":"11746","E1-EI":"13402","E1-DI":"13911","E1-DE":"12846","E2-EE":"13446","E2-EI":"12872","E2-DI":"11489","E2-DE":"11940","E3-EE":"11784","E3-EI":"11775","E3-DI":"12001","E3-DE":"12002"}},
+  {"f":"RB-126","n":3,"t":{"EST-E":"11571","EST-D":"11068","E1-EE":"13103","E1-EI":"12371","E1-DI":"12609","E1-DE":"12818","E2-EE":"11767","E2-EI":"12297","E2-DI":"13087","E2-DE":"12679","E3-EE":"12557","E3-EI":"12559","E3-DI":"12982","E3-DE":"12983"}},
+  {"f":"RB-127","n":3,"t":{"EST-E":"12011","EST-D":"10092","E1-EE":"13101","E1-EI":"13752","E1-DI":"11754","E1-DE":"11067","E2-EE":"13311","E2-EI":"12465","E2-DI":"11772","E2-DE":"11764","E3-EE":"12166","E3-EI":"13378","E3-DI":"12517","E3-DE":"11525"}},
+  {"f":"RB-128","n":3,"t":{"EST-E":"8932","EST-D":"9597","E1-EE":"12373","E1-EI":"12046","E1-DI":"12785","E1-DE":"12725","E2-EE":"11921","E2-EI":"12469","E2-DI":"13405","E2-DE":"11859","E3-EE":"13600","E3-EI":"11405","E3-DI":"12762","E3-DE":"12934"}},
+  {"f":"RB-131","n":3,"t":{"EST-E":"12167","EST-D":"11735","E1-EE":"13407","E1-EI":"12221","E1-DI":"13350","E1-DE":"13013","E2-EE":"13762","E2-EI":"13959","E2-DI":"13888","E2-DE":"13893","E3-EE":"13798","E3-EI":"13799","E3-DI":"13979","E3-DE":"13980"}},
+  {"f":"RB-136","n":2,"t":{"EST-E":"9182","EST-D":"12320","E1-EE":"11888","E1-EI":"11889","E1-DI":"167","E1-DE":"12025","E2-EE":"14261","E2-EI":"13273","E2-DI":"13093","E2-DE":"13096"}},
+  {"f":"RB-137","n":2,"t":{"EST-E":"9182","EST-D":"12320","E1-EE":"11656","E1-EI":"11826","E1-DI":"12250","E1-DE":"12049","E2-EE":"12600","E2-EI":"12388","E2-DI":"13281","E2-DE":"12326"}},
+  {"f":"RB-138","n":3,"t":{"EST-E":"11190","EST-D":"12253","E1-EE":"12100","E1-EI":"12019","E1-DI":"12680","E1-DE":"11845","E2-EE":"12317","E2-EI":"13695","E2-DI":"12632","E2-DE":"12505","E3-EE":"12870","E3-EI":"13167","E3-DI":"13585","E3-DE":"13583"}},
+  {"f":"RB-139","n":3,"t":{"EST-E":"11190","EST-D":"12253","E1-EE":"13296","E1-EI":"13292","E1-DI":"12337","E1-DE":"11998","E2-EE":"12998","E2-EI":"14533","E2-DI":"13895","E2-DE":"13901","E3-EE":"12424","E3-EI":"12426","E3-DI":"14487","E3-DE":"14488"}},
+  {"f":"RB-140","n":3,"t":{"EST-E":"10214","EST-D":"12183","E1-EE":"13332","E1-EI":"11909","E1-DI":"11650","E1-DE":"13362","E2-EE":"11757","E2-EI":"11553","E2-DI":"11782","E2-DE":"","E3-EE":"14133","E3-EI":"14132","E3-DI":"14505","E3-DE":"14495"}},
+  {"f":"RB-141","n":3,"t":{"EST-E":"10214","EST-D":"12183","E1-EE":"14147","E1-EI":"12915","E1-DI":"12612","E1-DE":"12648","E2-EE":"12781","E2-EI":"11974","E2-DI":"12911","E2-DE":"12356","E3-EE":"14504","E3-EI":"14506","E3-DI":"14666","E3-DE":"14667"}},
+  {"f":"RB-143","n":3,"t":{"EST-E":"","EST-D":"","E1-EE":"13861","E1-EI":"12496","E1-DI":"12313","E1-DE":"13088","E2-EE":"14456","E2-EI":"14454","E2-DI":"13576","E2-DE":"13575","E3-EE":"13964","E3-EI":"13963","E3-DI":"13834","E3-DE":"13855"}},
+  {"f":"RB-144","n":3,"t":{"EST-E":"11222","EST-D":"","E1-EE":"12957","E1-EI":"13360","E1-DI":"13431","E1-DE":"11802","E2-EE":"12816","E2-EI":"12815","E2-DI":"13760","E2-DE":"13614","E3-EE":"14453","E3-EI":"14452","E3-DI":"12653","E3-DE":"12664"}},
+  {"f":"RB-145","n":3,"t":{"EST-E":"58597","EST-D":"12128","E1-EE":"12603","E1-EI":"12760","E1-DI":"13391","E1-DE":"13334","E2-EE":"14390","E2-EI":"14265","E2-DI":"13150","E2-DE":"13765","E3-EE":"13955","E3-EI":"13956","E3-DI":"13381","E3-DE":"13380"}},
+  {"f":"RB-146","n":3,"t":{"EST-E":"58597","EST-D":"12128","E1-EE":"11890","E1-EI":"11660","E1-DI":"12905","E1-DE":"12939","E2-EE":"13692","E2-EI":"13686","E2-DI":"13689","E2-DE":"13690","E3-EE":"14268","E3-EI":"14271","E3-DI":"13975","E3-DE":"13974"}},
+  {"f":"RB-147","n":3,"t":{"EST-E":"10582","EST-D":"11438","E1-EE":"12678","E1-EI":"13332","E1-DI":"13422","E1-DE":"13425","E2-EE":"13573","E2-EI":"12571","E2-DI":"14234","E2-DE":"14582","E3-EE":"14572","E3-EI":"14573","E3-DI":"14571","E3-DE":"14570"}},
+  {"f":"RB-148","n":3,"t":{"EST-E":"10582","EST-D":"13325","E1-EE":"12857","E1-EI":"12188","E1-DI":"12045","E1-DE":"12645","E2-EE":"13177","E2-EI":"13189","E2-DI":"12942","E2-DE":"12174","E3-EE":"13949","E3-EI":"13950","E3-DI":"13546","E3-DE":"13574"}},
+  {"f":"RB-149","n":3,"t":{"EST-E":"5306","EST-D":"8156","E1-EE":"12379","E1-EI":"13488","E1-DI":"12445","E1-DE":"13005","E2-EE":"11363","E2-EI":"13587","E2-DI":"11862","E2-DE":"13855","E3-EE":"12013","E3-EI":"12685","E3-DI":"13045","E3-DE":"13628"}},
+  {"f":"RB-150","n":3,"t":{"EST-E":"9708","EST-D":"205110","E1-EE":"13323","E1-EI":"11633","E1-DI":"12690","E1-DE":"12715","E2-EE":"11531","E2-EI":"12472","E2-DI":"11872","E2-DE":"13280","E3-EE":"13235","E3-EI":"13236","E3-DI":"14146","E3-DE":"13984"}},
+  {"f":"RB-151","n":3,"t":{"EST-E":"11382","EST-D":"12431","E1-EE":"11724","E1-EI":"11729","E1-DI":"13619","E1-DE":"13672","E2-EE":"14415","E2-EI":"11732","E2-DI":"11728","E2-DE":"13833","E3-EE":"13687","E3-EI":"13746","E3-DI":"14307","E3-DE":"14308"}},
+  {"f":"RB-152","n":3,"t":{"EST-E":"11382","EST-D":"12431","E1-EE":"11385","E1-EI":"11474","E1-DI":"12385","E1-DE":"12159","E2-EE":"14395","E2-EI":"14396","E2-DI":"14585","E2-DE":"14584","E3-EE":"14180","E3-EI":"14179","E3-DI":"14400","E3-DE":"14182"}},
+  {"f":"RB-153","n":3,"t":{"EST-E":"10673","EST-D":"","E1-EE":"12026","E1-EI":"12225","E1-DI":"13890","E1-DE":"13891","E2-EE":"12892","E2-EI":"13889","E2-DI":"13548","E2-DE":"13581","E3-EE":"13586","E3-EI":"13584","E3-DI":"13960","E3-DE":"13959"}},
+  {"f":"RB-154","n":3,"t":{"EST-E":"10673","EST-D":"11010","E1-EE":"12160","E1-EI":"12336","E1-DI":"12270","E1-DE":"11976","E2-EE":"12766","E2-EI":"12030","E2-DI":"13210","E2-DE":"13566","E3-EE":"14250","E3-EI":"14238","E3-DI":"14024","E3-DE":"14340"}},
+  {"f":"RB-155","n":3,"t":{"EST-E":"11054","EST-D":"10596","E1-EE":"13104","E1-EI":"12043","E1-DI":"12812","E1-DE":"13097","E2-EE":"13429","E2-EI":"13569","E2-DI":"14277","E2-DE":"14232","E3-EE":"13372","E3-EI":"13373","E3-DI":"13957","E3-DE":"13958"}},
+  {"f":"RB-156","n":3,"t":{"EST-E":"11054","EST-D":"10596","E1-EE":"12228","E1-EI":"12226","E1-DI":"11777","E1-DE":"11779","E2-EE":"13917","E2-EI":"13916","E2-DI":"12977","E2-DE":"13697","E3-EE":"14269","E3-EI":"14247","E3-DI":"13577","E3-DE":"13548"}},
+  {"f":"RB-157","n":3,"t":{"EST-E":"11556","EST-D":"","E1-EE":"12777","E1-EI":"12780","E1-DI":"12775","E1-DE":"12779","E2-EE":"12767","E2-EI":"12778","E2-DI":"12764","E2-DE":"12763","E3-EE":"14200","E3-EI":"12199","E3-DI":"14201","E3-DE":"14202"}},
+  {"f":"RB-158","n":3,"t":{"EST-E":"11556","EST-D":"10912","E1-EE":"11982","E1-EI":"11577","E1-DI":"13360","E1-DE":"12976","E2-EE":"14181","E2-EI":"14402","E2-DI":"14446","E2-DE":"14447","E3-EE":"13862","E3-EI":"12776","E3-DI":"14476","E3-DE":"14475"}},
+  {"f":"RB-159","n":3,"t":{"EST-E":"10343","EST-D":"11116","E1-EE":"12099","E1-EI":"12276","E1-DI":"13085","E1-DE":"12765","E2-EE":"13967","E2-EI":"13997","E2-DI":"13564","E2-DE":"13563","E3-EE":"13969","E3-EI":"13968","E3-DI":"13971","E3-DE":"13952"}},
+  {"f":"RB-160","n":3,"t":{"EST-E":"13580","EST-D":"11116","E1-EE":"13800","E1-EI":"12571","E1-DI":"12325","E1-DE":"12328","E2-EE":"12735","E2-EI":"12733","E2-DI":"13428","E2-DE":"13426","E3-EE":"13640","E3-EI":"13641","E3-DI":"13560","E3-DE":"13553"}},
+  {"f":"RB-161","n":3,"t":{"EST-E":"11058","EST-D":"312","E1-EE":"14145","E1-EI":"12742","E1-DI":"14144","E1-DE":"14076","E2-EE":"13550","E2-EI":"13549","E2-DI":"13556","E2-DE":"13557","E3-EE":"14596","E3-EI":"14597","E3-DI":"14613","E3-DE":"14598"}},
+  {"f":"RB-162","n":3,"t":{"EST-E":"11058","EST-D":"13627","E1-EE":"12101","E1-EI":"12902","E1-DI":"12372","E1-DE":"12102","E2-EE":"13912","E2-EI":"13913","E2-DI":"12759","E2-DE":"12761","E3-EE":"13688","E3-EI":"13683","E3-DI":"14401","E3-DE":"14438"}},
+  {"f":"RB-163","n":3,"t":{"EST-E":"11716","EST-D":"13730","E1-EE":"12190","E1-EI":"12375","E1-DI":"13383","E1-DE":"13352","E2-EE":"13392","E2-EI":"13393","E2-DI":"13481","E2-DE":"13482","E3-EE":"14497","E3-EI":"14513","E3-DI":"14511","E3-DE":"14512"}},
+  {"f":"RB-164","n":3,"t":{"EST-E":"11716","EST-D":"13730","E1-EE":"13509","E1-EI":"12985","E1-DI":"13694","E1-DE":"12318","E2-EE":"14509","E2-EI":"14510","E2-DI":"13421","E2-DE":"13420","E3-EE":"13165","E3-EI":"13166","E3-DI":"14580","E3-DE":"14581"}},
+  {"f":"RB-165","n":3,"t":{"EST-E":"11463","EST-D":"11513","E1-EE":"14143","E1-EI":"14142","E1-DI":"11871","E1-DE":"11756","E2-EE":"12913","E2-EI":"12910","E2-DI":"14026","E2-DE":"14323","E3-EE":"14316","E3-EI":"14315","E3-DI":"14494","E3-DE":"14489"}},
+  {"f":"RB-166","n":3,"t":{"EST-E":"10854","EST-D":"11024","E1-EE":"11745","E1-EI":"11869","E1-DI":"12457","E1-DE":"12412","E2-EE":"12224","E2-EI":"12415","E2-DI":"11537","E2-DE":"12408","E3-EE":"13696","E3-EI":"13682","E3-DI":"12965","E3-DE":"12197"}},
+  {"f":"RB-167","n":2,"t":{"EST-E":"11492","EST-D":"13253","E1-EE":"12057","E1-EI":"12133","E1-DI":"12042","E1-DE":"12422","E2-EE":"13039","E2-EI":"12556","E2-DI":"13706","E2-DE":"13796"}},
+  {"f":"RB-168","n":2,"t":{"EST-E":"","EST-D":"12133","E1-EE":"13387","E1-EI":"12574","E1-DI":"13303","E1-DE":"13298","E2-EE":"12770","E2-EI":"12058","E2-DI":"12489","E2-DE":"12420"}},
+  {"f":"RB-169","n":2,"t":{"EST-E":"11894","EST-D":"","E1-EE":"12774","E1-EI":"13063","E1-DI":"13053","E1-DE":"13774","E2-EE":"14135","E2-EI":"12884","E2-DI":"13547","E2-DE":"13544"}},
+  {"f":"RB-170","n":2,"t":{"EST-E":"","EST-D":"11236","E1-EE":"12256","E1-EI":"12255","E1-DI":"13272","E1-DE":"12971","E2-EE":"12876","E2-EI":"12737","E2-DI":"12577","E2-DE":"12614"}},
+  {"f":"RB-171","n":2,"t":{"EST-E":"11027","EST-D":"","E1-EE":"11647","E1-EI":"12435","E1-DI":"12410","E1-DE":"11311","E2-EE":"13353","E2-EI":"13568","E2-DI":"13596","E2-DE":"12842"}},
+  {"f":"RB-172","n":2,"t":{"EST-E":"11027","EST-D":"","E1-EE":"12114","E1-EI":"12638","E1-DI":"13677","E1-DE":"11817","E2-EE":"13095","E2-EI":"14441","E2-DI":"12391","E2-DE":"11973"}},
+  {"f":"RB-173","n":2,"t":{"EST-E":"","EST-D":"12223","E1-EE":"12839","E1-EI":"12840","E1-DI":"11902","E1-DE":"11326","E2-EE":"12193","E2-EI":"12841","E2-DI":"12476","E2-DE":"11573"}},
+  {"f":"RB-174","n":2,"t":{"EST-E":"","EST-D":"12223","E1-EE":"12126","E1-EI":"12899","E1-DI":"12695","E1-DE":"12698","E2-EE":"14195","E2-EI":"14075","E2-DI":"13658","E2-DE":"13010"}},
+  {"f":"RB-175","n":3,"t":{"EST-E":"13263","EST-D":"13740","E1-EE":"13111","E1-EI":"13112","E1-DI":"13115","E1-DE":"13116","E2-EE":"13114","E2-EI":"13113","E2-DI":"13110","E2-DE":"13109","E3-EE":"14196","E3-EI":"13973","E3-DI":"12862","E3-DE":"12863"}},
+  {"f":"RB-176","n":3,"t":{"EST-E":"13263","EST-D":"13718","E1-EE":"13127","E1-EI":"13121","E1-DI":"13125","E1-DE":"13117","E2-EE":"13120","E2-EI":"13988","E2-DI":"13119","E2-DE":"13126","E3-EE":"14669","E3-EI":"14668","E3-DI":"14670","E3-DE":"14671"}},
+  {"f":"RB-177","n":3,"t":{"EST-E":"","EST-D":"","E1-EE":"13222","E1-EI":"13227","E1-DI":"13228","E1-DE":"13226","E2-EE":"13224","E2-EI":"13217","E2-DI":"13225","E2-DE":"13218","E3-EE":"13691","E3-EI":"13776","E3-DI":"13666","E3-DE":"13661"}},
+  {"f":"RB-178","n":3,"t":{"EST-E":"","EST-D":"11785","E1-EE":"13216","E1-EI":"13215","E1-DI":"13205","E1-DE":"13206","E2-EE":"13214","E2-EI":"13213","E2-DI":"13207","E2-DE":"13208","E3-EE":"13212","E3-EI":"13211","E3-DI":"14248","E3-DE":"14233"}},
+  {"f":"RB-179","n":3,"t":{"EST-E":"","EST-D":"11644","E1-EE":"13246","E1-EI":"13252","E1-DI":"14250","E1-DE":"14206","E2-EE":"13243","E2-EI":"13247","E2-DI":"13250","E2-DE":"13244","E3-EE":"13242","E3-EI":"13251","E3-DI":"13307","E3-DE":"12959"}},
+  {"f":"RB-180","n":3,"t":{"EST-E":"","EST-D":"11644","E1-EE":"13230","E1-EI":"13234","E1-DI":"13231","E1-DE":"13229","E2-EE":"13232","E2-EI":"13240","E2-DI":"13239","E2-DE":"13238","E3-EE":"13233","E3-EI":"13237","E3-DI":"14672","E3-DE":"14673"}},
+  {"f":"RB-181","n":3,"t":{"EST-E":"","EST-D":"12321","E1-EE":"13173","E1-EI":"13176","E1-DI":"13175","E1-DE":"13174","E2-EE":"14322","E2-EI":"14318","E2-DI":"14204","E2-DE":"12999","E3-EE":"14567","E3-EI":"14566","E3-DI":"14568","E3-DE":"14569"}},
+  {"f":"RB-182","n":3,"t":{"EST-E":"","EST-D":"12321","E1-EE":"13196","E1-EI":"13195","E1-DI":"13185","E1-DE":"13186","E2-EE":"13193","E2-EI":"13194","E2-DI":"14321","E2-DE":"14319","E3-EE":"13192","E3-EI":"13145","E3-DI":"14178","E3-DE":"14177"}},
+  {"f":"RB-183","n":3,"t":{"EST-E":"9913","EST-D":"10317","E1-EE":"13160","E1-EI":"13159","E1-DI":"13685","E1-DE":"13684","E2-EE":"13158","E2-EI":"13157","E2-DI":"13151","E2-DE":"13152","E3-EE":"13156","E3-EI":"13155","E3-DI":"13143","E3-DE":"12858"}},
+  {"f":"RB-184","n":3,"t":{"EST-E":"13264","EST-D":"12994","E1-EE":"13138","E1-EI":"13137","E1-DI":"13149","E1-DE":"13148","E2-EE":"13140","E2-EI":"13139","E2-DI":"13147","E2-DE":"13146","E3-EE":"13142","E3-EI":"13141","E3-DI":"14496","E3-DE":"14498"}},
+  {"f":"RB-185","n":3,"t":{"EST-E":"11452","EST-D":"13954","E1-EE":"10751","E1-EI":"13858","E1-DI":"12164","E1-DE":"11993","E2-EE":"13040","E2-EI":"13758","E2-DI":"13418","E2-DE":"13595","E3-EE":"12523","E3-EI":"12568","E3-DI":"12590","E3-DE":"12758"}},
+  {"f":"RB-186","n":3,"t":{"EST-E":"","EST-D":"9674","E1-EE":"13451","E1-EI":"12097","E1-DI":"11279","E1-DE":"11878","E2-EE":"13852","E2-EI":"13667","E2-DI":"11739","E2-DE":"11744","E3-EE":"13295","E3-EI":"13438","E3-DI":"13406","E3-DE":"11723"}},
+  {"f":"RB-187","n":3,"t":{"EST-E":"","EST-D":"","E1-EE":"13504","E1-EI":"13505","E1-DI":"13495","E1-DE":"13494","E2-EE":"13502","E2-EI":"13503","E2-DI":"13723","E2-DE":"13721","E3-EE":"13500","E3-EI":"13501","E3-DI":"13499","E3-DE":"13498"}},
+  {"f":"RB-188","n":3,"t":{"EST-E":"","EST-D":"","E1-EE":"13458","E1-EI":"13483","E1-DI":"13492","E1-DE":"13485","E2-EE":"13480","E2-EI":"13486","E2-DI":"13491","E2-DE":"13493","E3-EE":"13508","E3-EI":"13507","E3-DI":"13506","E3-DE":"13487"}},
+  {"f":"RB-189","n":3,"t":{"EST-E":"13321","EST-D":"","E1-EE":"13543","E1-EI":"13542","E1-DI":"13533","E1-DE":"13532","E2-EE":"13537","E2-EI":"13536","E2-DI":"13534","E2-DE":"13535","E3-EE":"13539","E3-EI":"13538","E3-DI":"13541","E3-DE":"13540"}},
+  {"f":"RB-190","n":3,"t":{"EST-E":"13321","EST-D":"","E1-EE":"13530","E1-EI":"13531","E1-DI":"13529","E1-DE":"13528","E2-EE":"13517","E2-EI":"13484","E2-DI":"13512","E2-DE":"13511","E3-EE":"13514","E3-EI":"13513","E3-DI":"13515","E3-DE":"13516"}},
+  {"f":"RB-191","n":4,"t":{"EST-E":"","EST-D":"11992","E1-EE":"14183","E1-EI":"14000","E1-DI":"14411","E1-DE":"14128","E2-EE":"14183","E2-EI":"14000","E2-DI":"14313","E2-DE":"13620","E3-EE":"13615","E3-EI":"14412","E3-DI":"13622","E3-DE":"13621","E4-EE":"14639","E4-EI":"14540","E4-DI":"13616","E4-DE":"14414"}},
+  {"f":"RB-192","n":4,"t":{"EST-E":"11712","EST-D":"11712","E1-EE":"13648","E1-EI":"13650","E1-DI":"13649","E1-DE":"13655","E2-EE":"13644","E2-EI":"14071","E2-DI":"13645","E2-DE":"13655","E3-EE":"13659","E3-EI":"13658","E3-DI":"14236","E3-DE":"14237","E4-EE":"13654","E4-EI":"13653","E4-DI":"14236","E4-DE":"14237"}},
+  {"f":"RB-195","n":3,"t":{"EST-E":"13052","EST-D":"","E1-EE":"14121","E1-EI":"14120","E1-DI":"14118","E1-DE":"14119","E2-EE":"14086","E2-EI":"14083","E2-DI":"14082","E2-DE":"14080","E3-EE":"14079","E3-EI":"14081","E3-DI":"14078","E3-DE":"14060"}},
+  {"f":"RB-196","n":3,"t":{"EST-E":"12625","EST-D":"","E1-EE":"13572","E1-EI":"13652","E1-DI":"14122","E1-DE":"14123","E2-EE":"14063","E2-EI":"13996","E2-DI":"14089","E2-DE":"13989","E3-EE":"14087","E3-EI":"14088","E3-DI":"14092","E3-DE":"14085"}},
+  {"f":"RBL-197","n":3,"t":{"EST-E":"12904","EST-D":"","E1-EE":"12934","E1-EI":"10671","E1-DI":"12708","E1-DE":"12500","E2-EE":"14284","E2-EI":"14271","E2-DI":"14252","E2-DE":"14264","E3-EE":"14281","E3-EI":"14280","E3-DI":"14262","E3-DE":"14263"}},
+  {"f":"RBL-198","n":3,"t":{"EST-E":"12904","EST-D":"14004","E1-EE":"12614","E1-EI":"11405","E1-DI":"12581","E1-DE":"12573","E2-EE":"14273","E2-EI":"14272","E2-DI":"14268","E2-DE":"14276","E3-EE":"14269","E3-EI":"14247","E3-DI":"14288","E3-DE":"14270"}},
+  {"f":"RBL-199","n":3,"t":{"EST-E":"","EST-D":"","E1-EE":"12197","E1-EI":"12965","E1-DI":"12020","E1-DE":"12352","E2-EE":"14240","E2-EI":"14241","E2-DI":"14238","E2-DE":"14250","E3-EE":"14239","E3-EI":"14285","E3-DI":"14243","E3-DE":"14259"}},
+  {"f":"RB-200","n":4,"t":{"EST-E":"","EST-D":"13733","E1-EE":"14344","E1-EI":"14343","E1-DI":"14342","E1-DE":"14341","E2-EE":"14348","E2-EI":"14347","E2-DI":"14345","E2-DE":"14346","E3-EE":"14352","E3-EI":"14351","E3-DI":"14349","E3-DE":"14350","E4-EE":"14356","E4-EI":"14355","E4-DI":"14354","E4-DE":"14353"}},
+  {"f":"RB-201","n":4,"t":{"EST-E":"12514","EST-D":"","E1-EE":"14388","E1-EI":"14389","E1-DI":"14375","E1-DE":"14374","E2-EE":"14386","E2-EI":"14387","E2-DI":"14377","E2-DE":"14376","E3-EE":"14384","E3-EI":"14385","E3-DI":"14379","E3-DE":"14378","E4-EE":"14382","E4-EI":"14383","E4-DI":"14381","E4-DE":"14380"}},
+  {"f":"RB-202","n":4,"t":{"EST-E":"","EST-D":"13733","E1-EE":"14344","E1-EI":"14343","E1-DI":"14342","E1-DE":"14341","E2-EE":"14348","E2-EI":"14347","E2-DI":"14345","E2-DE":"14346","E3-EE":"14352","E3-EI":"14351","E3-DI":"14359","E3-DE":"14350","E4-EE":"14356","E4-EI":"14355","E4-DI":"14354","E4-DE":"14353"}},
+  {"f":"RB-203","n":4,"t":{"EST-E":"12689","EST-D":"12520","E1-EE":"12722","E1-EI":"12708","E1-DI":"12693","E1-DE":"12714","E2-EE":"14608","E2-EI":"14607","E2-DI":"14609","E2-DE":"14610","E3-EE":"14604","E3-EI":"14603","E3-DI":"14605","E3-DE":"14606","E4-EE":"14599","E4-EI":"14600","E4-DI":"14601","E4-DE":"14602"}},
+  {"f":"RB-204","n":4,"t":{"EST-E":"12985","EST-D":"12358","E1-EE":"12701","E1-EI":"12709","E1-DI":"12724","E1-DE":"12656","E2-EE":"14625","E2-EI":"14624","E2-DI":"14626","E2-DE":"14627","E3-EE":"14621","E3-EI":"14620","E3-DI":"14622","E3-DE":"14623","E4-EE":"14617","E4-EI":"14616","E4-DI":"14618","E4-DE":"14619"}},
+  {"f":"RB-205","n":4,"t":{"EST-E":"12493","EST-D":"12809","E1-EE":"12878","E1-EI":"11924","E1-DI":"12968","E1-DE":"12495","E2-EE":"14642","E2-EI":"14641","E2-DI":"14643","E2-DE":"14644","E3-EE":"14638","E3-EI":"14637","E3-DI":"14639","E3-DE":"14640","E4-EE":"14634","E4-EI":"14633","E4-DI":"14635","E4-DE":"14636"}},
+  {"f":"RA-936","n":3,"t":{"EST-E":"10376","EST-D":"138","E1-EE":"12360","E1-EI":"199","E1-DI":"11572","E1-DE":"210","E2-EE":"235","E2-EI":"234","E2-DI":"271","E2-DE":"273","E3-EE":"254","E3-EI":"255","E3-DI":"12769","E3-DE":"14501"}},
+  {"f":"RA-984","n":2,"t":{"EST-E":"10941","EST-D":"165","E1-EE":"12847","E1-EI":"192","E1-DI":"188","E1-DE":"190","E2-EE":"186","E2-EI":"205","E2-DI":"211","E2-DE":"197"}},
+  {"f":"RA-985","n":2,"t":{"EST-E":"10941","EST-D":"186","E1-EE":"184","E1-EI":"141","E1-DI":"198","E1-DE":"166","E2-EE":"275","E2-EI":"276","E2-DI":"270","E2-DE":"269"}}
+];
+
+// ── ESTADO ────────────────────────────────────────────────────
+let curV = null, curP = null, curTab = 'c';
+let hist = [];
+let pneusLocal = {};
+
+// ── INIT ──────────────────────────────────────────────────────
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4BZz60sy9BsFACdqKktKpzJOfP8mj0U6s1G7Em5pwhaC_kQHCk-GPbLNZOlwjvrOwsw/exec';
+
+async function init() {
+  pneusLocal = carregarPneusLocal();
+  hist = carregarLocalStorage();
+  renderList(CAV, 'lC', '');
+  renderList(CAR, 'lR', '');
+  // Carrega dados atualizados do servidor em background
+  carregarDadosServidor();
+}
+
+async function carregarDadosServidor() {
+  if (!navigator.onLine) return;
+  try {
+    // Carrega números de fogo atuais
+    const res = await fetch(SCRIPT_URL + '?action=getPneus', {redirect:'follow'});
+    const dados = await res.json();
+    if (dados.ok && dados.dados) {
+      // Mescla dados do servidor com local (servidor tem prioridade)
+      Object.assign(pneusLocal, dados.dados);
+      localStorage.setItem('twm_pneus_local', JSON.stringify(pneusLocal));
+      // Re-renderiza se estiver no detalhe
+      if (curV) renderDetail();
+    }
+    // Carrega histórico
+    const resH = await fetch(SCRIPT_URL + '?action=getHistoricoPneus', {redirect:'follow'});
+    const dadosH = await resH.json();
+    if (dadosH.ok && dadosH.historico && dadosH.historico.length) {
+      hist = dadosH.historico;
+      localStorage.setItem('twm_pneus_hist', JSON.stringify(hist));
+    }
+  } catch(e) {
+    console.warn('Servidor indisponível, usando dados locais');
+  }
+}
+
+// ── TABS ──────────────────────────────────────────────────────
+function showTab(t) {
+  curTab = t;
+  document.querySelectorAll('.scr').forEach(s => s.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach((x,i) => x.classList.toggle('on', ['c','r','h'][i] === t));
+  document.getElementById('s-'+t).classList.add('on');
+  document.getElementById('s-d').classList.remove('on');
+  if (t === 'h') renderHist();
+}
+
+// ── LISTAS ────────────────────────────────────────────────────
+function renderList(items, elId, filter) {
+  const f = (filter||'').toLowerCase();
+  const fil = items.filter(v => v.f.toLowerCase().includes(f));
+  const el = document.getElementById(elId);
+  if (!fil.length) { el.innerHTML = '<div class="empty">Nenhum resultado.</div>'; return; }
+  el.innerHTML = fil.map(v => {
+    const isCav = 'has_di2' in v;
+    const sub = isCav
+      ? (v.has_di2?'2 dianteiros':'1 dianteiro')+' · '+(v.has_tr2?'2 trações':'1 tração')
+      : v.n+' eixos';
+    return `<div class="vrow" onclick="openV('${v.f}')">
+      <div><div class="vf">${v.f}</div><div class="vi">${sub}</div></div>
+      <span class="varr">›</span>
+    </div>`;
+  }).join('');
+}
+
+function filt(val, tipo) {
+  if (tipo==='c') renderList(CAV,'lC',val);
+  else renderList(CAR,'lR',val);
+}
+
+// ── HISTÓRICO ─────────────────────────────────────────────────
+function renderHist() {
+  const el = document.getElementById('lH');
+  if (!hist.length) { el.innerHTML = '<div class="empty">Nenhuma troca registrada ainda.</div>'; return; }
+  el.innerHTML = hist.slice(0,100).map(h => `
+    <div class="hr-item">
+      <div class="hr-veiculo">${h.veiculo} · ${h.posicao_nome}</div>
+      <div class="hr-fogos">
+        <span class="hr-antigo">${h.fogo_antigo||'(vazio)'}</span>
+        <span style="color:var(--muted)">→</span>
+        <span class="hr-novo">${h.fogo_novo}</span>
+      </div>
+      <div class="hr-meta">${h.data} · ${h.borracheiro}</div>
+    </div>`).join('');
+}
+
+// ── ABRIR VEÍCULO ─────────────────────────────────────────────
+function openV(frota) {
+  const all = [...CAV,...CAR];
+  curV = all.find(v => v.f === frota);
+  document.querySelectorAll('.scr').forEach(s => s.classList.remove('on'));
+  document.getElementById('s-d').classList.add('on');
+  closeM();
+  renderDetail();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── POSIÇÕES ──────────────────────────────────────────────────
+function buildCavPos(v) {
+  const p = [];
+  p.push({id:'DI-E',name:'Dianteiro Esquerdo',grp:'1° Dianteiro'});
+  p.push({id:'DI-D',name:'Dianteiro Direito',grp:'1° Dianteiro'});
+  if (v.has_di2) {
+    p.push({id:'DI2-E',name:'2° Dianteiro Esquerdo',grp:'2° Dianteiro'});
+    p.push({id:'DI2-D',name:'2° Dianteiro Direito',grp:'2° Dianteiro'});
+  }
+  p.push({id:'TR-EE',name:'Tração Esq. Externo',grp:'1° Tração'});
+  p.push({id:'TR-EI',name:'Tração Esq. Interno',grp:'1° Tração'});
+  p.push({id:'TR-DI',name:'Tração Dir. Interno',grp:'1° Tração'});
+  p.push({id:'TR-DE',name:'Tração Dir. Externo',grp:'1° Tração'});
+  if (v.has_tr2) {
+    p.push({id:'TR2-EE',name:'2a Tração Esq. Externo',grp:'2° Tração'});
+    p.push({id:'TR2-EI',name:'2a Tração Esq. Interno',grp:'2° Tração'});
+    p.push({id:'TR2-DI',name:'2a Tração Dir. Interno',grp:'2° Tração'});
+    p.push({id:'TR2-DE',name:'2a Tração Dir. Externo',grp:'2° Tração'});
+  }
+  return p;
+}
+
+function buildCarPos(v) {
+  const p = [];
+  if (v.t['EST-E']) p.push({id:'EST-E',name:'Estepe Esquerdo',grp:'Estepes'});
+  if (v.t['EST-D']) p.push({id:'EST-D',name:'Estepe Direito',grp:'Estepes'});
+  for (let e=1;e<=v.n;e++) {
+    p.push({id:`E${e}-EE`,name:`${e}° Eixo Esq. Externo`,grp:`${e}° Eixo`});
+    p.push({id:`E${e}-EI`,name:`${e}° Eixo Esq. Interno`,grp:`${e}° Eixo`});
+    p.push({id:`E${e}-DI`,name:`${e}° Eixo Dir. Interno`,grp:`${e}° Eixo`});
+    p.push({id:`E${e}-DE`,name:`${e}° Eixo Dir. Externo`,grp:`${e}° Eixo`});
+  }
+  return p;
+}
+
+function getFogo(frota, posId, orig) {
+  if (pneusLocal[frota] && pneusLocal[frota][posId] !== undefined) return pneusLocal[frota][posId];
+  return orig[posId] || '';
+}
+
+// ── RENDERIZAR DETALHE ────────────────────────────────────────
+function renderDetail() {
+  const v = curV;
+  const isCav = 'has_di2' in v;
+  const pos = isCav ? buildCavPos(v) : buildCarPos(v);
+  const TW=18, TH=28;
+  let svgTires=[];
+
+  if (isCav) {
+    let y=90;
+    svgTires.push({id:'DI-E',x:34,y});svgTires.push({id:'DI-D',x:306,y});y+=60;
+    if (v.has_di2){svgTires.push({id:'DI2-E',x:34,y});svgTires.push({id:'DI2-D',x:306,y});y+=60;}
+    svgTires.push({id:'TR-EE',x:24,y});svgTires.push({id:'TR-EI',x:43,y});
+    svgTires.push({id:'TR-DI',x:297,y});svgTires.push({id:'TR-DE',x:316,y});y+=55;
+    if (v.has_tr2){
+      svgTires.push({id:'TR2-EE',x:24,y});svgTires.push({id:'TR2-EI',x:43,y});
+      svgTires.push({id:'TR2-DI',x:297,y});svgTires.push({id:'TR2-DE',x:316,y});
+    }
+  } else {
+    let y=80;
+    if (v.t['EST-E'])svgTires.push({id:'EST-E',x:34,y});
+    if (v.t['EST-D'])svgTires.push({id:'EST-D',x:306,y});
+    y+=55;
+    for (let e=1;e<=v.n;e++){
+      svgTires.push({id:`E${e}-EE`,x:24,y});svgTires.push({id:`E${e}-EI`,x:43,y});
+      svgTires.push({id:`E${e}-DI`,x:297,y});svgTires.push({id:`E${e}-DE`,x:316,y});
+      y+=58;
+    }
+  }
+
+  const totalH = Math.max(...svgTires.map(t=>t.y))+50;
+  let s = `<svg viewBox="0 0 340 ${totalH}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:280px">`;
+  s += `<text x="170" y="14" text-anchor="middle" font-size="10" fill="#7A7890">← FRENTE</text>`;
+  s += `<text x="11" y="${totalH/2}" text-anchor="middle" font-size="9" fill="#7A7890" transform="rotate(-90,11,${totalH/2})">ESQUERDO</text>`;
+  s += `<text x="329" y="${totalH/2}" text-anchor="middle" font-size="9" fill="#7A7890" transform="rotate(90,329,${totalH/2})">DIREITO</text>`;
+  s += `<rect x="66" y="20" width="208" height="${totalH-35}" rx="8" fill="#13131E" stroke="rgba(255,255,255,0.12)" stroke-width="0.8"/>`;
+  s += `<text x="170" y="${totalH/2-6}" text-anchor="middle" font-size="13" fill="#F0EEF8" font-weight="700" font-family="Barlow Condensed,sans-serif">${v.f}</text>`;
+  s += `<text x="170" y="${totalH/2+10}" text-anchor="middle" font-size="9" fill="#7A7890">${isCav?'CAVALO':'CARRETA'}</text>`;
+  svgTires.forEach(st => {
+    const fire=getFogo(v.f,st.id,v.t);
+    const sel=curP===st.id;
+    s += `<g style="cursor:pointer" onclick="selP('${st.id}')">
+      <rect x="${st.x-TW/2}" y="${st.y-TH/2}" width="${TW}" height="${TH}" rx="3"
+        fill="${sel?'rgba(123,63,228,.2)':'#0A0A0F'}" stroke="${sel?'#A855F7':'#444'}" stroke-width="${sel?2:0.8}"/>
+      <text x="${st.x}" y="${st.y-3}" text-anchor="middle" font-size="4.8" fill="#C084FC" font-weight="600">${st.id}</text>
+      <text x="${st.x}" y="${st.y+7}" text-anchor="middle" font-size="4.5" fill="${fire?'#A855F7':'#555'}">${fire||'—'}</text>
+    </g>`;
+  });
+  s += `</svg>`;
+  document.getElementById('svgW').innerHTML = s;
+
+  const grps={};
+  pos.forEach(p=>{if(!grps[p.grp])grps[p.grp]=[];grps[p.grp].push(p);});
+  let html='';
+  for (const g in grps) {
+    html+=`<div class="grp-label">${g}</div>`;
+    grps[g].forEach(p=>{
+      const fire=getFogo(v.f,p.id,v.t);
+      const sel=curP===p.id;
+      html+=`<div class="ti${sel?' sel':''}" onclick="selP('${p.id}')">
+        <div><div class="tn">${p.name}</div><div class="tc">${p.id}</div></div>
+        <div style="display:flex;align-items:center">
+          <span class="tf${!fire?' vz':''}">${fire||'—'}</span>
+          <span class="ts">Trocar →</span>
+        </div>
+      </div>`;
+    });
+  }
+  document.getElementById('tlW').innerHTML = html;
+}
+
+// ── MODAL ─────────────────────────────────────────────────────
+function selP(id) {
+  curP = id;
+  const v = curV;
+  const isCav = 'has_di2' in v;
+  const pos = (isCav?buildCavPos(v):buildCarPos(v)).find(p=>p.id===id);
+  if (!pos) return;
+  const fire = getFogo(v.f,id,v.t);
+  document.getElementById('mV').textContent = v.f;
+  document.getElementById('mP').textContent = pos.name+' ('+id+')';
+  document.getElementById('mO').textContent = fire||'(sem registro)';
+  document.getElementById('mN').value = '';
+  document.getElementById('mW').value = '';
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('mN').focus(),350);
+}
+
+function closeM() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  curP = null;
+}
+
+// Fecha modal ao clicar fora
+document.getElementById('modal-overlay').addEventListener('click', function(e){
+  if (e.target === this) closeM();
+});
+
+// ── SALVAR TROCA ──────────────────────────────────────────────
+async function saveT() {
+  const nf = document.getElementById('mN').value.trim().toUpperCase();
+  const who = document.getElementById('mW').value.trim();
+  if (!nf) { showToast('⚠ Informe o número de fogo novo'); return; }
+  if (!who) { showToast('⚠ Informe o nome do borracheiro'); return; }
+
+  const v = curV;
+  const isCav = 'has_di2' in v;
+  const pos = (isCav?buildCavPos(v):buildCarPos(v)).find(p=>p.id===curP);
+  const fireAntigo = getFogo(v.f,curP,v.t);
+  const now = new Date();
+  const registro = {
+    veiculo: v.f, posicao_id: curP, posicao_nome: pos.name,
+    fogo_antigo: fireAntigo, fogo_novo: nf, borracheiro: who,
+    data: now.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})
+  };
+
+  const btn = document.getElementById('btnSave');
+  btn.textContent = 'Salvando...'; btn.classList.add('loading');
+
+  // Salva localmente
+  if (!pneusLocal[v.f]) pneusLocal[v.f] = {};
+  pneusLocal[v.f][curP] = nf;
+  hist.unshift(registro);
+  try {
+    localStorage.setItem('twm_pneus_local', JSON.stringify(pneusLocal));
+    localStorage.setItem('twm_pneus_hist', JSON.stringify(hist.slice(0,500)));
+  } catch(e) {}
+
+  btn.textContent = '✓ Confirmar'; btn.classList.remove('loading');
+  // Envia para o servidor em background
+  if (navigator.onLine) {{
+    fetch(SCRIPT_URL, {{
+      method:'POST', mode:'no-cors',
+      headers:{{'Content-Type':'application/json'}},
+      body: JSON.stringify({{action:'salvarTroca',...registro}})
+    }}).catch(()=>{{}});
+  }}
+
+  closeM();
+  renderDetail();
+  showToast('✅ Troca registrada!');
+}}
+
+// ── LOCALSTORAGE ──────────────────────────────────────────────
+function carregarLocalStorage() {
+  try { return JSON.parse(localStorage.getItem('twm_pneus_hist')||'[]'); } catch(e) { return []; }
+}
+function carregarPneusLocal() {
+  try { return JSON.parse(localStorage.getItem('twm_pneus_local')||'{}'); } catch(e) { return {}; }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+init();
+</script>
+</body>
+</html>
