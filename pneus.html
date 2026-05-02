@@ -118,15 +118,17 @@ body.light .pneu-card{box-shadow:0 1px 6px rgba(0,0,0,.06)}
 </style>
 </head>
 <body>
+<script>
 // ── TEMA CLARO/ESCURO ─────────────────────────────────────────
 (function() {
   if (localStorage.getItem('twm_tema') === 'claro') {
-    document.documentElement.classList.add('light-pre');
     document.addEventListener('DOMContentLoaded', function() {
       document.body.classList.add('light');
     });
+    if (document.readyState !== 'loading') document.body.classList.add('light');
   }
 })();
+</script>
 
 <div class="app-header">
   <div class="header-left">
