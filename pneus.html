@@ -432,6 +432,7 @@ function renderDetalhe() {
   const v = curV;
   const isCav = v.tipo === 'cavalo' || 'has_di2' in v;
   const trs = getTires(v.f);
+  const datas = getDatas(v.f);
   const pos = isCav ? buildCavPos(v) : buildCarPos(v);
 
   // Info do veículo
@@ -458,7 +459,6 @@ function renderDetalhe() {
       const sulcoKey = v.f + '_' + p.id + '_sulco';
       const sulcoVal = lerLocal(sulcoKey) || '';
       const sulcoHtml = sulcoVal ? `<div class="${sulcoCor(sulcoVal)}">🔵 ${sulcoVal}mm</div>` : '';
-      const datas = getDatas(v.f);
       const dataMont = datas[p.id] || '';
       const dataHtml = dataMont ? `<div style="font-size:10px;color:var(--muted);margin-top:2px">📅 Montado em ${dataMont}</div>` : '';
       html += `<div class="ti${sel?' sel':''}" onclick="selP('${p.id}')">
