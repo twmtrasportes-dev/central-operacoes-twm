@@ -639,6 +639,7 @@ function selP(id) {
   document.getElementById('mS').value = '';
   document.getElementById('mW').value = '';
   document.getElementById('modalOverlay').classList.add('open');
+  history.pushState({tela: 'modal'}, '');
   setTimeout(() => document.getElementById('mN').focus(), 300);
   renderDetalhe();
 }
@@ -747,12 +748,23 @@ function voltarPneus() {
 }
 
 window.addEventListener('popstate', function(e) {
+  // 1. Modal aberto → fecha o modal (igual ao cancelar)
+  const modalAberto = document.getElementById('modalOverlay').classList.contains('open');
+  if (modalAberto) {
+    closeModal();
+    history.pushState({tela: 'detalhe'}, '');
+    return;
+  }
+
+  // 2. No detalhe do veículo → volta para lista
   const detalheAtivo = document.getElementById('s-d').classList.contains('on');
   if (detalheAtivo) {
     showTab(curTab);
-  } else {
-    window.location.href = 'index.html';
+    return;
   }
+
+  // 3. Na lista → vai para index.html
+  window.location.href = 'index.html';
 });
 
 history.replaceState({tela: 'lista'}, '');
