@@ -109,17 +109,12 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:12px 22px;border-radius:24px;font-size:13px;font-weight:600;z-index:300;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.5)}
 .toast.show{opacity:1}
 
-/* ── TEMA CLARO ─────────────────────────────────────────────── */
+/* ── TEMA CLARO ─────────────────────────────────────────── */
 body.light{--bg:#F4F3FF;--bg2:#FFFFFF;--bg3:#FAFAFA;--border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.13);--text:#1A1A2E;--muted:#6B6880}
 body.light .app-header{box-shadow:0 1px 8px rgba(0,0,0,.08)}
-body.light .list-card{box-shadow:0 1px 6px rgba(0,0,0,.06)}
-body.light .modal-box{box-shadow:0 -4px 32px rgba(0,0,0,.12)}
-body.light .pneu-card{box-shadow:0 1px 6px rgba(0,0,0,.06)}
+body.light .list-card,.light .pneu-card{box-shadow:0 1px 6px rgba(0,0,0,.06)}
 </style>
-</head>
-<body>
 <script>
-// ── TEMA CLARO/ESCURO ─────────────────────────────────────────
 (function() {
   if (localStorage.getItem('twm_tema') === 'claro') {
     document.addEventListener('DOMContentLoaded', function() {
@@ -129,6 +124,8 @@ body.light .pneu-card{box-shadow:0 1px 6px rgba(0,0,0,.06)}
   }
 })();
 </script>
+</head>
+<body>
 
 <div class="app-header">
   <div class="header-left">
@@ -208,69 +205,42 @@ body.light .pneu-card{box-shadow:0 1px 6px rgba(0,0,0,.06)}
 
 <script>
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4BZz60sy9BsFACdqKktKpzJOfP8mj0U6s1G7Em5pwhaC_kQHCk-GPbLNZOlwjvrOwsw/exec';
-
-
 // ── ESTADO ────────────────────────────────────────────────────
 let CAV = [], CAR = [];
 let tires = {}, historico = [], fogos = {};
 let curV = null, curP = null, curTab = 'c';
 
-// ── INIT ──────────────────────────────────────────────────────
-function init() {
-  fogos     = lerLocal('twm_pneus_fogos') || {};
-  historico = lerLocal('twm_pneus_hist')  || [];
 
-  // Carrega cache local primeiro — app funciona imediatamente
-  const cacheCAV = lerLocal('twm_frota_cav');
-  const cacheCAR = lerLocal('twm_frota_car');
-  if (cacheCAV && cacheCAV.length) {
-    CAV = cacheCAV;
-    CAR = cacheCAR || [];
-    renderLista(CAV, 'lC', '');
-    renderLista(CAR, 'lR', '');
-    setSyncBar('⏳ Atualizando frota...');
-  } else {
-    document.getElementById('lC').innerHTML = '<div class="empty">⏳ Carregando frota da planilha...</div>';
-    document.getElementById('lR').innerHTML = '<div class="empty">⏳ Carregando frota da planilha...</div>';
-  }
-  // Busca planilha em background
-  setTimeout(carregarFrota, 500);
-}
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4BZz60sy9BsFACdqKktKpzJOfP8mj0U6s1G7Em5pwhaC_kQHCk-GPbLNZOlwjvrOwsw/exec';
 
 // ── CARREGAR FROTA DA PLANILHA ────────────────────────────────
 function carregarFrota() {
-  // Cavalos primeiro — aparece imediatamente no mobile
   fetch(SCRIPT_URL + '?action=getCavalos')
     .then(r => r.json())
     .then(d => {
       if (d.ok && d.cavalos && d.cavalos.length) {
-        CAV = d.cavalos.map(function(v) {
-          return {
-            f: v.f, tipo: 'cavalo',
-            has_di2: v.has_di2 || Object.keys(v.t||{}).some(function(k){ return k==='DI2-E'||k==='DI2-D'; }),
-            has_tr2: v.has_tr2 || Object.keys(v.t||{}).some(function(k){ return k.indexOf('TR2')===0; }),
-            t: v.t || {}, d: v.d || {}
-          };
-        });
+        CAV = d.cavalos.map(v => ({
+          f: v.f, tipo: 'cavalo',
+          has_di2: v.has_di2 || Object.keys(v.t||{}).some(k => k==='DI2-E'||k==='DI2-D'),
+          has_tr2: v.has_tr2 || Object.keys(v.t||{}).some(k => k.indexOf('TR2')===0),
+          t: v.t || {}, d: v.d || {}
+        }));
         salvarLocal('twm_frota_cav', CAV);
         tires = {};
         renderLista(CAV, 'lC', '');
-        setSyncBar('✅ Cavalos sincronizados', 1500);
+        setSyncBar('✅ Cavalos OK', 2000);
         if (curV && (curV.tipo === 'cavalo' || 'has_di2' in curV)) renderDetalhe();
       }
-    })
-    .catch(() => {});
+    }).catch(() => {});
 
-  // Carretas em paralelo
   fetch(SCRIPT_URL + '?action=getCarretas')
     .then(r => r.json())
     .then(d => {
       if (d.ok && d.carretas && d.carretas.length) {
-        CAR = d.carretas.map(function(v) {
-          var maxN = 1;
-          Object.keys(v.t||{}).forEach(function(k) {
-            var m = k.match(/^E(\d+)-/);
+        CAR = d.carretas.map(v => {
+          let maxN = 1;
+          Object.keys(v.t||{}).forEach(k => {
+            const m = k.match(/^E(\d+)-/);
             if (m && parseInt(m[1]) > maxN) maxN = parseInt(m[1]);
           });
           return { f: v.f, tipo: 'carreta', n: v.n || maxN, t: v.t || {}, d: v.d || {} };
@@ -279,10 +249,86 @@ function carregarFrota() {
         renderLista(CAR, 'lR', '');
         if (curV && curV.tipo === 'carreta') renderDetalhe();
       }
-    })
-    .catch(() => {});
+    }).catch(() => {});
 
-  // Histórico em paralelo
+  fetch(SCRIPT_URL + '?action=getHistoricoPneus')
+    .then(r => r.json())
+    .then(d => {
+      if (d.ok && d.historico && d.historico.length) {
+        historico = d.historico;
+        salvarLocal('twm_pneus_hist', historico);
+        if (curTab === 'h') renderHist();
+      }
+    }).catch(() => {});
+}
+
+function setSyncBar(msg, hideAfter) {
+  const el = document.getElementById('syncBar');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+  if (hideAfter) setTimeout(() => el.style.display = 'none', hideAfter);
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+function init() {
+  fogos    = lerLocal('twm_pneus_fogos') || {};
+  historico = lerLocal('twm_pneus_hist')  || [];
+  renderLista(CAV, 'lC', '');
+  renderLista(CAR, 'lR', '');
+  setTimeout(sincronizar, 1200);
+}
+
+
+function getDatas(f) {
+  try {
+    const all = [...CAV,...CAR];
+    const v = all.find(x => x.f === f);
+    const datasPlani = (v && v.d) ? v.d : {};
+    const datasLocal = lerLocal('twm_datas_' + f) || {};
+    const merged = {...datasPlani, ...datasLocal};
+    Object.keys(merged).forEach(k => {
+      const d = merged[k];
+      if (!d) { merged[k] = ''; return; }
+      if (/^\d{2}\/\d{2}\/\d{4}/.test(String(d))) return;
+      try {
+        const dt = new Date(d);
+        if (!isNaN(dt.getTime())) {
+          merged[k] = dt.toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric'});
+        }
+      } catch(e) { merged[k] = String(d); }
+    });
+    return merged;
+  } catch(e) { return {}; }
+}
+
+function getTires(f) {
+  if (!tires[f]) {
+    const all = [...CAV,...CAR];
+    const v = all.find(x => x.f === f);
+    tires[f] = v ? {...v.t} : {};
+    // Aplica atualizações locais/servidor por cima
+    if (fogos[f]) Object.assign(tires[f], fogos[f]);
+  }
+  return tires[f];
+}
+
+// ── SINCRONIZAÇÃO ─────────────────────────────────────────────
+function sincronizar() {
+  setSyncBar('⏳ Sincronizando...');
+  fetch(SCRIPT_URL + '?action=getPneus')
+    .then(r => r.json())
+    .then(d => {
+      if (d.ok && d.dados) {
+        Object.assign(fogos, d.dados);
+        salvarLocal('twm_pneus_fogos', fogos);
+        tires = {}; // Limpa cache para recarregar com novos fogos
+        if (curV) renderDetalhe();
+      }
+      setSyncBar('✅ Sincronizado', 2000);
+    })
+    .catch(() => setSyncBar('📵 Offline — dados locais', 2000));
+
   fetch(SCRIPT_URL + '?action=getHistoricoPneus')
     .then(r => r.json())
     .then(d => {
@@ -294,50 +340,6 @@ function carregarFrota() {
     })
     .catch(() => {});
 }
-
-function usarBackup() {
-  if (CAV.length) return; // já tem dados do cache, não sobrescreve
-  // Sem cache e sem servidor — mostra mensagem de erro
-  document.getElementById('lC').innerHTML = '<div class="empty">⚠ Sem conexão com a planilha.<br>Verifique a internet e recarregue.</div>';
-  document.getElementById('lR').innerHTML = '<div class="empty">⚠ Sem conexão com a planilha.<br>Verifique a internet e recarregue.</div>';
-}
-
-function getTires(f) {
-  if (!tires[f]) {
-    const all = [...CAV,...CAR];
-    const v = all.find(x => x.f === f);
-    tires[f] = v ? {...v.t} : {};
-    if (fogos[f]) Object.assign(tires[f], fogos[f]);
-  }
-  return tires[f];
-}
-
-function getDatas(f) {
-  try {
-    const all = [...CAV,...CAR];
-    const v = all.find(x => x.f === f);
-    const datasPlani = (v && v.d) ? v.d : {};
-    const datasLocal = lerLocal('twm_datas_' + f) || {};
-    const merged = {...datasPlani, ...datasLocal};
-    // Formata todas as datas para dd/mm/aaaa
-    Object.keys(merged).forEach(k => {
-      const d = merged[k];
-      if (!d) { merged[k] = ''; return; }
-      // Já está no formato dd/mm/aaaa
-      if (/^\d{2}\/\d{2}\/\d{4}/.test(String(d))) return;
-      // Tenta converter qualquer formato para dd/mm/aaaa
-      try {
-        const dt = new Date(d);
-        if (!isNaN(dt.getTime())) {
-          merged[k] = dt.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit', year:'numeric'});
-        }
-      } catch(e) { merged[k] = String(d); }
-    });
-    return merged;
-  } catch(e) { return {}; }
-}
-
-// sincronizar() substituída por carregarFrota()
 
 function setSyncBar(msg, hideAfter) {
   const el = document.getElementById('syncBar');
@@ -352,7 +354,6 @@ function showTab(t) {
   document.querySelectorAll('.tab').forEach((x,i) => x.classList.toggle('on', ['c','r','h'][i] === t));
   document.getElementById('s-'+t).classList.add('on');
   document.getElementById('s-d').classList.remove('on');
-  history.replaceState({tela: 'lista'}, '');
   if (t === 'h') renderHist();
 }
 
@@ -363,7 +364,7 @@ function renderLista(items, elId, filtro) {
   const el = document.getElementById(elId);
   if (!fil.length) { el.innerHTML = '<div class="empty">Nenhum resultado.</div>'; return; }
   el.innerHTML = fil.map(v => {
-    const isCav = v.tipo === 'cavalo' || 'has_di2' in v;
+    const isCav = 'has_di2' in v;
     const sub = isCav
       ? (v.has_di2 ? '2 dianteiros' : '1 dianteiro') + ' · ' + (v.has_tr2 ? '2 trações' : '1 tração')
       : v.n + ' eixos';
@@ -414,7 +415,6 @@ function renderHist() {
 function abrirVeiculo(frota) {
   const all = [...CAV,...CAR];
   curV = all.find(v => v.f === frota);
-  history.pushState({tela: 'detalhe', frota}, '');
   document.querySelectorAll('.scr').forEach(s => s.classList.remove('on'));
   document.getElementById('s-d').classList.add('on');
   closeModal();
@@ -458,16 +458,14 @@ function buildCarPos(v) {
 }
 
 function getPosicoes() {
-  const isCav = curV.tipo === 'cavalo' || 'has_di2' in curV;
-  return isCav ? buildCavPos(curV) : buildCarPos(curV);
+  return 'has_di2' in curV ? buildCavPos(curV) : buildCarPos(curV);
 }
 
 // ── RENDERIZAR DETALHE ────────────────────────────────────────
 function renderDetalhe() {
   const v = curV;
-  const isCav = v.tipo === 'cavalo' || 'has_di2' in v;
+  const isCav = 'has_di2' in v;
   const trs = getTires(v.f);
-  const datas = getDatas(v.f);
   const pos = isCav ? buildCavPos(v) : buildCarPos(v);
 
   // Info do veículo
@@ -476,7 +474,7 @@ function renderDetalhe() {
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:var(--text)">${v.f}</div>
       <div style="font-size:11px;color:var(--muted)">${isCav ? 'CAVALO' : 'CARRETA'}</div>
     </div>
-    <button onclick="voltarPneus()" style="padding:9px 14px;border:1.5px solid var(--border2);border-radius:10px;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;font-family:'Barlow',sans-serif">← Voltar</button>`;
+    <button onclick="showTab('${curTab}')" style="padding:9px 14px;border:1.5px solid var(--border2);border-radius:10px;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;font-family:'Barlow',sans-serif">← Voltar</button>`;
 
   // SVG do caminhão/carreta
   renderSVG(v, isCav, trs);
@@ -494,14 +492,11 @@ function renderDetalhe() {
       const sulcoKey = v.f + '_' + p.id + '_sulco';
       const sulcoVal = lerLocal(sulcoKey) || '';
       const sulcoHtml = sulcoVal ? `<div class="${sulcoCor(sulcoVal)}">🔵 ${sulcoVal}mm</div>` : '';
-      const dataMont = datas[p.id] || '';
-      const dataHtml = dataMont ? `<div style="font-size:10px;color:var(--muted);margin-top:2px">📅 Montado em ${dataMont}</div>` : '';
       html += `<div class="ti${sel?' sel':''}" onclick="selP('${p.id}')">
         <div>
           <div class="tn">${p.name}</div>
           <div class="tc">${p.id}</div>
           ${sulcoHtml}
-          ${dataHtml}
         </div>
         <div style="display:flex;align-items:center">
           <span class="tf${!fire?' vz':''}">${fire||'—'}</span>
@@ -639,7 +634,6 @@ function selP(id) {
   document.getElementById('mS').value = '';
   document.getElementById('mW').value = '';
   document.getElementById('modalOverlay').classList.add('open');
-  history.pushState({tela: 'modal'}, '');
   setTimeout(() => document.getElementById('mN').focus(), 300);
   renderDetalhe();
 }
@@ -665,7 +659,7 @@ function salvarTroca() {
   const pos       = getPosicoes().find(p => p.id === curP);
   const trs       = getTires(curV.f);
   const fogoAntigo = trs[curP] || '';
-  const isCav     = curV.tipo === 'cavalo' || 'has_di2' in curV;
+  const isCav     = 'has_di2' in curV;
   const agora     = new Date();
   const data      = agora.toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
   const aba       = isCav ? 'CAVALOS' : 'CARRETAS';
@@ -687,10 +681,6 @@ function salvarTroca() {
   tires[curV.f][curP] = nf;
   if (!fogos[curV.f]) fogos[curV.f] = {};
   fogos[curV.f][curP] = nf;
-  // Salva data de montagem local
-  const datasLocal = lerLocal('twm_datas_'+curV.f) || {};
-  datasLocal[curP] = registro.data.split(' ')[0]; // dd/mm/aaaa
-  salvarLocal('twm_datas_'+curV.f, datasLocal);
   historico.unshift({...registro});
 
   // Salva sulco por posição
@@ -699,25 +689,14 @@ function salvarTroca() {
   salvarLocal('twm_pneus_fogos', fogos);
   salvarLocal('twm_pneus_hist', historico.slice(0, 500));
 
-  // Envia ao servidor via GET (sem CORS)
+  // Envia ao servidor
   if (navigator.onLine) {
-    const params = new URLSearchParams({
-      action:       'salvarTroca',
-      aba:          registro.aba,
-      veiculo:      registro.veiculo,
-      posicao_id:   registro.posicao_id,
-      posicao_nome: registro.posicao_nome,
-      fogo_antigo:  registro.fogo_antigo,
-      fogo_novo:    registro.fogo_novo,
-      sulco:        registro.sulco || '',
-      borracheiro:  registro.borracheiro,
-      data:         registro.data,
-      data_montagem: registro.data.split(' ')[0]
-    });
-    fetch(SCRIPT_URL + '?' + params.toString())
-      .then(r => r.json())
-      .then(d => { if (!d.ok) console.warn('Erro ao salvar:', d.msg); })
-      .catch(() => {});
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(registro)
+    }).catch(() => {});
   }
 
   closeModal();
@@ -736,45 +715,25 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
+
 // ── NAVEGAÇÃO ─────────────────────────────────────────────────
 function voltarPneus() {
   const modalAberto = document.getElementById('modalOverlay').classList.contains('open');
-  if (modalAberto) {
-    closeModal();
-    return;
-  }
+  if (modalAberto) { closeModal(); return; }
   const detalheAtivo = document.getElementById('s-d').classList.contains('on');
-  if (detalheAtivo) {
-    showTab(curTab);
-    return;
-  }
+  if (detalheAtivo) { showTab(curTab); return; }
   window.location.href = 'index.html';
 }
 
-window.addEventListener('popstate', function(e) {
-  // Verifica estado ATUAL da tela (não do history)
+window.addEventListener('popstate', function() {
   const modalAberto = document.getElementById('modalOverlay').classList.contains('open');
+  if (modalAberto) { closeModal(); history.pushState({}, ''); return; }
   const detalheAtivo = document.getElementById('s-d').classList.contains('on');
-
-  if (modalAberto) {
-    // Modal aberto → fecha modal e restaura estado de detalhe
-    closeModal();
-    history.pushState({tela: 'detalhe'}, '');
-    return;
-  }
-
-  if (detalheAtivo) {
-    // No detalhe → volta para lista
-    showTab(curTab);
-    return;
-  }
-
-  // Na lista → vai para index
+  if (detalheAtivo) { showTab(curTab); return; }
   window.location.href = 'index.html';
 });
 
-// Estado inicial
-history.replaceState({tela: 'lista'}, '');
+history.replaceState({}, '');
 init();
 </script>
 </body>
