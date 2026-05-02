@@ -298,10 +298,19 @@ function getTires(f) {
     const all = [...CAV,...CAR];
     const v = all.find(x => x.f === f);
     tires[f] = v ? {...v.t} : {};
-    // Aplica atualizações locais/servidor por cima
     if (fogos[f]) Object.assign(tires[f], fogos[f]);
   }
   return tires[f];
+}
+
+function getDatas(f) {
+  try {
+    const all = [...CAV,...CAR];
+    const v = all.find(x => x.f === f);
+    const datasPlani = (v && v.d) ? v.d : {};
+    const datasLocal = lerLocal('twm_datas_' + f) || {};
+    return {...datasPlani, ...datasLocal};
+  } catch(e) { return {}; }
 }
 
 // sincronizar() substituída por carregarFrota()
