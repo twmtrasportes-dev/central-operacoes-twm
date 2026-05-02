@@ -1445,7 +1445,6 @@ function abrirFormRetorno(carro, registro) {
   carroAtualPlaca = carro.placa;
   registroAtualId = registro.id;
   fotoServicoBase64 = '';
-  fotoRetornoBase64 = '';
   const modal = document.getElementById('modal-overlay');
   document.getElementById('modal-content').innerHTML = `
     <div class="modal-title">🔴 ${carro.placa} — Registrar Retorno</div>
@@ -1486,22 +1485,16 @@ function abrirFormRetorno(carro, registro) {
   modal.classList.add('open');
 }
 
-let fotoServicoBase64 = '';    // foto de saída
-let fotoRetornoBase64 = '';    // foto de retorno
+let fotoServicoBase64 = '';
 
 function previewFotoServico(input, tipo) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
   reader.onload = e => {
-    const base64 = e.target.result;
-    if (tipo === 'retorno') {
-      fotoRetornoBase64 = base64;
-    } else {
-      fotoServicoBase64 = base64;
-    }
+    fotoServicoBase64 = e.target.result;
     document.getElementById('srv-foto-preview').style.display = 'block';
-    document.getElementById('srv-foto-img').src = base64;
+    document.getElementById('srv-foto-img').src = fotoServicoBase64;
   };
   reader.readAsDataURL(file);
 }
@@ -1528,7 +1521,7 @@ async function confirmarSaida() {
     placa, motorista, local,
     km_saida: km,
     data_saida: dataSaida,
-    foto_saida: fotoServicoBase64 || 'Foto enviada',
+    foto_saida: 'Foto enviada',
     status: 'EM USO'
   };
 
@@ -1568,7 +1561,7 @@ async function confirmarRetorno() {
     registro_id: registroId,
     km_retorno: km,
     data_retorno: dataRetorno,
-    foto_retorno: fotoRetornoBase64 || 'Foto enviada',
+    foto_retorno: 'Foto enviada',
     status: 'DISPONÍVEL'
   };
 
@@ -1587,7 +1580,6 @@ async function confirmarRetorno() {
   }
 
   fotoServicoBase64 = '';
-  fotoRetornoBase64 = '';
   await carregarCarrosServico();
 }
 
@@ -1797,7 +1789,32 @@ document.getElementById('login-senha').addEventListener('keypress', e => { if (e
 
 
 function voltarDataLink() {
-  history.back();
+  const goto = sessionStorage.getItem('twm_goto');
+
+  // Carros de Apoio → sempre volta para index.html
+  if (goto === 'servico') {
+    sessionStorage.removeItem('twm_goto');
+    window.location.href = 'index.html';
+    return;
+  }
+
+  // Check List → respeita o fluxo interno de telas
+  const formAtivo = document.getElementById('screen-form')?.classList.contains('active');
+  if (formAtivo) {
+    showScreen('app');
+    showPage('detalhe');
+    return;
+  }
+
+  const detalheAtivo = document.getElementById('page-detalhe')?.style.display === 'block';
+  if (detalheAtivo) {
+    showPage('caminhoes');
+    return;
+  }
+
+  // Está na lista de caminhões → volta para index.html
+  sessionStorage.removeItem('twm_goto');
+  window.location.href = 'index.html';
 }
 
 // ===== MODO DE NAVEGAÇÃO — aplica imediatamente =====
