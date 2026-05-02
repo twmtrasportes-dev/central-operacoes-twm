@@ -115,15 +115,31 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 
 /* SEPARADOR */
 .sep{height:1px;background:var(--border);margin:12px 0}
+
+/* ── TEMA CLARO ─────────────────────────────────────────────── */
+body.light{--bg:#F4F3FF;--bg2:#FFFFFF;--bg3:#FAFAFA;--border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.13);--text:#1A1A2E;--muted:#6B6880}
+body.light .app-header{box-shadow:0 1px 8px rgba(0,0,0,.08)}
+body.light .list-card{box-shadow:0 1px 6px rgba(0,0,0,.06)}
+body.light .modal-box{box-shadow:0 -4px 32px rgba(0,0,0,.12)}
+body.light .pneu-card{box-shadow:0 1px 6px rgba(0,0,0,.06)}
 </style>
 </head>
 <body>
+// ── TEMA CLARO/ESCURO ─────────────────────────────────────────
+(function() {
+  if (localStorage.getItem('twm_tema') === 'claro') {
+    document.documentElement.classList.add('light-pre');
+    document.addEventListener('DOMContentLoaded', function() {
+      document.body.classList.add('light');
+    });
+  }
+})();
 
 <div class="app-header">
   <div class="header-left">
-    <a class="btn-back" href="index.html">
+    <div class="btn-back" onclick="voltarEstoque()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="17" height="17"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-    </a>
+    </div>
     <div class="header-title">Estoque</div>
   </div>
   <div class="header-badge">PNEUS</div>
@@ -776,6 +792,16 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
+// ── NAVEGAÇÃO ─────────────────────────────────────────────────
+function voltarEstoque() {
+  window.location.href = 'index.html';
+}
+
+window.addEventListener('popstate', function(e) {
+  window.location.href = 'index.html';
+});
+
+history.replaceState({tela: 'estoque'}, '');
 init();
 </script>
 </body>
