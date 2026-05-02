@@ -353,7 +353,6 @@ function showTab(t) {
   document.querySelectorAll('.tab').forEach((x,i) => x.classList.toggle('on', ['c','r','h'][i] === t));
   document.getElementById('s-'+t).classList.add('on');
   document.getElementById('s-d').classList.remove('on');
-  history.replaceState({tela: 'lista'}, '');
   if (t === 'h') renderHist();
 }
 
@@ -640,7 +639,6 @@ function selP(id) {
   document.getElementById('mS').value = '';
   document.getElementById('mW').value = '';
   document.getElementById('modalOverlay').classList.add('open');
-  history.pushState({tela: 'modal'}, '');
   setTimeout(() => document.getElementById('mN').focus(), 300);
   renderDetalhe();
 }
@@ -739,43 +737,26 @@ function showToast(msg) {
 
 // ── NAVEGAÇÃO ─────────────────────────────────────────────────
 function voltarPneus() {
-  const modalAberto = document.getElementById('modalOverlay').classList.contains('open');
-  if (modalAberto) {
-    closeModal();
-    return;
-  }
   const detalheAtivo = document.getElementById('s-d').classList.contains('on');
   if (detalheAtivo) {
     showTab(curTab);
-    return;
+    history.replaceState({tela: 'lista'}, '');
+  } else {
+    window.location.href = 'index.html';
   }
-  window.location.href = 'index.html';
 }
 
 window.addEventListener('popstate', function(e) {
-  // Verifica estado ATUAL da tela (não do history)
-  const modalAberto = document.getElementById('modalOverlay').classList.contains('open');
   const detalheAtivo = document.getElementById('s-d').classList.contains('on');
-
-  if (modalAberto) {
-    // Modal aberto → fecha modal e restaura estado de detalhe
-    closeModal();
-    history.pushState({tela: 'detalhe'}, '');
-    return;
-  }
-
   if (detalheAtivo) {
-    // No detalhe → volta para lista
     showTab(curTab);
-    return;
+  } else {
+    window.location.href = 'index.html';
   }
-
-  // Na lista → vai para index
-  window.location.href = 'index.html';
 });
 
-// Estado inicial
 history.replaceState({tela: 'lista'}, '');
+init();
 </script>
 </body>
 </html>
