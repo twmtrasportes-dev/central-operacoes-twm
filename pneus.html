@@ -204,7 +204,7 @@ function init() {
   fogos     = lerLocal('twm_pneus_fogos') || {};
   historico = lerLocal('twm_pneus_hist')  || [];
 
-  // Cache local da frota
+  // Carrega cache local primeiro — app funciona imediatamente
   const cacheCAV = lerLocal('twm_frota_cav');
   const cacheCAR = lerLocal('twm_frota_car');
   if (cacheCAV && cacheCAV.length) {
@@ -212,37 +212,27 @@ function init() {
     CAR = cacheCAR || [];
     renderLista(CAV, 'lC', '');
     renderLista(CAR, 'lR', '');
+    setSyncBar('⏳ Atualizando frota...');
   } else {
-    document.getElementById('lC').innerHTML = '<div class="empty">Carregando frota...</div>';
-    document.getElementById('lR').innerHTML = '<div class="empty">Carregando frota...</div>';
+    document.getElementById('lC').innerHTML = '<div class="empty">⏳ Carregando frota da planilha...</div>';
+    document.getElementById('lR').innerHTML = '<div class="empty">⏳ Carregando frota da planilha...</div>';
   }
-  carregarFrota();
+  // Busca planilha em background
+  setTimeout(carregarFrota, 500);
 }
 
 // ── CARREGAR FROTA DA PLANILHA ────────────────────────────────
 function carregarFrota() {
-  setSyncBar('⏳ Sincronizando com planilha...');
-
-  // Timeout de 8s — se não responder usa backup
-  const timer = setTimeout(() => {
-    if (!CAV.length) usarBackup();
-    setSyncBar('📵 Planilha indisponível — dados locais', 3000);
-  }, 8000);
-
   fetch(SCRIPT_URL + '?action=getFrota')
     .then(r => r.json())
     .then(d => {
-      clearTimeout(timer);
       if (d.ok && d.cavalos && d.cavalos.length) {
-        // Garante has_di2 e has_tr2 para compatibilidade
         CAV = (d.cavalos || []).map(function(v) {
           return {
-            f: v.f,
-            tipo: 'cavalo',
+            f: v.f, tipo: 'cavalo',
             has_di2: v.has_di2 || Object.keys(v.t||{}).some(function(k){ return k==='DI2-E'||k==='DI2-D'; }),
             has_tr2: v.has_tr2 || Object.keys(v.t||{}).some(function(k){ return k.indexOf('TR2')===0; }),
-            t: v.t || {},
-            d: v.d || {}
+            t: v.t || {}, d: v.d || {}
           };
         });
         CAR = (d.carretas || []).map(function(v) {
@@ -259,19 +249,12 @@ function carregarFrota() {
         renderLista(CAV, 'lC', '');
         renderLista(CAR, 'lR', '');
         if (curV) renderDetalhe();
-        setSyncBar('✅ Frota sincronizada com planilha', 2000);
+        setSyncBar('✅ Sincronizado', 2000);
       } else {
-        // Planilha vazia ou sem dados — usa backup
-        clearTimeout(timer);
-        usarBackup();
-        setSyncBar('⚠ Planilha sem dados — usando dados locais', 3000);
+        setSyncBar('', 0);
       }
     })
-    .catch(() => {
-      clearTimeout(timer);
-      usarBackup();
-      setSyncBar('📵 Sem conexão — usando dados locais', 2000);
-    });
+    .catch(() => setSyncBar('', 0));
 
   fetch(SCRIPT_URL + '?action=getHistoricoPneus')
     .then(r => r.json())
@@ -286,11 +269,10 @@ function carregarFrota() {
 }
 
 function usarBackup() {
-  if (CAV.length) return; // já tem dados, não sobrescreve
-  CAV = CAV_BACKUP;
-  CAR = CAR_BACKUP;
-  renderLista(CAV, 'lC', '');
-  renderLista(CAR, 'lR', '');
+  if (CAV.length) return; // já tem dados do cache, não sobrescreve
+  // Sem cache e sem servidor — mostra mensagem de erro
+  document.getElementById('lC').innerHTML = '<div class="empty">⚠ Sem conexão com a planilha.<br>Verifique a internet e recarregue.</div>';
+  document.getElementById('lR').innerHTML = '<div class="empty">⚠ Sem conexão com a planilha.<br>Verifique a internet e recarregue.</div>';
 }
 
 function getTires(f) {
