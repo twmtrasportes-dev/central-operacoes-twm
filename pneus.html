@@ -228,7 +228,6 @@ function carregarFrota() {
         salvarLocal('twm_frota_cav', CAV);
         tires = {};
         renderLista(CAV, 'lC', '');
-        setSyncBar('✅ Cavalos OK', 2000);
         if (curV && (curV.tipo === 'cavalo' || 'has_di2' in curV)) renderDetalhe();
       }
     }).catch(() => {});
@@ -314,32 +313,7 @@ function getTires(f) {
 }
 
 // ── SINCRONIZAÇÃO ─────────────────────────────────────────────
-function sincronizar() {
-  setSyncBar('⏳ Sincronizando...');
-  fetch(SCRIPT_URL + '?action=getPneus')
-    .then(r => r.json())
-    .then(d => {
-      if (d.ok && d.dados) {
-        Object.assign(fogos, d.dados);
-        salvarLocal('twm_pneus_fogos', fogos);
-        tires = {}; // Limpa cache para recarregar com novos fogos
-        if (curV) renderDetalhe();
-      }
-      setSyncBar('✅ Sincronizado', 2000);
-    })
-    .catch(() => setSyncBar('📵 Offline — dados locais', 2000));
 
-  fetch(SCRIPT_URL + '?action=getHistoricoPneus')
-    .then(r => r.json())
-    .then(d => {
-      if (d.ok && d.historico && d.historico.length) {
-        historico = d.historico;
-        salvarLocal('twm_pneus_hist', historico);
-        if (curTab === 'h') renderHist();
-      }
-    })
-    .catch(() => {});
-}
 
 function setSyncBar(msg, hideAfter) {
   const el = document.getElementById('syncBar');
@@ -359,10 +333,16 @@ function showTab(t) {
 
 // ── LISTA ─────────────────────────────────────────────────────
 function renderLista(items, elId, filtro) {
-  const f = filtro.toLowerCase();
+  const f = (filtro || '').toLowerCase();
   const fil = f ? items.filter(v => v.f.toLowerCase().includes(f)) : items;
   const el = document.getElementById(elId);
-  if (!fil.length) { el.innerHTML = '<div class="empty">Nenhum resultado.</div>'; return; }
+  if (!fil.length) {
+    // Se não tem filtro e lista vazia, mostra carregando (planilha ainda não chegou)
+    el.innerHTML = f
+      ? '<div class="empty">Nenhum resultado.</div>'
+      : '<div class="empty" id="msg-' + elId + '">⏳ Buscando frota...</div>';
+    return;
+  }
   el.innerHTML = fil.map(v => {
     const isCav = 'has_di2' in v;
     const sub = isCav
