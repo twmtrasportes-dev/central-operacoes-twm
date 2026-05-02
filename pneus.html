@@ -309,7 +309,22 @@ function getDatas(f) {
     const v = all.find(x => x.f === f);
     const datasPlani = (v && v.d) ? v.d : {};
     const datasLocal = lerLocal('twm_datas_' + f) || {};
-    return {...datasPlani, ...datasLocal};
+    const merged = {...datasPlani, ...datasLocal};
+    // Formata todas as datas para dd/mm/aaaa
+    Object.keys(merged).forEach(k => {
+      const d = merged[k];
+      if (!d) { merged[k] = ''; return; }
+      // Já está no formato dd/mm/aaaa
+      if (/^\d{2}\/\d{2}\/\d{4}/.test(String(d))) return;
+      // Tenta converter qualquer formato para dd/mm/aaaa
+      try {
+        const dt = new Date(d);
+        if (!isNaN(dt.getTime())) {
+          merged[k] = dt.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit', year:'numeric'});
+        }
+      } catch(e) { merged[k] = String(d); }
+    });
+    return merged;
   } catch(e) { return {}; }
 }
 
