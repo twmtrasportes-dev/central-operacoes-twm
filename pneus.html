@@ -241,7 +241,8 @@ function carregarFrota() {
             tipo: 'cavalo',
             has_di2: v.has_di2 || Object.keys(v.t||{}).some(function(k){ return k==='DI2-E'||k==='DI2-D'; }),
             has_tr2: v.has_tr2 || Object.keys(v.t||{}).some(function(k){ return k.indexOf('TR2')===0; }),
-            t: v.t || {}
+            t: v.t || {},
+            d: v.d || {}
           };
         });
         CAR = (d.carretas || []).map(function(v) {
@@ -250,7 +251,7 @@ function carregarFrota() {
             var m = k.match(/^E(\d+)-/);
             if (m && parseInt(m[1]) > maxN) maxN = parseInt(m[1]);
           });
-          return { f: v.f, tipo: 'carreta', n: v.n || maxN, t: v.t || {} };
+          return { f: v.f, tipo: 'carreta', n: v.n || maxN, t: v.t || {}, d: v.d || {} };
         });
         salvarLocal('twm_frota_cav', CAV);
         salvarLocal('twm_frota_car', CAR);
@@ -457,11 +458,15 @@ function renderDetalhe() {
       const sulcoKey = v.f + '_' + p.id + '_sulco';
       const sulcoVal = lerLocal(sulcoKey) || '';
       const sulcoHtml = sulcoVal ? `<div class="${sulcoCor(sulcoVal)}">🔵 ${sulcoVal}mm</div>` : '';
+      const datas = getDatas(v.f);
+      const dataMont = datas[p.id] || '';
+      const dataHtml = dataMont ? `<div style="font-size:10px;color:var(--muted);margin-top:2px">📅 Montado em ${dataMont}</div>` : '';
       html += `<div class="ti${sel?' sel':''}" onclick="selP('${p.id}')">
         <div>
           <div class="tn">${p.name}</div>
           <div class="tc">${p.id}</div>
           ${sulcoHtml}
+          ${dataHtml}
         </div>
         <div style="display:flex;align-items:center">
           <span class="tf${!fire?' vz':''}">${fire||'—'}</span>
@@ -646,6 +651,10 @@ function salvarTroca() {
   tires[curV.f][curP] = nf;
   if (!fogos[curV.f]) fogos[curV.f] = {};
   fogos[curV.f][curP] = nf;
+  // Salva data de montagem local
+  const datasLocal = lerLocal('twm_datas_'+curV.f) || {};
+  datasLocal[curP] = registro.data.split(' ')[0]; // dd/mm/aaaa
+  salvarLocal('twm_datas_'+curV.f, datasLocal);
   historico.unshift({...registro});
 
   // Salva sulco por posição
@@ -666,7 +675,8 @@ function salvarTroca() {
       fogo_novo:    registro.fogo_novo,
       sulco:        registro.sulco || '',
       borracheiro:  registro.borracheiro,
-      data:         registro.data
+      data:         registro.data,
+      data_montagem: registro.data.split(' ')[0]
     });
     fetch(SCRIPT_URL + '?' + params.toString())
       .then(r => r.json())
