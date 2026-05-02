@@ -654,14 +654,24 @@ function salvarTroca() {
   salvarLocal('twm_pneus_fogos', fogos);
   salvarLocal('twm_pneus_hist', historico.slice(0, 500));
 
-  // Envia ao servidor
+  // Envia ao servidor via GET (sem CORS)
   if (navigator.onLine) {
-    fetch(SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(registro)
-    }).catch(() => {});
+    const params = new URLSearchParams({
+      action:       'salvarTroca',
+      aba:          registro.aba,
+      veiculo:      registro.veiculo,
+      posicao_id:   registro.posicao_id,
+      posicao_nome: registro.posicao_nome,
+      fogo_antigo:  registro.fogo_antigo,
+      fogo_novo:    registro.fogo_novo,
+      sulco:        registro.sulco || '',
+      borracheiro:  registro.borracheiro,
+      data:         registro.data
+    });
+    fetch(SCRIPT_URL + '?' + params.toString())
+      .then(r => r.json())
+      .then(d => { if (!d.ok) console.warn('Erro ao salvar:', d.msg); })
+      .catch(() => {});
   }
 
   closeModal();
