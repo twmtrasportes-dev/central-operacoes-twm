@@ -455,11 +455,15 @@ function filtrarFrotas(val) {
 }
 
 function renderFrotas(filtro) {
+  // Se ainda não carregou, usa FROTAS_FIXAS diretamente
+  if (!todasFrotas.length) {
+    todasFrotas = FROTAS_FIXAS.map(f => ({f, tipo: f.startsWith('RB') ? 'Carreta' : 'Cavalo'}));
+  }
   const f = (filtro||'').toLowerCase();
   const fil = f ? todasFrotas.filter(v => v.f.toLowerCase().includes(f)) : todasFrotas;
   const el = document.getElementById('listaFrotas');
   if (!fil.length) {
-    el.innerHTML = '<div class="empty">⏳ Carregando frotas...</div>';
+    el.innerHTML = '<div class="empty">Nenhum resultado.</div>';
     return;
   }
   el.innerHTML = fil.map(v => {
