@@ -411,31 +411,43 @@ function lerLocal(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){re
 // ── FROTAS ────────────────────────────────────────────────────
 let todasFrotas = [];
 
+// Frotas fixas como fallback
+const FROTAS_FIXAS = [
+  'VP-183','VP-184','VPL-185','VPL-186','VPL-187','VPL-188','VPL-189','VPL-190',
+  'VPL-191','VP-192','VP-193','VP-194','VP-195','VP-196','VP-197','VP-203',
+  'VP-306','VP-307','VP-308','VP-309','VPL-311','VPL-312','VPL-313','VPL-314',
+  'VPL-315','VPL-316','VPL-317','VPL-318','VPL-319','VPL-320','VPL-321','VPL-322',
+  'VPL-323','VP-324','VP-446','VP-447','VP-448','VP-449','VP-450','VP-451',
+  'VP-452','VP-453','VP-454','VP-455','VP-456','VP-457','VP-458','VP-459',
+  'VP-460','VP-461','VP-462','VP-463','VP-464','VP-465','VP-517','VP-518',
+  'VP-519','VP-520','VP-521','VP-522','VP-523','VP-611','VP-612','VP-613'
+];
+
 function carregarFrotasSeguranca() {
-  // Cache local imediato
+  // 1. Cache local — exibe imediatamente
   const cache = lerLocal('twm_frotas_checklist') || [];
   if (cache.length) {
     todasFrotas = cache.map(f => ({f, tipo: f.startsWith('RB') ? 'Carreta' : 'Cavalo'}));
     renderFrotas('');
   } else {
-    document.getElementById('listaFrotas').innerHTML = '<div class="empty">⏳ Carregando frotas...</div>';
+    // 2. Fallback com lista fixa — sempre funciona offline
+    todasFrotas = FROTAS_FIXAS.map(f => ({f, tipo: f.startsWith('RB') ? 'Carreta' : 'Cavalo'}));
+    renderFrotas('');
   }
 
-  // Busca pastas do Drive — lista sempre atualizada
+  // 3. Busca pastas do Drive em background — atualiza se tiver novas
   fetch(SCRIPT_URL + '?action=getFrotasChecklist')
     .then(r => r.json())
     .then(d => {
       if (d.ok && d.frotas && d.frotas.length) {
-        salvarLocal('twm_frotas_checklist', d.frotas);
-        todasFrotas = d.frotas.map(f => ({f, tipo: f.startsWith('RB') ? 'Carreta' : 'Cavalo'}));
+        // Mescla frotas do Drive com as fixas (sem duplicar)
+        const todas = [...new Set([...FROTAS_FIXAS, ...d.frotas])].sort();
+        salvarLocal('twm_frotas_checklist', todas);
+        todasFrotas = todas.map(f => ({f, tipo: f.startsWith('RB') ? 'Carreta' : 'Cavalo'}));
         renderFrotas(document.getElementById('srchFrota').value);
       }
     })
-    .catch(() => {
-      if (!todasFrotas.length) {
-        document.getElementById('listaFrotas').innerHTML = '<div class="empty">📵 Sem conexão — verifique a internet.</div>';
-      }
-    });
+    .catch(() => {}); // já tem fallback — não precisa tratar
 }
 
 function filtrarFrotas(val) {
