@@ -155,7 +155,8 @@ body.light .pneu-card{box-shadow:0 1px 6px rgba(0,0,0,.06)}
   <div class="tab"     onclick="showTab('em_uso')">Em Uso</div>
   <div class="tab"     onclick="showTab('reforma')">Reforma</div>
   <div class="tab"     onclick="showTab('venda')">Venda</div>
-  <div class="tab"     onclick="showTab('outros')">Outros</div>
+  <div class="tab"     onclick="showTab('conserto')">Conserto</div>
+  <div class="tab"     onclick="showTab('descarte')">Descarte</div>
 </div>
 
 <div id="s-todos" class="scr on pad">
@@ -171,7 +172,8 @@ body.light .pneu-card{box-shadow:0 1px 6px rgba(0,0,0,.06)}
 <div id="s-em_uso"     class="scr pad"><div id="lista-em_uso"></div></div>
 <div id="s-reforma"    class="scr pad"><div id="lista-reforma"></div></div>
 <div id="s-venda"      class="scr pad"><div id="lista-venda"></div></div>
-<div id="s-outros"     class="scr pad"><div id="lista-outros"></div></div>
+<div id="s-conserto"   class="scr pad"><div id="lista-conserto"></div></div>
+<div id="s-descarte"   class="scr pad"><div id="lista-descarte"></div></div>
 
 <!-- FAB -->
 <button class="fab" onclick="abrirModalAdicionar()">
@@ -327,7 +329,7 @@ const STATUS_LABEL = {
   em_uso:      '🔵 Em Uso',
   aguardando:  '⏳ Aguard. Reformadora',
   reformadora: '🔄 Na Reformadora',
-  recuperacao: '🔧 Recuperação',
+  recuperacao: '🔧 Conserto',
   venda:       '💰 Para Venda',
   vendido:     '🏷 Vendido',
   descarte:    '🗑 Descarte',
@@ -407,7 +409,7 @@ function showTab(t) {
   document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
   document.getElementById('s-'+t).classList.add('on');
   document.querySelectorAll('.tab').forEach((x,i) => {
-    if (['todos','disponivel','em_uso','reforma','venda','outros'][i] === t) x.classList.add('on');
+    if (['todos','disponivel','em_uso','reforma','venda','conserto','descarte'][i] === t) x.classList.add('on');
   });
   renderLista(t);
 }
@@ -424,6 +426,8 @@ function renderCounters() {
     em_uso:     estoque.filter(p => p.status === 'em_uso').length,
     reforma:    estoque.filter(p => ['aguardando','reformadora'].includes(p.status)).length,
     venda:      estoque.filter(p => ['venda','vendido'].includes(p.status)).length,
+    conserto:   estoque.filter(p => p.status === 'recuperacao').length,
+    descarte:   estoque.filter(p => p.status === 'descarte').length,
   };
   document.getElementById('counters').innerHTML = `
     <div class="counter-card">
@@ -441,6 +445,14 @@ function renderCounters() {
     <div class="counter-card">
       <div class="counter-num" style="color:var(--accent2)">${tots.venda}</div>
       <div class="counter-label">Venda</div>
+    </div>
+    <div class="counter-card">
+      <div class="counter-num" style="color:var(--orange)">${tots.conserto}</div>
+      <div class="counter-label">Conserto</div>
+    </div>
+    <div class="counter-card">
+      <div class="counter-num" style="color:var(--red)">${tots.descarte}</div>
+      <div class="counter-label">Descarte</div>
     </div>`;
 }
 
@@ -456,7 +468,8 @@ function renderLista(tab, busca) {
   else if (tab === 'em_uso') lista = estoque.filter(p => p.status === 'em_uso');
   else if (tab === 'reforma') lista = estoque.filter(p => ['aguardando','reformadora'].includes(p.status));
   else if (tab === 'venda') lista = estoque.filter(p => ['venda','vendido'].includes(p.status));
-  else if (tab === 'outros') lista = estoque.filter(p => ['recuperacao','descarte'].includes(p.status));
+  else if (tab === 'conserto') lista = estoque.filter(p => p.status === 'recuperacao');
+  else if (tab === 'descarte') lista = estoque.filter(p => p.status === 'descarte');
 
   if (b) lista = lista.filter(p =>
     (p.fogo||'').toLowerCase().includes(b) ||
@@ -615,7 +628,7 @@ function renderStatusOpcoes(statusAtual) {
     em_uso:      '🔵 Montar no Caminhão',
     aguardando:  '⏳ Aguard. Reformadora',
     reformadora: '🔄 Enviar p/ Reformadora',
-    recuperacao: '🔧 Recuperação',
+    recuperacao: '🔧 Conserto',
     venda:       '💰 Para Venda',
     vendido:     '🏷 Marcar Vendido',
     descarte:    '🗑 Descarte',
@@ -803,7 +816,7 @@ window.addEventListener('popstate', function(e) {
   window.location.href = 'index.html';
 });
 
-history.replaceState({tela: 'estoque'}, '');
+history.replaceState({tela:'estoque'}, '');
 init();
 </script>
 </body>
