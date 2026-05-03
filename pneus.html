@@ -218,6 +218,7 @@ function carregarFrota() {
   fetch(SCRIPT_URL + '?action=getCavalos')
     .then(r => r.json())
     .then(d => {
+      console.log('getCavalos resposta:', d.ok, 'qtd:', d.cavalos ? d.cavalos.length : 'null');
       if (d.ok && d.cavalos && d.cavalos.length) {
         CAV = d.cavalos.map(v => ({
           f: v.f, tipo: 'cavalo',
@@ -235,6 +236,7 @@ function carregarFrota() {
   fetch(SCRIPT_URL + '?action=getCarretas')
     .then(r => r.json())
     .then(d => {
+      console.log('getCarretas resposta:', d.ok, 'qtd:', d.carretas ? d.carretas.length : 'null');
       if (d.ok && d.carretas && d.carretas.length) {
         CAR = d.carretas.map(v => {
           let maxN = 1;
