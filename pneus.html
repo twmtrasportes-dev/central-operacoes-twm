@@ -214,44 +214,58 @@ let curV = null, curP = null, curTab = 'c';
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4BZz60sy9BsFACdqKktKpzJOfP8mj0U6s1G7Em5pwhaC_kQHCk-GPbLNZOlwjvrOwsw/exec';
 
 // ── CARREGAR FROTA DA PLANILHA ────────────────────────────────
+function mapCav(v) {
+  return {
+    f: v.f, tipo: 'cavalo',
+    has_di2: v.has_di2 || Object.keys(v.t||{}).some(k => k==='DI2-E'||k==='DI2-D'),
+    has_tr2: v.has_tr2 || Object.keys(v.t||{}).some(k => k.indexOf('TR2')===0),
+    t: v.t || {}, d: v.d || {}
+  };
+}
+
+function mapCar(v) {
+  let maxN = 1;
+  Object.keys(v.t||{}).forEach(k => {
+    const m = k.match(/^E(\d+)-/);
+    if (m && parseInt(m[1]) > maxN) maxN = parseInt(m[1]);
+  });
+  return { f: v.f, tipo: 'carreta', n: v.n || maxN, t: v.t || {}, d: v.d || {} };
+}
+
 function carregarFrota() {
+  setSyncBar('⏳ Sincronizando...');
+
+  // Cavalos
   fetch(SCRIPT_URL + '?action=getCavalos')
     .then(r => r.json())
     .then(d => {
-      console.log('getCavalos resposta:', d.ok, 'qtd:', d.cavalos ? d.cavalos.length : 'null');
       if (d.ok && d.cavalos && d.cavalos.length) {
-        CAV = d.cavalos.map(v => ({
-          f: v.f, tipo: 'cavalo',
-          has_di2: v.has_di2 || Object.keys(v.t||{}).some(k => k==='DI2-E'||k==='DI2-D'),
-          has_tr2: v.has_tr2 || Object.keys(v.t||{}).some(k => k.indexOf('TR2')===0),
-          t: v.t || {}, d: v.d || {}
-        }));
+        CAV = d.cavalos.map(mapCav);
         salvarLocal('twm_frota_cav', CAV);
         tires = {};
         renderLista(CAV, 'lC', '');
+        setSyncBar('✅ Sincronizado', 2000);
         if (curV && (curV.tipo === 'cavalo' || 'has_di2' in curV)) renderDetalhe();
+      } else {
+        // Fallback: getFrota (versão anterior do script)
+        usarGetFrota();
       }
-    }).catch(() => {});
+    })
+    .catch(() => usarGetFrota());
 
+  // Carretas
   fetch(SCRIPT_URL + '?action=getCarretas')
     .then(r => r.json())
     .then(d => {
-      console.log('getCarretas resposta:', d.ok, 'qtd:', d.carretas ? d.carretas.length : 'null');
       if (d.ok && d.carretas && d.carretas.length) {
-        CAR = d.carretas.map(v => {
-          let maxN = 1;
-          Object.keys(v.t||{}).forEach(k => {
-            const m = k.match(/^E(\d+)-/);
-            if (m && parseInt(m[1]) > maxN) maxN = parseInt(m[1]);
-          });
-          return { f: v.f, tipo: 'carreta', n: v.n || maxN, t: v.t || {}, d: v.d || {} };
-        });
+        CAR = d.carretas.map(mapCar);
         salvarLocal('twm_frota_car', CAR);
         renderLista(CAR, 'lR', '');
         if (curV && curV.tipo === 'carreta') renderDetalhe();
       }
     }).catch(() => {});
 
+  // Histórico
   fetch(SCRIPT_URL + '?action=getHistoricoPneus')
     .then(r => r.json())
     .then(d => {
@@ -261,6 +275,32 @@ function carregarFrota() {
         if (curTab === 'h') renderHist();
       }
     }).catch(() => {});
+}
+
+function usarGetFrota() {
+  // Fallback para versão anterior do script
+  fetch(SCRIPT_URL + '?action=getFrota')
+    .then(r => r.json())
+    .then(d => {
+      if (d.ok) {
+        if (d.cavalos && d.cavalos.length) {
+          CAV = d.cavalos.map(mapCav);
+          salvarLocal('twm_frota_cav', CAV);
+          tires = {};
+          renderLista(CAV, 'lC', '');
+        }
+        if (d.carretas && d.carretas.length) {
+          CAR = d.carretas.map(mapCar);
+          salvarLocal('twm_frota_car', CAR);
+          renderLista(CAR, 'lR', '');
+        }
+        setSyncBar('✅ Sincronizado', 2000);
+        if (curV) renderDetalhe();
+      } else {
+        setSyncBar('📵 Sem dados — verifique a planilha', 3000);
+      }
+    })
+    .catch(() => setSyncBar('📵 Offline — dados locais', 2000));
 }
 
 function setSyncBar(msg, hideAfter) {
