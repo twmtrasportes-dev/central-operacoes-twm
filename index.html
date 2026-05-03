@@ -300,7 +300,7 @@ body.light .login-screen{background:var(--bg)}
 
 <div class="header fade-up">
   <div class="logo-wrap">
-    <div class="menu-dots" id="menu-dots" onclick="toggleMenu()">
+    <div class="menu-dots" id="menu-dots" onclick="toggleMenu(event)">
       <span></span><span></span><span></span>
     </div>
     <div class="logo-badge">
@@ -423,6 +423,23 @@ body.light .login-screen{background:var(--bg)}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M9 18l6-6-6-6"/></svg>
     </div>
     <div class="module-badge green">Ativo</div>
+  </a>
+
+  <a class="module-card mod-seg wide fade-up" href="checklist_seguranca_diario.html">
+    <div class="module-icon-wrap" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.25)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="26" height="26">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <polyline points="9 12 11 14 15 10"/>
+      </svg>
+    </div>
+    <div class="module-info">
+      <div class="module-name">Check-List Segurança Diário</div>
+      <div class="module-desc">Inspeção diária para carregamento</div>
+    </div>
+    <div class="module-arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+    <div class="module-badge" style="background:var(--red)">Ativo</div>
   </a>
 
   <a class="module-card mod-estoque wide fade-up" href="estoque.html">
@@ -552,7 +569,8 @@ document.getElementById('login-senha').addEventListener('keypress', e => {
   if (e.key === 'Enter') fazerLogin();
 });
 
-function toggleMenu() {
+function toggleMenu(event) {
+  event.stopPropagation();
   const dd = document.getElementById('menu-dropdown');
   dd.classList.toggle('open');
 }
@@ -560,8 +578,7 @@ function toggleMenu() {
 // Fecha menu ao clicar fora
 document.addEventListener('click', function(e) {
   const dd = document.getElementById('menu-dropdown');
-  const btn = document.getElementById('menu-dots');
-  if (dd && btn && !dd.contains(e.target) && !btn.contains(e.target)) {
+  if (dd && dd.classList.contains('open') && !dd.contains(e.target)) {
     dd.classList.remove('open');
   }
 });
