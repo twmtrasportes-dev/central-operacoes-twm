@@ -976,7 +976,7 @@ function showPage(page) {
     document.getElementById('page-servico').style.display = 'block';
     document.getElementById('nav-servico').classList.add('active');
     document.getElementById('header-title').textContent = 'CARROS DE APOIO';
-    history.pushState({ screen: 'app', page: 'servico' }, '');
+    history.pushState({ screen: 'app', page: 'servico', tela: 'lista-carros' }, '');
     carregarCarrosServico();
   } else if (page === 'historico') {
     document.getElementById('page-historico').style.display = 'block';
@@ -989,16 +989,22 @@ function showPage(page) {
 
 // Intercepta seta voltar do celular
 window.addEventListener('popstate', function(e) {
+  const state = e.state || {};
   const goto = sessionStorage.getItem('twm_goto');
 
-  // Carros de Apoio → volta para index.html
-  if (goto === 'servico') {
-    sessionStorage.removeItem('twm_goto');
-    window.location.href = 'index.html';
+  // 1. Modal aberto → fecha o modal e empurra estado para manter na tela atual
+  const modalAberto = document.getElementById('modal-overlay')?.classList.contains('open');
+  if (modalAberto) {
+    fecharModalBtn();
+    // Reempurra estado para que próxima seta saiba onde está
+    const servicoAtivo = document.getElementById('page-servico')?.style.display === 'block';
+    if (servicoAtivo) {
+      history.pushState({tela:'lista-carros'}, '');
+    }
     return;
   }
 
-  // Check List → respeita fluxo interno
+  // 2. Formulário de checklist ativo → volta para detalhe
   const formAtivo = document.getElementById('screen-form')?.classList.contains('active');
   if (formAtivo) {
     showScreen('app');
@@ -1006,19 +1012,35 @@ window.addEventListener('popstate', function(e) {
     return;
   }
 
+  // 3. Na página de Carros de Apoio → vai para index SOMENTE se não veio de fechar modal
+  const servicoAtivo = document.getElementById('page-servico')?.style.display === 'block';
+  if (servicoAtivo) {
+    if (state.tela === 'lista-carros' || goto === 'servico') {
+      sessionStorage.removeItem('twm_goto');
+      window.location.href = 'index.html';
+      return;
+    }
+    // Acabou de fechar modal — fica na lista
+    return;
+  }
+
+  // 4. No detalhe do checklist → volta para lista de caminhões
   const detalheAtivo = document.getElementById('page-detalhe')?.style.display === 'block';
   if (detalheAtivo && document.getElementById('screen-app')?.classList.contains('active')) {
     showPage('caminhoes');
     return;
   }
 
+  // 5. Na lista de caminhões → vai para index.html
   const appAtivo = document.getElementById('screen-app')?.classList.contains('active');
   if (appAtivo) {
-    // Na lista de caminhões → vai para index.html
     sessionStorage.removeItem('twm_goto');
     window.location.href = 'index.html';
     return;
   }
+
+  // Fallback → index.html
+  window.location.href = 'index.html';
 });
 
 // ===== CAMINHOES =====
@@ -1465,6 +1487,7 @@ function abrirFormSaida(carro) {
     </div>
   `;
   modal.classList.add('open');
+  history.pushState({tela:'modal-servico'}, '');
 }
 
 // ── FORMULÁRIO DE RETORNO ────────────────────────────────────
@@ -1510,6 +1533,7 @@ function abrirFormRetorno(carro, registro) {
     </div>
   `;
   modal.classList.add('open');
+  history.pushState({tela:'modal-servico'}, '');
 }
 
 let fotoServicoBase64 = '';
@@ -1794,6 +1818,7 @@ function abrirModalChecklist(id) {
 
   document.getElementById('modal-content').innerHTML = html;
   document.getElementById('modal-overlay').classList.add('open');
+  history.pushState({tela:'modal-checklist'}, '');
 }
 
 function fecharModal(e) {
