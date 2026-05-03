@@ -412,42 +412,30 @@ function lerLocal(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){re
 let todasFrotas = [];
 
 function carregarFrotasSeguranca() {
-  // Tenta cache local primeiro
-  const cacheCAV = lerLocal('twm_frota_cav') || [];
-  const cacheCAR = lerLocal('twm_frota_car') || [];
-  if (cacheCAV.length || cacheCAR.length) {
-    todasFrotas = [
-      ...cacheCAV.map(v=>({f:v.f, tipo:'Cavalo'})),
-      ...cacheCAR.map(v=>({f:v.f, tipo:'Carreta'}))
-    ].sort((a,b) => a.f.localeCompare(b.f));
+  // Cache local imediato
+  const cache = lerLocal('twm_frotas_checklist') || [];
+  if (cache.length) {
+    todasFrotas = cache.map(f => ({f, tipo: f.startsWith('RB') ? 'Carreta' : 'Cavalo'}));
     renderFrotas('');
+  } else {
+    document.getElementById('listaFrotas').innerHTML = '<div class="empty">⏳ Carregando frotas...</div>';
   }
 
-  // Busca do servidor em paralelo
-  fetch(SCRIPT_URL + '?action=getCavalos')
+  // Busca pastas do Drive — lista sempre atualizada
+  fetch(SCRIPT_URL + '?action=getFrotasChecklist')
     .then(r => r.json())
     .then(d => {
-      if (d.ok && d.cavalos && d.cavalos.length) {
-        const cavs = d.cavalos.map(v=>({f:v.f, tipo:'Cavalo'}));
-        salvarLocal('twm_frota_cav', d.cavalos);
-        // Atualiza lista mantendo carretas
-        const cars = todasFrotas.filter(v => v.tipo === 'Carreta');
-        todasFrotas = [...cavs, ...cars].sort((a,b) => a.f.localeCompare(b.f));
+      if (d.ok && d.frotas && d.frotas.length) {
+        salvarLocal('twm_frotas_checklist', d.frotas);
+        todasFrotas = d.frotas.map(f => ({f, tipo: f.startsWith('RB') ? 'Carreta' : 'Cavalo'}));
         renderFrotas(document.getElementById('srchFrota').value);
       }
-    }).catch(()=>{});
-
-  fetch(SCRIPT_URL + '?action=getCarretas')
-    .then(r => r.json())
-    .then(d => {
-      if (d.ok && d.carretas && d.carretas.length) {
-        const cars = d.carretas.map(v=>({f:v.f, tipo:'Carreta'}));
-        salvarLocal('twm_frota_car', d.carretas);
-        const cavs = todasFrotas.filter(v => v.tipo === 'Cavalo');
-        todasFrotas = [...cavs, ...cars].sort((a,b) => a.f.localeCompare(b.f));
-        renderFrotas(document.getElementById('srchFrota').value);
+    })
+    .catch(() => {
+      if (!todasFrotas.length) {
+        document.getElementById('listaFrotas').innerHTML = '<div class="empty">📵 Sem conexão — verifique a internet.</div>';
       }
-    }).catch(()=>{});
+    });
 }
 
 function filtrarFrotas(val) {
