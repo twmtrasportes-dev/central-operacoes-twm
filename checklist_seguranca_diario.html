@@ -579,19 +579,27 @@ function salvarChecklist() {
   // Envia ao servidor
   if (navigator.onLine) {
     const params = new URLSearchParams({
-      action: 'salvarChecklistSeguranca',
-      frota: cl.frota,
-      data: cl.data,
-      hora: cl.hora,
-      motorista: cl.motorista,
-      km: cl.km||'',
-      local: cl.local||'',
+      action:      'salvarChecklistSeguranca',
+      frota:       cl.frota,
+      data:        cl.data,
+      hora:        cl.hora,
+      motorista:   cl.motorista,
+      km:          cl.km||'',
+      placa_cav:   cl.placa_cav||'',
+      placa_car:   cl.placa_car||'',
+      rb:          cl.rb||'',
+      ano_cav:     cl.ano_cav||'',
+      ano_car:     cl.ano_car||'',
+      local:       cl.local||'',
       responsavel: cl.responsavel||'',
-      aprovacao: cl.aprovacao,
-      obs: cl.obs||'',
-      respostas: JSON.stringify(cl.respostas),
+      aprovacao:   cl.aprovacao,
+      obs:         cl.obs||'',
+      respostas:   JSON.stringify(cl.respostas),
     });
-    fetch(SCRIPT_URL + '?' + params.toString()).catch(()=>{});
+    fetch(SCRIPT_URL + '?' + params.toString())
+      .then(r => r.json())
+      .then(d => { if(d.ok) showToast('✅ Salvo na planilha: '+d.planilha); })
+      .catch(()=>{});
   }
 
   showToast('✅ Check-List salvo!');
