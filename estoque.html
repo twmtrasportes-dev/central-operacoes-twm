@@ -365,7 +365,8 @@ let novoStatus = null;
 
 // ── INIT ──────────────────────────────────────────────────────
 function init() {
-  estoque = lerLocal('twm_estoque') || [];
+  const cache = lerLocal('twm_estoque') || [];
+  estoque = cache.map(p => ({...p, status: normalizarStatus(p.status)}));
   frotas  = lerLocal('twm_frotas_cache') || { cavalos: [], carretas: [] };
   render();
   setTimeout(sincronizar, 1000);
@@ -380,7 +381,7 @@ function sincronizar() {
     .then(r => r.json())
     .then(d => {
       if (d.ok && d.estoque && d.estoque.length) {
-        estoque = d.estoque;
+        estoque = d.estoque.map(p => ({...p, status: normalizarStatus(p.status)}));
         salvarLocal('twm_estoque', estoque);
         render();
       }
@@ -416,6 +417,22 @@ function showTab(t) {
     if (['todos','disponivel','em_uso','reforma','venda','conserto','descarte'][i] === t) x.classList.add('on');
   });
   renderLista(t);
+}
+
+// ── NORMALIZA STATUS (compatibilidade planilha → app) ─────────
+function normalizarStatus(s) {
+  if (!s) return 'disponivel';
+  s = s.toLowerCase().trim();
+  // Mapeia variações para status padrão do app
+  if (s === 'em uso' || s === 'emuso') return 'em_uso';
+  if (s === 'reforma' || s === 'para reforma' || s === 'aguardando reformadora') return 'reforma';
+  if (s === 'reformadora' || s === 'na reformadora') return 'reformadora';
+  if (s === 'conserto' || s === 'recuperacao' || s === 'para conserto' || s === 'recuperação') return 'conserto';
+  if (s === 'descarte' || s === 'para descarte') return 'descarte';
+  if (s === 'venda' || s === 'para venda') return 'venda';
+  if (s === 'vendido') return 'vendido';
+  if (s === 'disponivel' || s === 'disponível') return 'disponivel';
+  return s;
 }
 
 // ── RENDER GERAL ──────────────────────────────────────────────
