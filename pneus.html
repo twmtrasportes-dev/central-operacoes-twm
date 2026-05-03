@@ -273,11 +273,20 @@ function setSyncBar(msg, hideAfter) {
 
 // ── INIT ──────────────────────────────────────────────────────
 function init() {
-  fogos    = lerLocal('twm_pneus_fogos') || {};
+  fogos     = lerLocal('twm_pneus_fogos') || {};
   historico = lerLocal('twm_pneus_hist')  || [];
-  renderLista(CAV, 'lC', '');
-  renderLista(CAR, 'lR', '');
-  setTimeout(sincronizar, 1200);
+
+  // Cache local
+  const cacheCAV = lerLocal('twm_frota_cav');
+  const cacheCAR = lerLocal('twm_frota_car');
+  if (cacheCAV && cacheCAV.length) {
+    CAV = cacheCAV;
+    CAR = cacheCAR || [];
+    renderLista(CAV, 'lC', '');
+    renderLista(CAR, 'lR', '');
+  }
+  // Busca planilha
+  carregarFrota();
 }
 
 
@@ -314,14 +323,7 @@ function getTires(f) {
   return tires[f];
 }
 
-// ── SINCRONIZAÇÃO ─────────────────────────────────────────────
-
-
-function setSyncBar(msg, hideAfter) {
-  const el = document.getElementById('syncBar');
-  el.textContent = msg; el.style.display = 'block';
-  if (hideAfter) setTimeout(() => { el.style.display = 'none'; }, hideAfter);
-}
+// sincronizar() removida — usa carregarFrota()
 
 // ── TABS ──────────────────────────────────────────────────────
 function showTab(t) {
