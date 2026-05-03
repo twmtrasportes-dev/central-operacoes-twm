@@ -327,7 +327,9 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4BZz60sy9BsFACdqKk
 const STATUS_LABEL = {
   disponivel:  '✅ Disponível',
   em_uso:      '🔵 Em Uso',
+  reforma:      '🔄 Reforma',
   aguardando:  '⏳ Aguard. Reformadora',
+  conserto:     '🔧 Conserto',
   reformadora: '🔄 Na Reformadora',
   recuperacao: '🔧 Conserto',
   venda:       '💰 Para Venda',
@@ -338,7 +340,9 @@ const STATUS_LABEL = {
 const STATUS_CLASS = {
   disponivel:  's-disponivel',
   em_uso:      's-em_uso',
+  reforma:      's-reformadora',
   aguardando:  's-aguardando',
+  conserto:     's-recuperacao',
   reformadora: 's-reformadora',
   recuperacao: 's-recuperacao',
   venda:       's-venda',
@@ -424,9 +428,9 @@ function renderCounters() {
   const tots = {
     disponivel: estoque.filter(p => p.status === 'disponivel').length,
     em_uso:     estoque.filter(p => p.status === 'em_uso').length,
-    reforma:    estoque.filter(p => ['aguardando','reformadora'].includes(p.status)).length,
+    reforma:    estoque.filter(p => ['reforma','aguardando','reformadora'].includes(p.status)).length,
     venda:      estoque.filter(p => ['venda','vendido'].includes(p.status)).length,
-    conserto:   estoque.filter(p => p.status === 'recuperacao').length,
+    conserto:   estoque.filter(p => ['conserto','recuperacao'].includes(p.status)).length,
     descarte:   estoque.filter(p => p.status === 'descarte').length,
   };
   document.getElementById('counters').innerHTML = `
@@ -466,9 +470,9 @@ function renderLista(tab, busca) {
 
   if (tab === 'disponivel') lista = estoque.filter(p => p.status === 'disponivel');
   else if (tab === 'em_uso') lista = estoque.filter(p => p.status === 'em_uso');
-  else if (tab === 'reforma') lista = estoque.filter(p => ['aguardando','reformadora'].includes(p.status));
+  else if (tab === 'reforma') lista = estoque.filter(p => ['reforma','aguardando','reformadora'].includes(p.status));
   else if (tab === 'venda') lista = estoque.filter(p => ['venda','vendido'].includes(p.status));
-  else if (tab === 'conserto') lista = estoque.filter(p => p.status === 'recuperacao');
+  else if (tab === 'conserto') lista = estoque.filter(p => ['conserto','recuperacao'].includes(p.status));
   else if (tab === 'descarte') lista = estoque.filter(p => p.status === 'descarte');
 
   if (b) lista = lista.filter(p =>
@@ -626,7 +630,9 @@ function renderStatusOpcoes(statusAtual) {
   const label = {
     disponivel:  '✅ Disponível',
     em_uso:      '🔵 Montar no Caminhão',
-    aguardando:  '⏳ Aguard. Reformadora',
+    reforma:      '🔄 Reforma',
+  aguardando:  '⏳ Aguard. Reformadora',
+  conserto:     '🔧 Conserto',
     reformadora: '🔄 Enviar p/ Reformadora',
     recuperacao: '🔧 Conserto',
     venda:       '💰 Para Venda',
