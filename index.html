@@ -441,6 +441,9 @@ body.light .login-screen{background:var(--bg)}
       </button>
     </div>
     <div class="frota-pager" id="frota-pager"></div>
+    <div id="frota-atualizado" style="opacity:0;transition:opacity .5s;text-align:center;font-size:10px;font-weight:700;color:#10B981;padding:6px 0;letter-spacing:1px">
+      &#10003; Dados atualizados
+    </div>
     <div id="frota-alerta" style="display:none" class="frota-alerta">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3-3a6 6 0 01-7.8 7.8l-6 6a2.12 2.12 0 01-3-3l6-6a6 6 0 017.8-7.8l-3 3z" stroke="#F87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span id="frota-alerta-txt"></span>
@@ -787,6 +790,9 @@ function frotaIrPag(n) {
 
 
 // ── Carregar planilha ─────────────────────────────────────────────────────────
+var _ultimoCSV    = '';   // guarda o texto cru para detectar mudanças
+var _verificando  = false;
+
 function carregarFrota() {
   // 1. Mostra cache imediatamente
   try {
@@ -798,16 +804,31 @@ function carregarFrota() {
   } catch(e) {}
 
   // 2. Busca dados frescos
+  _buscarPlanilha(true);
+}
+
+function _buscarPlanilha(forcaRender) {
   var xhr = new XMLHttpRequest();
   xhr.timeout = 10000;
   xhr.open('GET', FROTA_CSV + '&_=' + Date.now(), true);
   xhr.onload = function() {
-    if (xhr.status === 200 && xhr.responseText) {
-      var novos = parseCsv(xhr.responseText);
-      if (novos.length > 0) {
-        _frotaDados = novos;
-        try { localStorage.setItem('twm_frota_cache', JSON.stringify(_frotaDados)); } catch(e) {}
-        renderFrota(_frotaDados);
+    if (xhr.status === 200 && xhr.responseText && xhr.responseText.length > 10) {
+      var txt = xhr.responseText.trim();
+
+      // Detecta se houve mudança comparando com o último CSV
+      var mudou = (txt !== _ultimoCSV);
+      _ultimoCSV = txt;
+
+      if (mudou || forcaRender) {
+        var novos = parseCsv(txt);
+        if (novos.length > 0) {
+          _frotaDados = novos;
+          try { localStorage.setItem('twm_frota_cache', JSON.stringify(_frotaDados)); } catch(e) {}
+          renderFrota(_frotaDados);
+
+          // Pisca o indicador de atualização se mudou sem ser força
+          if (mudou && !forcaRender) _mostrarIndicadorAtualizado();
+        }
       }
     }
   };
@@ -818,6 +839,13 @@ function carregarFrota() {
     }
   };
   xhr.send();
+}
+
+function _mostrarIndicadorAtualizado() {
+  var el = document.getElementById('frota-atualizado');
+  if (!el) return;
+  el.style.opacity = '1';
+  setTimeout(function() { el.style.opacity = '0'; }, 2500);
 }
 
 // ── Modal detalhe ─────────────────────────────────────────────────────────────
@@ -997,8 +1025,11 @@ function _doReorder() {
 function iniciarFrotaModulos() {
   renderMods();
   carregarFrota();
+  // Verifica mudanças a cada 30 segundos
   if (window._frotaTimer) clearInterval(window._frotaTimer);
-  window._frotaTimer = setInterval(carregarFrota, 3 * 60 * 1000);
+  window._frotaTimer = setInterval(function() {
+    _buscarPlanilha(false); // false = só re-renderiza se mudou
+  }, 30 * 1000);
 }
 
 // ── Aciona frota+módulos ao mostrar o app ──────────────────────────────────
