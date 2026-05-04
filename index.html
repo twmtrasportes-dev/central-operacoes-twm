@@ -136,14 +136,25 @@ body.light .login-screen{background:var(--bg)}
 .frota-leg-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);font-weight:600}
 .frota-leg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .frota-box{background:var(--bg3);border:1px solid var(--border2);border-radius:18px;padding:14px}
-.frota-grid{display:flex;flex-wrap:wrap;gap:10px}
-.frota-card{background:var(--bg2);border-radius:13px;padding:9px 7px;text-align:center;width:76px;flex-shrink:0;cursor:pointer;transition:transform .15s,box-shadow .15s;border:2px solid transparent;position:relative}
+.frota-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.frota-card{background:var(--bg2);border-radius:13px;padding:9px 6px;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s;border:2px solid transparent;position:relative}
 .frota-card:active{transform:scale(.94)}
 .frota-ico{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin:0 auto 5px}
 .frota-id{font-size:11px;font-weight:800;color:var(--text);letter-spacing:.3px;font-family:"Barlow Condensed",sans-serif}
 .frota-st{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
 .frota-badge{position:absolute;top:-5px;right:-5px;background:#EF4444;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg3);font-size:9px;color:#fff;font-weight:900;line-height:1}
 .frota-alerta{margin-top:12px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:11px;color:#F87171;font-weight:600}
+
+.frota-carousel{position:relative}
+.frota-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:10;background:rgba(123,63,228,.7);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s;backdrop-filter:blur(4px)}
+.frota-nav:active{background:rgba(123,63,228,1)}
+.frota-nav.prev{left:-12px}
+.frota-nav.next{right:-12px}
+.frota-nav svg{flex-shrink:0}
+.frota-pager{display:flex;justify-content:center;gap:5px;margin-top:10px}
+.frota-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.15);transition:background .2s,transform .2s;cursor:pointer}
+.frota-dot.active{background:var(--accent);transform:scale(1.3)}
+
 .frota-msg{text-align:center;padding:20px;font-size:12px;color:var(--muted)}
 
 /* ── MODAL DETALHE ── */
@@ -171,16 +182,16 @@ body.light .login-screen{background:var(--bg)}
 .mod-title{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:3px;text-transform:uppercase;display:flex;align-items:center;gap:10px;flex:1}
 .mod-title::after{content:"";flex:1;height:1px;background:var(--border2)}
 .mod-hint{font-size:10px;color:var(--muted);opacity:.7;display:flex;align-items:center;gap:5px;margin-left:12px;white-space:nowrap}
-.mod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.mod-item{background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:12px 10px 14px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:7px;cursor:grab;user-select:none;touch-action:none;transition:transform .15s,box-shadow .15s,opacity .15s,border-color .15s;position:relative}
+.mod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.mod-item{background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:10px 6px 12px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:5px;cursor:grab;user-select:none;touch-action:none;transition:transform .15s,box-shadow .15s,opacity .15s,border-color .15s;position:relative}
 .mod-item.dim{opacity:.55}
 .mod-item.is-dragging{opacity:.25}
 .mod-item.is-over{border-color:var(--accent);border-style:dashed;box-shadow:0 4px 18px rgba(123,63,228,.25);transform:scale(1.04)}
 .mod-item.is-holding{transform:scale(1.07);box-shadow:0 8px 28px rgba(123,63,228,.3);border-color:var(--accent)}
-.mod-ico{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center}
-.mod-name{font-family:"Barlow Condensed",sans-serif;font-size:12px;font-weight:800;color:var(--text);letter-spacing:.3px;line-height:1.25;text-transform:uppercase}
-.mod-desc{font-size:9px;color:var(--muted);line-height:1.4}
-.mod-badge{font-size:8px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.3px;align-self:flex-end}
+.mod-ico{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center}
+.mod-name{font-family:"Barlow Condensed",sans-serif;font-size:10px;font-weight:800;color:var(--text);letter-spacing:.3px;line-height:1.25;text-transform:uppercase}
+.mod-desc{font-size:8px;color:var(--muted);line-height:1.3}
+.mod-badge{font-size:7px;font-weight:700;padding:2px 6px;border-radius:20px;letter-spacing:.3px;align-self:flex-end}
 .mod-badge.verde{background:rgba(16,185,129,.18);color:#10B981}
 .mod-badge.vermelho{background:rgba(239,68,68,.18);color:#EF4444;font-size:13px;padding:2px 7px}
 .mod-badge.cinza{background:rgba(255,255,255,.07);color:var(--muted)}
@@ -420,7 +431,16 @@ body.light .login-screen{background:var(--bg)}
     <div class="frota-leg-item"><div class="frota-leg-dot" style="background:#6B7280"></div>Garagem</div>
   </div>
   <div class="frota-box">
-    <div class="frota-grid" id="frota-grid"><div class="frota-msg">Carregando frota...</div></div>
+    <div class="frota-carousel">
+      <button class="frota-nav prev" onclick="frotaNav(-1)" aria-label="Anterior">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2 L4 7 L9 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="frota-grid" id="frota-grid"><div class="frota-msg">Carregando frota...</div></div>
+      <button class="frota-nav next" onclick="frotaNav(1)" aria-label="Próximo">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 2 L10 7 L5 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="frota-pager" id="frota-pager"></div>
     <div id="frota-alerta" style="display:none" class="frota-alerta">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3-3a6 6 0 01-7.8 7.8l-6 6a2.12 2.12 0 01-3-3l6-6a6 6 0 017.8-7.8l-3 3z" stroke="#F87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span id="frota-alerta-txt"></span>
@@ -627,10 +647,12 @@ const SCFG = {
 };
 
 function normStatus(s) {
-  const v = (s||'').toUpperCase().trim();
-  if (v.includes('VIAGEM'))   return 'EM VIAGEM';
-  if (v.includes('DESCARG'))  return 'DESCARREGANDO';
-  if (v.includes('RETORNO'))  return 'RETORNO GARAGEM';
+  var v = (s||'').toUpperCase().trim()
+               .normalize('NFD').replace(/[\u0300-\u036f]/g,''); // remove acentos
+  if (v.includes('VIAGEM'))                        return 'EM VIAGEM';
+  if (v.includes('DESCARG') || v.includes('DESC')) return 'DESCARREGANDO';
+  if (v.includes('RETORNO') || v.includes('VOLTA'))return 'RETORNO GARAGEM';
+  if (v.includes('GARAGEM') || v.includes('BASE') || v.includes('PATIO') || v === '') return 'NA GARAGEM';
   return 'NA GARAGEM';
 }
 
@@ -667,43 +689,41 @@ function parseCsv(txt) {
 // ── Render frota ──────────────────────────────────────────────────────────────
 var _frotaDados = [];
 
+var _frotaPage  = 0;
+var _frotaVlist = [];
+var _frotaVmap  = {};
+var POR_PAG     = 8;
+
 function renderFrota(dados) {
-  var grid = document.getElementById('frota-grid');
+  var grid      = document.getElementById('frota-grid');
   var alertaDiv = document.getElementById('frota-alerta');
   var alertaTxt = document.getElementById('frota-alerta-txt');
   if (!grid) return;
 
   if (!dados || !dados.length) {
-    grid.innerHTML = '<div class="frota-msg">Nenhum veículo encontrado.</div>';
+    grid.innerHTML = '<div class="frota-msg">Nenhum ve\xedculo encontrado.</div>';
     return;
   }
 
-  // Agrupa por cavalo
-  var vmap = {}, vlist = [];
+  _frotaVmap = {}; _frotaVlist = [];
   for (var i = 0; i < dados.length; i++) {
     var cav = (dados[i][COL.CAVALO]||'').trim();
-    if (cav && !vmap[cav]) { vmap[cav] = dados[i]; vlist.push(cav); }
+    if (cav && !_frotaVmap[cav]) { _frotaVmap[cav] = dados[i]; _frotaVlist.push(cav); }
   }
 
   var checklists = [];
   try { checklists = JSON.parse(localStorage.getItem('twm_checklists')||'[]'); } catch(e) {}
+  var totalManut = 0;
+  _frotaVlist.forEach(function(cav) {
+    if (checklists.some(function(c){ return c.solicitacao_manutencao && (c.cavalo||'').toUpperCase().indexOf(cav.toUpperCase().slice(0,4)) >= 0; })) totalManut++;
+  });
 
-  var html = '', totalManut = 0;
-  for (var j = 0; j < vlist.length; j++) {
-    var cav = vlist[j];
-    var row = vmap[cav];
-    var st  = normStatus(row[COL.STATUS]);
-    var cfg = SCFG[st];
-    var temManut = checklists.some(function(c){ return c.solicitacao_manutencao && (c.cavalo||'').toUpperCase().indexOf(cav.toUpperCase().slice(0,4)) >= 0; });
-    if (temManut) totalManut++;
-    html += '<div class="frota-card" onclick="fmAbrir(\''+cav.replace(/'/g,"\\'")+'\')">'
-          + (temManut ? '<div class="frota-badge">!</div>' : '')
-          + '<div class="frota-ico" style="background:'+cfg.bg+'">'+icoFrota(st,cfg.cor,20)+'</div>'
-          + '<div class="frota-id">'+cav+'</div>'
-          + '<div class="frota-st" style="color:'+cfg.cor+'">'+cfg.lbl+'</div>'
-          + '</div>';
-  }
-  grid.innerHTML = html;
+  var totalPags = Math.ceil(_frotaVlist.length / POR_PAG);
+  if (_frotaPage >= totalPags) _frotaPage = totalPags - 1;
+  if (_frotaPage < 0) _frotaPage = 0;
+
+  renderPaginaFrota(checklists);
+  renderPager(totalPags);
 
   if (totalManut > 0) {
     alertaTxt.textContent = totalManut + ' caminhão' + (totalManut>1?'s':'') + ' com solicitação de manutenção';
@@ -712,6 +732,59 @@ function renderFrota(dados) {
     alertaDiv.style.display = 'none';
   }
 }
+
+function renderPaginaFrota(checklists) {
+  var grid = document.getElementById('frota-grid');
+  if (!grid) return;
+  if (!checklists) {
+    try { checklists = JSON.parse(localStorage.getItem('twm_checklists')||'[]'); } catch(e) { checklists=[]; }
+  }
+  var inicio = _frotaPage * POR_PAG;
+  var pagina = _frotaVlist.slice(inicio, inicio + POR_PAG);
+  var html = '';
+  pagina.forEach(function(cav) {
+    var row = _frotaVmap[cav];
+    var st  = normStatus(row[COL.STATUS]);
+    var cfg = SCFG[st];
+    var temManut = checklists.some(function(c){ return c.solicitacao_manutencao && (c.cavalo||'').toUpperCase().indexOf(cav.toUpperCase().slice(0,4)) >= 0; });
+    html += '<div class="frota-card" onclick="fmAbrir(\'' + cav.replace(/'/g, "\'") + '\')">'
+          + (temManut ? '<div class="frota-badge">!</div>' : '')
+          + '<div class="frota-ico" style="background:' + cfg.bg + '">' + icoFrota(st, cfg.cor, 20) + '</div>'
+          + '<div class="frota-id">' + cav + '</div>'
+          + '<div class="frota-st" style="color:' + cfg.cor + '">' + cfg.lbl + '</div>'
+          + '</div>';
+  });
+  grid.innerHTML = html || '<div class="frota-msg">Sem ve\xedculos nesta p\xe1gina.</div>';
+}
+
+function renderPager(totalPags) {
+  var pager = document.getElementById('frota-pager');
+  if (!pager) return;
+  if (totalPags <= 1) { pager.innerHTML = ''; return; }
+  var h = '';
+  for (var i = 0; i < totalPags; i++) {
+    h += '<div class="frota-dot' + (i === _frotaPage ? ' active' : '') + '" onclick="frotaIrPag(' + i + ')"></div>';
+  }
+  pager.innerHTML = h;
+}
+
+function frotaNav(dir) {
+  var totalPags = Math.ceil(_frotaVlist.length / POR_PAG);
+  if (totalPags <= 1) return;
+  _frotaPage = (_frotaPage + dir + totalPags) % totalPags;
+  var cl = []; try { cl = JSON.parse(localStorage.getItem('twm_checklists')||'[]'); } catch(e) {}
+  renderPaginaFrota(cl);
+  renderPager(totalPags);
+}
+
+function frotaIrPag(n) {
+  _frotaPage = n;
+  var totalPags = Math.ceil(_frotaVlist.length / POR_PAG);
+  var cl = []; try { cl = JSON.parse(localStorage.getItem('twm_checklists')||'[]'); } catch(e) {}
+  renderPaginaFrota(cl);
+  renderPager(totalPags);
+}
+
 
 // ── Carregar planilha ─────────────────────────────────────────────────────────
 function carregarFrota() {
