@@ -142,6 +142,7 @@ body.light .login-screen{background:var(--bg)}
 .frota-ico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin:0 auto 4px}
 .frota-id{font-size:10px;font-weight:800;color:var(--text);letter-spacing:.2px;font-family:"Barlow Condensed",sans-serif}
 .frota-st{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+.frota-num{font-size:8px;font-weight:600;color:var(--muted);letter-spacing:.3px;margin-top:1px}
 .frota-badge{position:absolute;top:-5px;right:-5px;background:#EF4444;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg3);font-size:9px;color:#fff;font-weight:900;line-height:1}
 .frota-alerta{margin-top:12px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:11px;color:#F87171;font-weight:600}
 
@@ -638,7 +639,30 @@ if(document.readyState !== "loading") aplicarTema();
 //  QUADRO DE FROTA + MÓDULOS  —  TWM DataLink
 // ════════════════════════════════════════════════════════════
 
-const FROTA_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQx62CxMqSchj3wdG83U48YiyM8eH9vIj8Jv7Gg1QVWm0Ow7abDlyYWtAEecM4iCPWTvH8e5Y84jJdf/pub?gid=644783428&single=true&output=csv';
+const FROTA_CSV      = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQx62CxMqSchj3wdG83U48YiyM8eH9vIj8Jv7Gg1QVWm0Ow7abDlyYWtAEecM4iCPWTvH8e5Y84jJdf/pub?gid=644783428&single=true&output=csv';
+const CADASTRO_CSV   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQHjj72eJQbkeKW_C3MwlzwyveZV2rtmR5DcZe-dtryC7Q5ou7sIaHZFweljrkCWhbOlzrKiHiFh-RR/pub?gid=1576597391&single=true&output=csv';
+
+// Mapa: VEICULO (col C) → FROTA (col A)  — carregado 1x
+var _frotaNumMap = {};  // ex: { 'VP-183': 'VP-183', 'VPL-185': 'VPL-185' }
+
+function carregarCadastro() {
+  var xhr = new XMLHttpRequest();
+  xhr.timeout = 10000;
+  xhr.open('GET', CADASTRO_CSV + '&_=' + Date.now(), true);
+  xhr.onload = function() {
+    if (xhr.status !== 200 || !xhr.responseText) return;
+    var lines = xhr.responseText.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+    _frotaNumMap = {};
+    for (var i = 1; i < lines.length; i++) {
+      var cols = lines[i].split(',');
+      // Col A = FROTA (índice 0), Col C = VEÍCULO (índice 2)
+      var frota   = (cols[0]||'').replace(/"/g,'').trim();
+      var veiculo = (cols[2]||'').replace(/"/g,'').trim();
+      if (frota && veiculo) _frotaNumMap[veiculo.toUpperCase()] = frota;
+    }
+  };
+  xhr.send();
+}
 
 const COL = {STATUS:0,MATERIAL:1,CLIENTE:2,PEDIDO:3,QT:4,ROTA:5,TRANSP:6,CAVALO:7,CARRETA1:8,CARRETA2:9,EIXOS:10,MOTORISTA:11,CNH:12,CARREG:13,AGEND:14,SM:15,PEDIDO_COMPRA:16};
 
@@ -750,10 +774,12 @@ function renderPaginaFrota(checklists) {
     var st  = normStatus(row[COL.STATUS]);
     var cfg = SCFG[st];
     var temManut = checklists.some(function(c){ return c.solicitacao_manutencao && (c.cavalo||'').toUpperCase().indexOf(cav.toUpperCase().slice(0,4)) >= 0; });
+    var numFrota = _frotaNumMap[cav.toUpperCase()] || '';
     html += '<div class="frota-card" onclick="fmAbrir(\'' + cav.replace(/'/g, "\'") + '\')">'
           + (temManut ? '<div class="frota-badge">!</div>' : '')
           + '<div class="frota-ico" style="background:' + cfg.bg + '">' + icoFrota(st, cfg.cor, 20) + '</div>'
           + '<div class="frota-id">' + cav + '</div>'
+          + (numFrota && numFrota !== cav ? '<div class="frota-num">' + numFrota + '</div>' : '')
           + '<div class="frota-st" style="color:' + cfg.cor + '">' + cfg.lbl + '</div>'
           + '</div>';
   });
@@ -1024,6 +1050,7 @@ function _doReorder() {
 // ── Inicialização ──────────────────────────────────────────────────────────────
 function iniciarFrotaModulos() {
   renderMods();
+  carregarCadastro(); // carrega mapa frota → veículo
   carregarFrota();
   // Verifica mudanças a cada 30 segundos
   if (window._frotaTimer) clearInterval(window._frotaTimer);
