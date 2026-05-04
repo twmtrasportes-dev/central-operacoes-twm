@@ -467,23 +467,7 @@ body.light .login-screen{background:var(--bg)}
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4BZz60sy9BsFACdqKktKpzJOfP8mj0U6s1G7Em5pwhaC_kQHCk-GPbLNZOlwjvrOwsw/exec';
 const OITO_HORAS = 8 * 60 * 60 * 1000;
 
-// Verifica login ao abrir
-(function init() {
-  const cache = localStorage.getItem('twm_user_cache');
-  if (cache) {
-    try {
-      const u = JSON.parse(cache);
-      if (Date.now() - (u.loginTime||0) < OITO_HORAS) {
-        mostrarApp(u);
-        return;
-      }
-    } catch(e) {}
-  }
-  // Mostra tela de login
-  document.getElementById('login-screen').classList.add('active');
-  // Aviso primeiro acesso
-  if (!cache) document.getElementById('login-aviso').classList.add('show');
-})();
+// init() será chamada no final, após todo o código estar definido
 
 async function fazerLogin() {
   const email = document.getElementById('login-email').value.trim().toLowerCase();
@@ -808,7 +792,7 @@ function _applyReorder() {
 document.addEventListener('DOMContentLoaded', renderModulos);
 if (document.readyState !== 'loading') renderModulos();
 
-const FROTA_CSV = 'https://docs.google.com/spreadsheets/d/16Zjm0udIqi7z7nZfo32JKGHh-2bFOJtgP3yd3brV0bY/export?format=csv&gid=644783428';
+const FROTA_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQx62CxMqSchj3wdG83U48YiyM8eH9vIj8Jv7Gg1QVWm0Ow7abDlyYWtAEecM4iCPWTvH8e5Y84jJdf/pub?gid=644783428&single=true&output=csv';
 
 // Mapeamento das colunas da planilha (ordem exata)
 const COL = {
@@ -1010,6 +994,22 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.warn('SW não registrado:', err));
   });
 }
+
+// ── Inicia o app DEPOIS de todo o código estar definido ──
+(function init() {
+  const cache = localStorage.getItem('twm_user_cache');
+  if (cache) {
+    try {
+      const u = JSON.parse(cache);
+      if (Date.now() - (u.loginTime||0) < OITO_HORAS) {
+        mostrarApp(u);
+        return;
+      }
+    } catch(e) {}
+  }
+  document.getElementById('login-screen').classList.add('active');
+  if (!cache) document.getElementById('login-aviso').classList.add('show');
+})();
 </script>
 </body>
 </html>
