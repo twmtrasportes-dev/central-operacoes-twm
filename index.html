@@ -822,47 +822,70 @@ function icoSVG(status, size=20) {
 let _frotaDados = [];
 
 function parseCsv(txt) {
-  const linhas = txt.trim().split('\n');
+  // Normaliza quebras de linha (Windows \r\n e Unix \n)
+  const linhas = txt.trim().replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+  if (linhas.length < 2) return [];
   return linhas.slice(1).map(l => {
     const cols = [];
     let cur = '', inQ = false;
     for (let i = 0; i < l.length; i++) {
-      if (l[i] === '"') { inQ = !inQ; continue; }
-      if (l[i] === ',' && !inQ) { cols.push(cur.trim()); cur = ''; continue; }
-      cur += l[i];
+      const c = l[i];
+      if (c === '"') { inQ = !inQ; continue; }
+      if (c === ',' && !inQ) { cols.push(cur.trim()); cur = ''; continue; }
+      cur += c;
     }
     cols.push(cur.trim());
     return cols;
-  }).filter(r => r.length > 1 && r[COL.CAVALO]);
+  }).filter(r => r.length > 2 && (r[COL.CAVALO]||'').trim().length > 0);
 }
 
 async function carregarFrota() {
-  const grid = document.getElementById("frota-grid");
-  const cached = localStorage.getItem("twm_frota_cache");
+  const grid = document.getElementById('frota-grid');
+
+  // Mostra cache imediatamente se existir
+  const cached = localStorage.getItem('twm_frota_cache');
   if (cached) {
     try {
-      _frotaDados = JSON.parse(cached);
-      if (_frotaDados.length) renderizarFrota(_frotaDados);
+      const dadosCache = JSON.parse(cached);
+      if (dadosCache && dadosCache.length) {
+        _frotaDados = dadosCache;
+        renderizarFrota(_frotaDados);
+      }
     } catch(e) {}
   }
+
+  // Busca planilha com timeout
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 8000);
-    const r = await fetch(FROTA_CSV + "&t=" + Date.now(), { signal: controller.signal, cache: "no-store" });
+    const timer = setTimeout(() => controller.abort(), 10000);
+
+    const r = await fetch(FROTA_CSV, {
+      signal: controller.signal,
+      mode: 'cors',
+      cache: 'no-cache'
+    });
     clearTimeout(timer);
-    if (!r.ok) throw new Error("HTTP " + r.status);
+
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+
     const txt = await r.text();
-    if (!txt || txt.trim().length < 10) throw new Error("vazio");
-    _frotaDados = parseCsv(txt);
-    localStorage.setItem("twm_frota_cache", JSON.stringify(_frotaDados));
-    renderizarFrota(_frotaDados);
-  } catch(e) {
-    if (_frotaDados && _frotaDados.length) return;
-    if (e.name === "AbortError") {
-      grid.innerHTML = "<div class="frota-loading" style="color:#F87171">Tempo esgotado — verifique sua conexão.</div>";
-    } else {
-      grid.innerHTML = "<div class="frota-loading" style="color:#F87171">Sem dados. Tente novamente.</div>";
+    if (!txt || txt.trim().length < 5) throw new Error('vazio');
+
+    const novos = parseCsv(txt);
+    if (novos.length > 0) {
+      _frotaDados = novos;
+      localStorage.setItem('twm_frota_cache', JSON.stringify(_frotaDados));
+      renderizarFrota(_frotaDados);
     }
+
+  } catch(e) {
+    // Se já tem dados do cache, não mostra erro — silencia
+    if (_frotaDados && _frotaDados.length > 0) return;
+    // Sem cache e sem internet
+    const msg = e.name === 'AbortError' ? 'Conexão lenta. Tentando novamente...' : 'Sem dados da frota.';
+    grid.innerHTML = '<div class="frota-loading" style="color:#F87171">' + msg + '</div>';
+    // Tenta de novo em 5 segundos
+    setTimeout(carregarFrota, 5000);
   }
 }
 
@@ -1002,9 +1025,10 @@ function fecharModalBtn() {
 const _origMostrarApp = mostrarApp;
 mostrarApp = function(u) {
   _origMostrarApp(u);
+  // Garante que só existe 1 intervalo de atualização
+  if (window._frotaTimer) clearInterval(window._frotaTimer);
   carregarFrota();
-  // Atualiza a cada 3 minutos
-  setInterval(carregarFrota, 3 * 60 * 1000);
+  window._frotaTimer = setInterval(carregarFrota, 3 * 60 * 1000);
 };
 
 if ('serviceWorker' in navigator) {
