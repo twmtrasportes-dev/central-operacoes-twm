@@ -837,13 +837,32 @@ function parseCsv(txt) {
 }
 
 async function carregarFrota() {
+  const grid = document.getElementById("frota-grid");
+  const cached = localStorage.getItem("twm_frota_cache");
+  if (cached) {
+    try {
+      _frotaDados = JSON.parse(cached);
+      if (_frotaDados.length) renderizarFrota(_frotaDados);
+    } catch(e) {}
+  }
   try {
-    const r = await fetch(FROTA_CSV);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
+    const r = await fetch(FROTA_CSV + "&t=" + Date.now(), { signal: controller.signal, cache: "no-store" });
+    clearTimeout(timer);
+    if (!r.ok) throw new Error("HTTP " + r.status);
     const txt = await r.text();
+    if (!txt || txt.trim().length < 10) throw new Error("vazio");
     _frotaDados = parseCsv(txt);
+    localStorage.setItem("twm_frota_cache", JSON.stringify(_frotaDados));
     renderizarFrota(_frotaDados);
   } catch(e) {
-    document.getElementById('frota-grid').innerHTML = '<div class="frota-loading" style="color:#F87171">Erro ao carregar. Verifique a planilha.</div>';
+    if (_frotaDados && _frotaDados.length) return;
+    if (e.name === "AbortError") {
+      grid.innerHTML = "<div class="frota-loading" style="color:#F87171">Tempo esgotado — verifique sua conexão.</div>";
+    } else {
+      grid.innerHTML = "<div class="frota-loading" style="color:#F87171">Sem dados. Tente novamente.</div>";
+    }
   }
 }
 
