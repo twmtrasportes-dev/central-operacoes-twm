@@ -331,152 +331,131 @@ body.light .login-screen{background:var(--bg)}
 </div>
 
 <div class="glow-line"></div>
-<div class="section-label">Módulos</div>
 
-<div class="modules-grid">
+<!-- ── QUADRO DE FROTA ── -->
+<style>
+.frota-section{position:relative;z-index:10;padding:0 20px 24px}
+.frota-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.frota-title{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:3px;text-transform:uppercase}
+.frota-hint{font-size:10px;color:var(--muted);opacity:.7}
+.frota-legenda{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.frota-leg-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);font-weight:600}
+.frota-leg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.frota-box{background:var(--bg3);border:1px solid var(--border2);border-radius:18px;padding:14px}
+.frota-grid{display:flex;flex-wrap:wrap;gap:10px}
+.frota-card{background:var(--bg2);border-radius:13px;padding:9px 7px;text-align:center;width:76px;flex-shrink:0;position:relative;cursor:pointer;transition:transform .15s,box-shadow .15s;border:2px solid transparent;user-select:none}
+.frota-card:active{transform:scale(.94)}
+.frota-card-ico{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin:0 auto 5px}
+.frota-card-id{font-size:11px;font-weight:800;color:var(--text);letter-spacing:.3px;font-family:'Barlow Condensed',sans-serif}
+.frota-card-st{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+.frota-card-badge{position:absolute;top:-5px;right:-5px;background:#EF4444;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg3);font-size:9px;color:#fff;font-weight:900}
+.frota-alerta{margin-top:12px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:11px;color:#F87171;font-weight:600}
+.frota-loading{text-align:center;padding:20px;font-size:12px;color:var(--muted)}
 
-  <a class="module-card mod-checklist fade-up" href="checklist.html">
-    <div class="module-icon-wrap">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
-        <rect x="9" y="3" width="6" height="4" rx="1"/>
-        <path d="m9 12 2 2 4-4"/>
+/* Modal detalhe caminhão */
+.frota-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:900;backdrop-filter:blur(4px)}
+.frota-modal-bg.open{display:flex;align-items:flex-end;justify-content:center}
+.frota-modal{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;padding:0 0 40px;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+.frota-modal-drag{width:40px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0}
+.frota-modal-header{background:linear-gradient(135deg,var(--accent),var(--accent2));padding:20px 20px 24px}
+.frota-modal-placa{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:#fff;letter-spacing:1px}
+.frota-modal-status-pill{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.18);border-radius:20px;padding:5px 12px;margin-top:8px}
+.frota-modal-status-pill span{font-size:12px;font-weight:700;color:#fff}
+.frota-modal-body{padding:20px}
+.frota-modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.frota-info-card{background:var(--bg3);border-radius:12px;padding:12px 14px;border:1px solid var(--border)}
+.frota-info-label{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px}
+.frota-info-val{font-size:13px;font-weight:700;color:var(--text);line-height:1.3}
+.frota-info-full{grid-column:1/-1}
+.frota-modal-close{position:absolute;top:14px;right:16px;background:rgba(255,255,255,.2);border:none;border-radius:50%;width:34px;height:34px;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.frota-manut-warn{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);border-radius:12px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.frota-manut-warn svg{flex-shrink:0}
+.frota-manut-warn p{font-size:12px;color:#F87171;font-weight:600;line-height:1.4}
+</style>
+
+<div class="frota-section">
+  <div class="frota-header">
+    <div class="frota-title">Status da Frota</div>
+    <div class="frota-hint">Toque para detalhes</div>
+  </div>
+  <div class="frota-legenda">
+    <div class="frota-leg-item"><div class="frota-leg-dot" style="background:#7C3AED"></div>Em Viagem</div>
+    <div class="frota-leg-item"><div class="frota-leg-dot" style="background:#D97706"></div>Descarregando</div>
+    <div class="frota-leg-item"><div class="frota-leg-dot" style="background:#059669"></div>Retorno</div>
+    <div class="frota-leg-item"><div class="frota-leg-dot" style="background:#6B7280"></div>Garagem</div>
+  </div>
+  <div class="frota-box">
+    <div class="frota-grid" id="frota-grid">
+      <div class="frota-loading">Carregando frota...</div>
+    </div>
+    <div id="frota-alerta-manut" style="display:none" class="frota-alerta">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3-3a6 6 0 01-7.8 7.8l-6 6a2.12 2.12 0 01-3-3l6-6a6 6 0 017.8-7.8l-3 3z" stroke="#F87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span id="frota-alerta-txt"></span>
+    </div>
+  </div>
+</div>
+
+<!-- Modal detalhe -->
+<div class="frota-modal-bg" id="frota-modal-bg" onclick="fecharModal(event)">
+  <div class="frota-modal" id="frota-modal">
+    <div class="frota-modal-drag"></div>
+    <div class="frota-modal-header" id="frota-modal-header" style="position:relative">
+      <button class="frota-modal-close" onclick="fecharModalBtn()">✕</button>
+      <div class="frota-modal-placa" id="fm-placa">—</div>
+      <div class="frota-modal-status-pill">
+        <svg id="fm-ico" width="18" height="18" viewBox="0 0 32 32" fill="none"></svg>
+        <span id="fm-status">—</span>
+      </div>
+    </div>
+    <div class="frota-modal-body">
+      <div id="fm-manut-warn" class="frota-manut-warn" style="display:none">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3-3a6 6 0 01-7.8 7.8l-6 6a2.12 2.12 0 01-3-3l6-6a6 6 0 017.8-7.8l-3 3z" stroke="#F87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <p>Solicitação de manutenção pendente — verifique antes de escalar.</p>
+      </div>
+      <div class="frota-modal-grid" id="frota-modal-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MÓDULOS (drag-and-drop + SVGs v4) ── -->
+<style>
+.mod-section{position:relative;z-index:10;padding:0 20px}
+.mod-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.mod-section-title{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:3px;text-transform:uppercase;display:flex;align-items:center;gap:10px}
+.mod-section-title::after{content:'';flex:1;height:1px;background:var(--border2)}
+.mod-drag-hint{font-size:10px;color:var(--muted);opacity:.7;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.mod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.mod-item{background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:12px 10px 14px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:7px;cursor:grab;user-select:none;touch-action:none;transition:transform .15s,box-shadow .15s,opacity .15s,border-color .15s;text-decoration:none;position:relative}
+.mod-item:active{cursor:grabbing}
+.mod-item.is-dragging{opacity:.3;cursor:grabbing}
+.mod-item.is-over{border-color:var(--accent);border-style:dashed;box-shadow:0 4px 18px rgba(123,63,228,.2);transform:scale(1.03)}
+.mod-item.is-holding{transform:scale(1.07);box-shadow:0 8px 30px rgba(123,63,228,.3);border-color:var(--accent)}
+.mod-item.coming-soon{opacity:.55}
+.mod-ico-wrap{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mod-name{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--text);letter-spacing:.3px;line-height:1.25;text-transform:uppercase}
+.mod-desc{font-size:9px;color:var(--muted);line-height:1.4}
+.mod-badge{font-size:8px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.3px;align-self:flex-end;margin-top:-2px}
+.mod-badge.verde{background:rgba(16,185,129,.18);color:#10B981}
+.mod-badge.vermelho{background:rgba(239,68,68,.18);color:#EF4444;font-size:13px;padding:2px 7px}
+.mod-badge.cinza{background:rgba(255,255,255,.07);color:var(--muted)}
+.mod-hold-dots{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);display:flex;gap:3px}
+.mod-hold-dots span{width:4px;height:4px;border-radius:50%;background:var(--accent);opacity:.6}
+</style>
+
+<div class="mod-section">
+  <div class="mod-section-header">
+    <div class="mod-section-title">Módulos</div>
+    <div class="mod-drag-hint">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <circle cx="3" cy="3" r="1" fill="currentColor"/><circle cx="9" cy="3" r="1" fill="currentColor"/>
+        <circle cx="3" cy="6" r="1" fill="currentColor"/><circle cx="9" cy="6" r="1" fill="currentColor"/>
+        <circle cx="3" cy="9" r="1" fill="currentColor"/><circle cx="9" cy="9" r="1" fill="currentColor"/>
       </svg>
+      Segure p/ mover
     </div>
-    <div class="module-name">Check List<br>Frota</div>
-    <div class="module-desc">Inspeção diária dos caminhões</div>
-    <div class="module-badge green">Ativo</div>
-  </a>
-
-  <a class="module-card mod-apoio fade-up" href="carros-apoio.html">
-    <div class="module-icon-wrap">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/>
-        <circle cx="7.5" cy="17.5" r="2.5"/>
-        <circle cx="17.5" cy="17.5" r="2.5"/>
-      </svg>
-    </div>
-    <div class="module-name">Carros de<br>Apoio</div>
-    <div class="module-desc">Controle de saída e retorno</div>
-    <div class="module-badge green">Ativo</div>
-  </a>
-
-  <a class="module-card mod-docs fade-up" href="#">
-    <div class="module-icon-wrap">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-        <line x1="16" y1="13" x2="8" y2="13"/>
-        <line x1="16" y1="17" x2="8" y2="17"/>
-      </svg>
-    </div>
-    <div class="module-name">Documentação</div>
-    <div class="module-desc">CRLV, CIV, CNH e mais</div>
-    <div class="module-badge">Em breve</div>
-  </a>
-
-  <a class="module-card mod-gps fade-up coming-soon" href="#">
-    <div class="module-icon-wrap">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-        <circle cx="12" cy="10" r="3"/>
-      </svg>
-    </div>
-    <div class="module-name">GPS<br>Localização</div>
-    <div class="module-desc">Rastreamento em tempo real</div>
-    <div class="coming-badge">Em breve</div>
-  </a>
-
-  <a class="module-card mod-seguranca wide fade-up" href="checklist_lvt.html">
-    <div class="module-icon-wrap">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        <path d="m9 12 2 2 4-4"/>
-      </svg>
-    </div>
-    <div class="module-info">
-      <div class="module-name">Check List Seg. Diário</div>
-      <div class="module-desc">Lista de Verificação de Transporte — LVT</div>
-    </div>
-    <div class="module-arrow">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M9 18l6-6-6-6"/></svg>
-    </div>
-    <div class="module-badge" style="background:var(--red)">Ativo</div>
-  </a>
-
-  <a class="module-card mod-pneus wide fade-up" href="pneus.html">
-    <div class="module-icon-wrap" style="background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.25)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#FB923C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="26" height="26">
-        <circle cx="12" cy="12" r="10"/>
-        <circle cx="12" cy="12" r="3"/>
-        <line x1="12" y1="2" x2="12" y2="5"/>
-        <line x1="12" y1="19" x2="12" y2="22"/>
-        <line x1="2" y1="12" x2="5" y2="12"/>
-        <line x1="19" y1="12" x2="22" y2="12"/>
-      </svg>
-    </div>
-    <div class="module-info">
-      <div class="module-name">Controle de Pneus</div>
-      <div class="module-desc">Vida útil, pressão, trocas e manutenção preventiva</div>
-    </div>
-    <div class="module-arrow">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M9 18l6-6-6-6"/></svg>
-    </div>
-    <div class="module-badge green">Ativo</div>
-  </a>
-
-  <a class="module-card mod-seg wide fade-up" href="checklist_seguranca_mensal.html">
-    <div class="module-icon-wrap" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.25)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="26" height="26">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        <polyline points="9 12 11 14 15 10"/>
-      </svg>
-    </div>
-    <div class="module-info">
-      <div class="module-name">Check-List Segurança Mensal</div>
-      <div class="module-desc">Inspeção mensal dos veículos</div>
-    </div>
-    <div class="module-arrow">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M9 18l6-6-6-6"/></svg>
-    </div>
-    <div class="module-badge" style="background:var(--red)">Ativo</div>
-  </a>
-
-  <a class="module-card mod-estoque wide fade-up" href="estoque.html">
-    <div class="module-icon-wrap" style="background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.25)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="26" height="26">
-        <path d="M5 8h14M5 8a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"/>
-        <path d="M10 12h4M12 10v4"/>
-      </svg>
-    </div>
-    <div class="module-info">
-      <div class="module-name">Estoque de Pneus</div>
-      <div class="module-desc">Controle de entrada, saída, reforma e venda</div>
-    </div>
-    <div class="module-arrow">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M9 18l6-6-6-6"/></svg>
-    </div>
-    <div class="module-badge green">Ativo</div>
-  </a>
-
-  <a class="module-card mod-relatorios wide fade-up coming-soon" href="#">
-    <div class="module-icon-wrap">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="18" y1="20" x2="18" y2="10"/>
-        <line x1="12" y1="20" x2="12" y2="4"/>
-        <line x1="6" y1="20" x2="6" y2="14"/>
-      </svg>
-    </div>
-    <div class="module-info">
-      <div class="module-name">Relatórios & Análises</div>
-      <div class="module-desc">Dashboards e histórico da frota</div>
-    </div>
-    <div class="module-arrow">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M9 18l6-6-6-6"/></svg>
-    </div>
-    <div class="coming-badge">Em breve</div>
-  </a>
-
+  </div>
+  <div class="mod-grid" id="mod-grid"></div>
 </div>
 
 <div class="footer fade-up">
@@ -623,7 +602,408 @@ function toggleTema() {
 document.addEventListener("DOMContentLoaded", function(){ aplicarTema(); });
 if(document.readyState !== "loading") aplicarTema();
 
-// Registro do Service Worker (PWA offline)
+// ═══════════════════════════════════════════════
+// MÓDULOS — SVGs v4 + Drag-and-Drop
+// ═══════════════════════════════════════════════
+const MODULOS_DEF = [
+  {
+    id:'checklist', nome:'CHECK LIST FROTA', desc:'Inspeção diária dos caminhões',
+    href:'checklist.html', badge:'verde', badgeLabel:'Ativo',
+    bgIco:'rgba(123,63,228,.18)', ico:`<svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+      <rect x="4" y="2" width="24" height="28" rx="3" fill="#A855F7" opacity=".15" stroke="#A855F7" stroke-width="2"/>
+      <rect x="10" y="2" width="12" height="5" rx="2" fill="#A855F7"/>
+      <line x1="9" y1="13" x2="23" y2="13" stroke="#A855F7" stroke-width="2" stroke-linecap="round"/>
+      <line x1="9" y1="18" x2="23" y2="18" stroke="#A855F7" stroke-width="2" stroke-linecap="round"/>
+      <line x1="9" y1="23" x2="18" y2="23" stroke="#A855F7" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="7" cy="13" r="1.5" fill="#A855F7"/>
+      <circle cx="7" cy="18" r="1.5" fill="#A855F7"/>
+      <circle cx="7" cy="23" r="1.5" fill="#A855F7"/>
+    </svg>`
+  },
+  {
+    id:'carros', nome:'CARROS DE APOIO', desc:'Controle de saída e retorno',
+    href:'carros-apoio.html', badge:'verde', badgeLabel:'Ativo',
+    bgIco:'rgba(59,130,246,.18)', ico:`<svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+      <path d="M6 16 L9 9 L23 9 L26 16" stroke="#60A5FA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <rect x="3" y="16" width="26" height="9" rx="3" fill="#3B82F6" opacity=".85"/>
+      <rect x="9" y="12" width="5" height="5" rx="1" fill="white" opacity=".5"/>
+      <rect x="18" y="12" width="5" height="5" rx="1" fill="white" opacity=".5"/>
+      <circle cx="8" cy="26" r="3" fill="#1E3A5F"/><circle cx="8" cy="26" r="1.4" fill="#60A5FA"/>
+      <circle cx="24" cy="26" r="3" fill="#1E3A5F"/><circle cx="24" cy="26" r="1.4" fill="#60A5FA"/>
+      <rect x="3" y="19" width="4" height="2" rx="1" fill="white" opacity=".6"/>
+      <rect x="25" y="19" width="4" height="2" rx="1" fill="#EF4444" opacity=".8"/>
+    </svg>`
+  },
+  {
+    id:'segdiario', nome:'CHECK LIST SEG. DIÁRIO', desc:'Lista de Verificação de Transporte — LVT',
+    href:'checklist_lvt.html', badge:'vermelho', badgeLabel:'●',
+    bgIco:'rgba(239,68,68,.18)', ico:`<svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+      <path d="M16 3 L28 8 L28 17 C28 23 22 28 16 30 C10 28 4 23 4 17 L4 8 Z" fill="#EF4444" opacity=".15" stroke="#EF4444" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M10 16 L14 20 L22 12" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`
+  },
+  {
+    id:'pneus', nome:'CONTROLE DE PNEUS', desc:'Vida útil, pressão, trocas e manutenção preventiva',
+    href:'pneus.html', badge:'verde', badgeLabel:'Ativo',
+    bgIco:'rgba(249,115,22,.18)', ico:`<svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+      <circle cx="16" cy="16" r="12" stroke="#F97316" stroke-width="2.5" fill="#F97316" opacity=".12"/>
+      <circle cx="16" cy="16" r="6" stroke="#F97316" stroke-width="2" fill="none"/>
+      <circle cx="16" cy="16" r="2" fill="#F97316"/>
+      <line x1="16" y1="4" x2="16" y2="10" stroke="#F97316" stroke-width="2" stroke-linecap="round"/>
+      <line x1="16" y1="22" x2="16" y2="28" stroke="#F97316" stroke-width="2" stroke-linecap="round"/>
+      <line x1="4" y1="16" x2="10" y2="16" stroke="#F97316" stroke-width="2" stroke-linecap="round"/>
+      <line x1="22" y1="16" x2="28" y2="16" stroke="#F97316" stroke-width="2" stroke-linecap="round"/>
+    </svg>`
+  },
+  {
+    id:'segmensal', nome:'CHECK-LIST SEG. MENSAL', desc:'Inspeção mensal dos veículos',
+    href:'checklist_seguranca_mensal.html', badge:'vermelho', badgeLabel:'●',
+    bgIco:'rgba(239,68,68,.18)', ico:`<svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+      <path d="M16 3 L28 8 L28 17 C28 23 22 28 16 30 C10 28 4 23 4 17 L4 8 Z" fill="#EF4444" opacity=".12" stroke="#EF4444" stroke-width="2" stroke-linejoin="round"/>
+      <rect x="10" y="11" width="12" height="11" rx="2" fill="#EF4444" opacity=".2" stroke="#EF4444" stroke-width="1.5"/>
+      <line x1="10" y1="15" x2="22" y2="15" stroke="#EF4444" stroke-width="1.5"/>
+      <rect x="13" y="9.5" width="2" height="3" rx="1" fill="#EF4444"/>
+      <rect x="17" y="9.5" width="2" height="3" rx="1" fill="#EF4444"/>
+      <circle cx="13" cy="18.5" r="1" fill="#EF4444"/>
+      <circle cx="16" cy="18.5" r="1" fill="#EF4444"/>
+      <circle cx="19" cy="18.5" r="1" fill="#EF4444"/>
+    </svg>`
+  },
+  {
+    id:'estoque', nome:'ESTOQUE DE PNEUS', desc:'Controle de entrada, saída, reforma e venda',
+    href:'estoque.html', badge:'verde', badgeLabel:'Ativo',
+    bgIco:'rgba(16,185,129,.18)', ico:`<svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+      <rect x="3" y="4"  width="26" height="6" rx="2" fill="#10B981" opacity=".85"/>
+      <rect x="3" y="13" width="26" height="6" rx="2" fill="#10B981" opacity=".6"/>
+      <rect x="3" y="22" width="26" height="6" rx="2" fill="#10B981" opacity=".35"/>
+      <circle cx="10" cy="7"  r="2"   stroke="white" stroke-width="1.5" fill="none"/>
+      <circle cx="10" cy="7"  r=".8"  fill="white"/>
+      <circle cx="10" cy="16" r="2"   stroke="white" stroke-width="1.5" fill="none"/>
+      <circle cx="10" cy="16" r=".8"  fill="white"/>
+      <line x1="20" y1="5" x2="20" y2="9" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+      <line x1="18" y1="7" x2="22" y2="7" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>`
+  },
+  {
+    id:'docs', nome:'DOCUMENTAÇÃO', desc:'CRLV, CIV, CNH e mais',
+    href:'#', badge:'cinza', badgeLabel:'Em breve',
+    bgIco:'rgba(245,158,11,.18)', ico:`<svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+      <path d="M6 2 L22 2 L28 9 L28 30 L6 30 Z" fill="#F59E0B" opacity=".12" stroke="#F59E0B" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M22 2 L22 9 L28 9" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <line x1="11" y1="14" x2="21" y2="14" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
+      <line x1="11" y1="19" x2="21" y2="19" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
+      <line x1="11" y1="24" x2="17" y2="24" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
+    </svg>`
+  },
+  {
+    id:'gps', nome:'GPS LOCALIZAÇÃO', desc:'Rastreamento em tempo real',
+    href:'#', badge:'cinza', badgeLabel:'Em breve',
+    bgIco:'rgba(16,185,129,.18)', ico:`<svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+      <path d="M16 3 C10 3 6 8 6 13 C6 21 16 30 16 30 C16 30 26 21 26 13 C26 8 22 3 16 3 Z" fill="#10B981" opacity=".15" stroke="#10B981" stroke-width="2"/>
+      <circle cx="16" cy="13" r="4" fill="#10B981"/>
+      <circle cx="16" cy="13" r="2" fill="white"/>
+      <path d="M10 7 C8 9 8 13 8 13" stroke="#10B981" stroke-width="1.5" stroke-linecap="round" opacity=".5"/>
+      <path d="M22 7 C24 9 24 13 24 13" stroke="#10B981" stroke-width="1.5" stroke-linecap="round" opacity=".5"/>
+    </svg>`
+  },
+  {
+    id:'relatorios', nome:'RELATÓRIOS & ANÁLISES', desc:'Dashboards e histórico da frota',
+    href:'#', badge:'cinza', badgeLabel:'Em breve',
+    bgIco:'rgba(6,182,212,.18)', ico:`<svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+      <line x1="5" y1="27" x2="27" y2="27" stroke="#22D3EE" stroke-width="2" stroke-linecap="round"/>
+      <line x1="5" y1="5"  x2="5"  y2="27" stroke="#22D3EE" stroke-width="2" stroke-linecap="round"/>
+      <rect x="8"  y="18" width="4" height="9"  rx="1.5" fill="#22D3EE" opacity=".5"/>
+      <rect x="14" y="12" width="4" height="15" rx="1.5" fill="#22D3EE" opacity=".75"/>
+      <rect x="20" y="7"  width="4" height="20" rx="1.5" fill="#22D3EE"/>
+      <path d="M10 17 L16 11 L22 6" stroke="#22D3EE" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="2 2"/>
+    </svg>`
+  },
+];
+
+// Carrega ordem salva ou usa padrão
+function getOrdemModulos() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('twm_mod_ordem')||'null');
+    if (saved && Array.isArray(saved)) {
+      const ordered = saved.map(id => MODULOS_DEF.find(m => m.id === id)).filter(Boolean);
+      const rest = MODULOS_DEF.filter(m => !saved.includes(m.id));
+      return [...ordered, ...rest];
+    }
+  } catch(e) {}
+  return [...MODULOS_DEF];
+}
+
+function salvarOrdem(modulos) {
+  localStorage.setItem('twm_mod_ordem', JSON.stringify(modulos.map(m => m.id)));
+}
+
+let _modulos = getOrdemModulos();
+let _dragIdx = null, _overIdx = null, _holdTimer = null, _touchFrom = null;
+
+function renderModulos() {
+  const grid = document.getElementById('mod-grid');
+  if (!grid) return;
+  grid.innerHTML = _modulos.map((m, i) => `
+    <div class="mod-item${m.badge==='cinza'?' coming-soon':''}"
+         data-idx="${i}" data-href="${m.href}"
+         draggable="true"
+         onclick="modClick(event,'${m.href}')">
+      <div class="mod-badge ${m.badge}">${m.badgeLabel}</div>
+      <div class="mod-ico-wrap" style="background:${m.bgIco}">${m.ico}</div>
+      <div class="mod-name">${m.nome}</div>
+      <div class="mod-desc">${m.desc}</div>
+    </div>
+  `).join('');
+
+  // Bind events
+  grid.querySelectorAll('.mod-item').forEach(el => {
+    const i = parseInt(el.dataset.idx);
+    // Mouse drag
+    el.addEventListener('dragstart', e => { e.dataTransfer.effectAllowed='move'; _dragIdx=i; el.classList.add('is-dragging'); });
+    el.addEventListener('dragenter', () => { _overIdx=i; _refreshDragVisual(); });
+    el.addEventListener('dragover',  e => e.preventDefault());
+    el.addEventListener('drop',      () => { _applyReorder(); });
+    el.addEventListener('dragend',   () => { _dragIdx=null; _overIdx=null; _clearDragVisual(); });
+    // Touch
+    el.addEventListener('touchstart', e => { _touchFrom=i; _holdTimer=setTimeout(()=>{ _dragIdx=i; el.classList.add('is-holding'); if(navigator.vibrate) navigator.vibrate(40); }, 400); }, {passive:true});
+    el.addEventListener('touchmove',  e => {
+      if (_dragIdx===null) { clearTimeout(_holdTimer); return; }
+      e.preventDefault();
+      const t = e.touches[0];
+      const hit = document.elementFromPoint(t.clientX, t.clientY);
+      const card = hit && hit.closest('[data-idx]');
+      if (card) { _overIdx = parseInt(card.dataset.idx); _refreshDragVisual(); }
+    }, {passive:false});
+    el.addEventListener('touchend', () => { clearTimeout(_holdTimer); if(_dragIdx!==null) _applyReorder(); _dragIdx=null; _overIdx=null; _touchFrom=null; _clearDragVisual(); });
+  });
+}
+
+function modClick(e, href) {
+  if (_dragIdx !== null) return;
+  if (href && href !== '#') window.location.href = href;
+}
+
+function _refreshDragVisual() {
+  document.querySelectorAll('.mod-item').forEach(el => {
+    const i = parseInt(el.dataset.idx);
+    el.classList.toggle('is-over', i === _overIdx && i !== _dragIdx);
+  });
+}
+function _clearDragVisual() {
+  document.querySelectorAll('.mod-item').forEach(el => {
+    el.classList.remove('is-dragging','is-over','is-holding');
+  });
+}
+function _applyReorder() {
+  if (_dragIdx === null || _overIdx === null || _dragIdx === _overIdx) return;
+  const arr = [..._modulos];
+  const [item] = arr.splice(_dragIdx, 1);
+  arr.splice(_overIdx, 0, item);
+  _modulos = arr;
+  salvarOrdem(_modulos);
+  renderModulos();
+}
+
+// Renderiza ao carregar
+document.addEventListener('DOMContentLoaded', renderModulos);
+if (document.readyState !== 'loading') renderModulos();
+
+const FROTA_CSV = 'https://docs.google.com/spreadsheets/d/16Zjm0udIqi7z7nZfo32JKGHh-2bFOJtgP3yd3brV0bY/export?format=csv&gid=644783428';
+
+// Mapeamento das colunas da planilha (ordem exata)
+const COL = {
+  STATUS:0, DESC_MATERIAL:1, CLIENTE:2, PEDIDO_CLIENTE:3,
+  QT_ORDEM:4, ROTA:5, TRANSPORTADORA:6, CAVALO:7,
+  CARRETA1:8, CARRETA2:9, EIXOS:10, MOTORISTA:11,
+  CNH:12, CARREGAMENTO:13, AGENDAMENTO:14, SM:15, PEDIDO_COMPRA:16
+};
+
+const STATUS_CFG = {
+  'EM VIAGEM':        {cor:'#7C3AED', bg:'rgba(124,58,237,.18)', dot:'#7C3AED', grad:'#7C3AED,#A855F7'},
+  'DESCARREGANDO':    {cor:'#D97706', bg:'rgba(217,119,6,.18)',   dot:'#D97706', grad:'#D97706,#F59E0B'},
+  'RETORNO GARAGEM':  {cor:'#059669', bg:'rgba(5,150,105,.18)',   dot:'#059669', grad:'#059669,#10B981'},
+  'NA GARAGEM':       {cor:'#6B7280', bg:'rgba(107,114,128,.15)', dot:'#9CA3AF', grad:'#6B7280,#9CA3AF'},
+};
+
+// SVGs inline por status
+function icoSVG(status, size=20) {
+  const s = (status||'').toUpperCase().trim();
+  if (s === 'EM VIAGEM') return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" fill="none"><rect x="12" y="8" width="18" height="13" rx="2" fill="white" opacity=".9"/><rect x="2" y="13" width="12" height="8" rx="2" fill="white"/><rect x="4" y="15" width="5" height="4" rx="1" fill="rgba(0,0,0,.3)"/><circle cx="8" cy="23" r="3" fill="rgba(0,0,0,.5)"/><circle cx="8" cy="23" r="1.4" fill="rgba(255,255,255,.6)"/><circle cx="20" cy="23" r="3" fill="rgba(0,0,0,.5)"/><circle cx="20" cy="23" r="1.4" fill="rgba(255,255,255,.6)"/><circle cx="27" cy="23" r="3" fill="rgba(0,0,0,.5)"/><circle cx="27" cy="23" r="1.4" fill="rgba(255,255,255,.6)"/></svg>`;
+  if (s === 'DESCARREGANDO') return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" fill="none"><rect x="5" y="9" width="22" height="15" rx="2" fill="white" opacity=".85"/><rect x="3" y="6" width="26" height="5" rx="2" fill="white"/><path d="M16 19 L12.5 24 L19.5 24 Z" fill="rgba(0,0,0,.35)"/><rect x="14.5" y="15" width="2.5" height="6" rx="1" fill="rgba(0,0,0,.35)"/></svg>`;
+  if (s === 'RETORNO GARAGEM') return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" fill="none"><path d="M26 7 C29 11 29 20 22 24 C15 28 6 24 4 18" stroke="white" stroke-width="3" stroke-linecap="round" fill="none"/><path d="M22 4 L26 8 L22 12" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="3" y="14" width="8" height="6" rx="1.5" fill="white"/><rect x="11" y="15" width="7" height="5" rx="1.5" fill="white" opacity=".7"/></svg>`;
+  // garagem
+  return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" fill="none"><path d="M2 15 L16 3 L30 15" stroke="white" stroke-width="2.5" stroke-linecap="round" fill="none"/><rect x="4" y="14" width="24" height="15" rx="1" stroke="white" stroke-width="2" fill="none"/><rect x="7" y="16" width="18" height="3.5" rx="1" fill="white" opacity=".45"/><rect x="7" y="20.5" width="18" height="3.5" rx="1" fill="white" opacity=".45"/><rect x="7" y="25" width="18" height="3" rx="1" fill="white" opacity=".45"/></svg>`;
+}
+
+let _frotaDados = [];
+
+function parseCsv(txt) {
+  const linhas = txt.trim().split('\n');
+  return linhas.slice(1).map(l => {
+    const cols = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < l.length; i++) {
+      if (l[i] === '"') { inQ = !inQ; continue; }
+      if (l[i] === ',' && !inQ) { cols.push(cur.trim()); cur = ''; continue; }
+      cur += l[i];
+    }
+    cols.push(cur.trim());
+    return cols;
+  }).filter(r => r.length > 1 && r[COL.CAVALO]);
+}
+
+async function carregarFrota() {
+  try {
+    const r = await fetch(FROTA_CSV);
+    const txt = await r.text();
+    _frotaDados = parseCsv(txt);
+    renderizarFrota(_frotaDados);
+  } catch(e) {
+    document.getElementById('frota-grid').innerHTML = '<div class="frota-loading" style="color:#F87171">Erro ao carregar. Verifique a planilha.</div>';
+  }
+}
+
+function normalizeStatus(s) {
+  const v = (s||'').toUpperCase().trim();
+  if (v.includes('VIAGEM'))      return 'EM VIAGEM';
+  if (v.includes('DESCARG'))     return 'DESCARREGANDO';
+  if (v.includes('RETORNO'))     return 'RETORNO GARAGEM';
+  return 'NA GARAGEM';
+}
+
+function renderizarFrota(dados) {
+  const grid = document.getElementById('frota-grid');
+  const alertaDiv = document.getElementById('frota-alerta-manut');
+  const alertaTxt = document.getElementById('frota-alerta-txt');
+
+  if (!dados.length) {
+    grid.innerHTML = '<div class="frota-loading">Nenhum veículo encontrado.</div>';
+    return;
+  }
+
+  // Agrupa por cavalo (cada cavalo = 1 card)
+  const veiculos = {};
+  dados.forEach(row => {
+    const cavalo = (row[COL.CAVALO]||'').trim();
+    if (!cavalo) return;
+    if (!veiculos[cavalo]) veiculos[cavalo] = row;
+  });
+
+  let html = '';
+  let totalManut = 0;
+
+  Object.entries(veiculos).forEach(([cavalo, row]) => {
+    const status = normalizeStatus(row[COL.STATUS]);
+    const cfg    = STATUS_CFG[status] || STATUS_CFG['NA GARAGEM'];
+    // Checa manutenção via checklist local
+    const checklists = JSON.parse(localStorage.getItem('twm_checklists')||'[]');
+    const temManut = checklists.some(c => c.solicitacao_manutencao &&
+      (c.cavalo||'').toUpperCase().includes(cavalo.toUpperCase().slice(0,4)));
+    if (temManut) totalManut++;
+
+    const label = status === 'EM VIAGEM' ? 'Viagem'
+                : status === 'DESCARREGANDO' ? 'Descarg.'
+                : status === 'RETORNO GARAGEM' ? 'Retorno'
+                : 'Garagem';
+
+    html += `
+      <div class="frota-card" onclick="abrirModal('${cavalo.replace(/'/g,"\\'")}')">
+        ${temManut ? '<div class="frota-card-badge">!</div>' : ''}
+        <div class="frota-card-ico" style="background:${cfg.bg}">
+          ${icoSVG(status, 20).replace('fill="white"','fill="'+cfg.cor+'"').replace(/fill="white"/g,'fill="'+cfg.cor+'"').replace(/stroke="white"/g,'stroke="'+cfg.cor+'"')}
+        </div>
+        <div class="frota-card-id">${cavalo}</div>
+        <div class="frota-card-st" style="color:${cfg.cor}">${label}</div>
+      </div>`;
+  });
+
+  grid.innerHTML = html;
+
+  // Alerta manutenção
+  if (totalManut > 0) {
+    alertaTxt.textContent = `${totalManut} caminhão${totalManut>1?'s':''} com solicitação de manutenção`;
+    alertaDiv.style.display = 'flex';
+  } else {
+    alertaDiv.style.display = 'none';
+  }
+}
+
+function abrirModal(cavalo) {
+  // Busca todas as viagens desse cavalo
+  const linhas = _frotaDados.filter(r => (r[COL.CAVALO]||'').trim() === cavalo);
+  if (!linhas.length) return;
+  const row = linhas[0];
+  const status = normalizeStatus(row[COL.STATUS]);
+  const cfg = STATUS_CFG[status] || STATUS_CFG['NA GARAGEM'];
+
+  // Header
+  document.getElementById('fm-placa').textContent = cavalo;
+  document.getElementById('fm-status').textContent = status;
+  document.getElementById('frota-modal-header').style.background = `linear-gradient(135deg, ${cfg.grad.split(',')[0]}, ${cfg.grad.split(',')[1]})`;
+  document.getElementById('fm-ico').innerHTML = icoSVG(status, 18).replace(/<svg[^>]*>/,'').replace('</svg>','');
+
+  // Manutenção
+  const checklists = JSON.parse(localStorage.getItem('twm_checklists')||'[]');
+  const temManut = checklists.some(c => c.solicitacao_manutencao &&
+    (c.cavalo||'').toUpperCase().includes(cavalo.toUpperCase().slice(0,4)));
+  document.getElementById('fm-manut-warn').style.display = temManut ? 'flex' : 'none';
+
+  // Campos do grid
+  const campos = [
+    {label:'Motorista',        val: row[COL.MOTORISTA],       full:true},
+    {label:'CNH',              val: row[COL.CNH]},
+    {label:'Rota',             val: row[COL.ROTA]},
+    {label:'Cliente',          val: row[COL.CLIENTE]},
+    {label:'Desc. Material',   val: row[COL.DESC_MATERIAL]},
+    {label:'Qt. da Ordem',     val: row[COL.QT_ORDEM] ? Number(row[COL.QT_ORDEM]).toLocaleString('pt-BR') + ' L' : '—'},
+    {label:'Carreta 1',        val: row[COL.CARRETA1]},
+    {label:'Carreta 2',        val: row[COL.CARRETA2] || '—'},
+    {label:'Eixos',            val: row[COL.EIXOS]},
+    {label:'Transportadora',   val: row[COL.TRANSPORTADORA]},
+    {label:'Carregamento',     val: row[COL.CARREGAMENTO]},
+    {label:'Agendamento',      val: row[COL.AGENDAMENTO]},
+    {label:'Nº Pedido Cliente',val: row[COL.PEDIDO_CLIENTE]},
+    {label:'Pedido Compra',    val: row[COL.PEDIDO_COMPRA]},
+    {label:'SM',               val: row[COL.SM]},
+  ];
+
+  // Se houver múltiplas viagens para o mesmo cavalo
+  if (linhas.length > 1) {
+    campos.push({label:`Total de viagens hoje`, val: linhas.length + ' cargas', full:true});
+  }
+
+  let gridHtml = '';
+  campos.forEach(c => {
+    const v = (c.val||'').toString().trim() || '—';
+    gridHtml += `
+      <div class="frota-info-card ${c.full?'frota-info-full':''}">
+        <div class="frota-info-label">${c.label}</div>
+        <div class="frota-info-val">${v}</div>
+      </div>`;
+  });
+
+  document.getElementById('frota-modal-grid').innerHTML = gridHtml;
+  document.getElementById('frota-modal-bg').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function fecharModal(e) {
+  if (e.target === document.getElementById('frota-modal-bg')) fecharModalBtn();
+}
+function fecharModalBtn() {
+  document.getElementById('frota-modal-bg').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Carrega frota ao mostrar o app
+const _origMostrarApp = mostrarApp;
+mostrarApp = function(u) {
+  _origMostrarApp(u);
+  carregarFrota();
+  // Atualiza a cada 3 minutos
+  setInterval(carregarFrota, 3 * 60 * 1000);
+};
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./service-worker.js')
