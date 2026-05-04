@@ -128,28 +128,28 @@ body.light .login-screen{background:var(--bg)}
 @keyframes ptr-spin{to{transform:rotate(360deg)}}
 
 /* ── QUADRO DE FROTA ── */
-.frota-section{position:relative;z-index:10;padding:0 20px 24px}
+.frota-section{position:relative;z-index:10;padding:0 20px 24px;overflow:visible}
 .frota-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .frota-title{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:3px;text-transform:uppercase}
 .frota-hint{font-size:10px;color:var(--muted);opacity:.7}
 .frota-leg{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
 .frota-leg-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);font-weight:600}
 .frota-leg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.frota-box{background:var(--bg3);border:1px solid var(--border2);border-radius:18px;padding:14px}
-.frota-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.frota-box{background:var(--bg3);border:1px solid var(--border2);border-radius:18px;padding:14px 22px}
+.frota-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:100%}
 .frota-card{background:var(--bg2);border-radius:13px;padding:9px 6px;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s;border:2px solid transparent;position:relative}
 .frota-card:active{transform:scale(.94)}
-.frota-ico{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin:0 auto 5px}
-.frota-id{font-size:11px;font-weight:800;color:var(--text);letter-spacing:.3px;font-family:"Barlow Condensed",sans-serif}
+.frota-ico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin:0 auto 4px}
+.frota-id{font-size:10px;font-weight:800;color:var(--text);letter-spacing:.2px;font-family:"Barlow Condensed",sans-serif}
 .frota-st{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
 .frota-badge{position:absolute;top:-5px;right:-5px;background:#EF4444;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg3);font-size:9px;color:#fff;font-weight:900;line-height:1}
 .frota-alerta{margin-top:12px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:11px;color:#F87171;font-weight:600}
 
-.frota-carousel{position:relative}
+.frota-carousel{position:relative;overflow:visible;width:100%}
 .frota-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:10;background:rgba(123,63,228,.7);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s;backdrop-filter:blur(4px)}
 .frota-nav:active{background:rgba(123,63,228,1)}
-.frota-nav.prev{left:-12px}
-.frota-nav.next{right:-12px}
+.frota-nav.prev{left:-18px}
+.frota-nav.next{right:-18px}
 .frota-nav svg{flex-shrink:0}
 .frota-pager{display:flex;justify-content:center;gap:5px;margin-top:10px}
 .frota-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.15);transition:background .2s,transform .2s;cursor:pointer}
