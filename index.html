@@ -610,7 +610,7 @@ html.pre-light body { --bg:#F0F0F5;--bg2:#FFFFFF;--bg3:#F8F7FF;--border:rgba(0,0
 
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4BZz60sy9BsFACdqKktKpzJOfP8mj0U6s1G7Em5pwhaC_kQHCk-GPbLNZOlwjvrOwsw/exec';
-const OITO_HORAS = 8 * 60 * 60 * 1000;
+const OITO_HORAS = 30 * 24 * 60 * 60 * 1000; // 30 dias
 
 // init() é chamada no final
 (function _init_placeholder() {
@@ -667,6 +667,13 @@ function mostrarErro(msg) {
 
 function mostrarApp(u) {
   document.getElementById('login-screen').classList.remove('active');
+  // Verifica se há redirect pendente
+  const redirect = localStorage.getItem('twm_redirect');
+  if (redirect) {
+    localStorage.removeItem('twm_redirect');
+    window.location.href = redirect;
+    return;
+  }
   // Nome no header
   const nome = (u.nome || u.email || '').split(' ')[0];
   document.getElementById('user-name').textContent = nome;
