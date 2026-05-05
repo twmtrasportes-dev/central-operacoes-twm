@@ -527,24 +527,23 @@ body.light .login-screen{background:var(--bg)}
 
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4BZz60sy9BsFACdqKktKpzJOfP8mj0U6s1G7Em5pwhaC_kQHCk-GPbLNZOlwjvrOwsw/exec';
-const OITO_HORAS = 8 * 60 * 60 * 1000;
-
-// init() é chamada no final
+// Verifica sessão — se não logado redireciona para index
 (function _init_placeholder() {
   const cache = localStorage.getItem('twm_user_cache');
   if (cache) {
     try {
       const u = JSON.parse(cache);
-      if (Date.now() - (u.loginTime||0) < OITO_HORAS) {
+      if (u && u.email) {
+        // Renova loginTime para manter sessão ativa
+        u.loginTime = Date.now();
+        localStorage.setItem('twm_user_cache', JSON.stringify(u));
         mostrarApp(u);
         return;
       }
     } catch(e) {}
   }
-  // Mostra tela de login
-  document.getElementById('login-screen').classList.add('active');
-  // Aviso primeiro acesso
-  if (!cache) document.getElementById('login-aviso').classList.add('show');
+  // Não logado — volta para index para fazer login
+  window.location.href = 'index.html';
 })();
 
 async function fazerLogin() {
