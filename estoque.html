@@ -527,24 +527,7 @@ body.light .login-screen{background:var(--bg)}
 
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4BZz60sy9BsFACdqKktKpzJOfP8mj0U6s1G7Em5pwhaC_kQHCk-GPbLNZOlwjvrOwsw/exec';
-// Verifica sessão — se não logado redireciona para index
-(function _init_placeholder() {
-  const cache = localStorage.getItem('twm_user_cache');
-  if (cache) {
-    try {
-      const u = JSON.parse(cache);
-      if (u && u.email) {
-        u.loginTime = Date.now();
-        localStorage.setItem('twm_user_cache', JSON.stringify(u));
-        mostrarApp(u);
-        return;
-      }
-    } catch(e) {}
-  }
-  // Salva página destino e redireciona para login
-  localStorage.setItem('twm_redirect', 'estoque.html');
-  window.location.href = 'index.html';
-})();
+
 
 async function fazerLogin() {
   const email = document.getElementById('login-email').value.trim().toLowerCase();
@@ -819,22 +802,20 @@ mostrarApp = function(u) {
   iniciarFrotaModulos();
 };
 
-// ── Init principal — verifica sessão ─────────────────────────────────────────
+// ── Init principal ───────────────────────────────────────────────────────────
 (function() {
   var cache = localStorage.getItem('twm_user_cache');
   if (cache) {
     try {
       var u = JSON.parse(cache);
       if (u && u.email) {
-        u.loginTime = Date.now();
-        localStorage.setItem('twm_user_cache', JSON.stringify(u));
         mostrarApp(u);
         return;
       }
     } catch(e) {}
   }
-  localStorage.setItem('twm_redirect', 'estoque.html');
-  window.location.href = 'index.html';
+  // Sem sessão — mostra tela de login local
+  document.getElementById('login-screen').classList.add('active');
 })();
 
 
@@ -907,6 +888,6 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-<script src="frota-extra.js"></script>
+
 </body>
 </html>
