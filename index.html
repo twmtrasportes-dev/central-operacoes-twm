@@ -156,6 +156,30 @@ body.light .login-screen{background:var(--bg)}
 .frota-dot.active{background:var(--accent);transform:scale(1.3)}
 
 .frota-msg{text-align:center;padding:20px;font-size:12px;color:var(--muted)}
+/* ── FROTA EXPANDIDA (tela cheia) ── */
+.frota-expand-btn{background:none;border:none;cursor:pointer;padding:4px;opacity:.6;transition:opacity .2s;display:flex;align-items:center;justify-content:center}
+.frota-expand-btn:hover{opacity:1}
+
+.frota-full-bg{display:none;position:fixed;inset:0;background:var(--bg);z-index:950;flex-direction:column;overflow-y:auto}
+.frota-full-bg.open{display:flex}
+
+.frota-full-header{display:flex;align-items:center;justify-content:space-between;padding:20px 20px 14px;position:sticky;top:0;background:var(--bg);z-index:2;border-bottom:1px solid var(--border2)}
+.frota-full-title{font-family:"Barlow Condensed",sans-serif;font-size:22px;font-weight:900;color:var(--text);letter-spacing:1px;text-transform:uppercase}
+.frota-full-close{background:rgba(255,255,255,.08);border:none;border-radius:50%;width:36px;height:36px;color:var(--text);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+.frota-full-leg{display:flex;gap:12px;flex-wrap:wrap;padding:12px 20px}
+.frota-full-leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);font-weight:600}
+
+.frota-full-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:4px 20px 30px}
+
+.frota-full-card{background:var(--bg3);border-radius:16px;padding:18px 12px;text-align:center;cursor:pointer;border:2px solid transparent;transition:transform .15s,border-color .2s;position:relative}
+.frota-full-card:active{transform:scale(.96)}
+.frota-full-ico{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px}
+.frota-full-id{font-family:"Barlow Condensed",sans-serif;font-size:18px;font-weight:900;color:var(--text);letter-spacing:.5px}
+.frota-full-motorista{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.3;min-height:28px}
+.frota-full-st{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-top:6px;padding:4px 10px;border-radius:20px;display:inline-block}
+.frota-full-badge{position:absolute;top:-6px;right:-6px;background:#EF4444;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg);font-size:10px;color:#fff;font-weight:900}
+
 
 /* ── MODAL DETALHE ── */
 .fm-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:900;backdrop-filter:blur(4px);align-items:flex-end;justify-content:center}
@@ -422,7 +446,17 @@ body.light .login-screen{background:var(--bg)}
 <div class="frota-section">
   <div class="frota-header">
     <div class="frota-title">Status da Frota</div>
-    <div class="frota-hint">Toque para detalhes</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="frota-hint">Toque para detalhes</div>
+      <button class="frota-expand-btn" onclick="frotaExpandir()" title="Ampliar">
+        <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
+          <path d="M10 2 L14 2 L14 6" stroke="var(--muted)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 14 L2 14 L2 10" stroke="var(--muted)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M14 2 L9 7" stroke="var(--muted)" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M2 14 L7 9" stroke="var(--muted)" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
   </div>
   <div class="frota-leg">
     <div class="frota-leg-item"><div class="frota-leg-dot" style="background:#7C3AED"></div>Em Viagem</div>
@@ -449,6 +483,22 @@ body.light .login-screen{background:var(--bg)}
       <span id="frota-alerta-txt"></span>
     </div>
   </div>
+</div>
+
+
+<!-- FROTA EXPANDIDA TELA CHEIA -->
+<div class="frota-full-bg" id="frota-full-bg">
+  <div class="frota-full-header">
+    <div class="frota-full-title">Status da Frota</div>
+    <button class="frota-full-close" onclick="frotaRecolher()">&#x2715;</button>
+  </div>
+  <div class="frota-full-leg">
+    <div class="frota-full-leg-item"><div class="frota-leg-dot" style="background:#7C3AED"></div>Em Viagem</div>
+    <div class="frota-full-leg-item"><div class="frota-leg-dot" style="background:#D97706"></div>Descarregando</div>
+    <div class="frota-full-leg-item"><div class="frota-leg-dot" style="background:#059669"></div>Retorno</div>
+    <div class="frota-full-leg-item"><div class="frota-leg-dot" style="background:#6B7280"></div>Garagem</div>
+  </div>
+  <div class="frota-full-grid" id="frota-full-grid"></div>
 </div>
 
 <!-- MODAL DETALHE CAMINHÃO -->
@@ -970,13 +1020,10 @@ function renderMods() {
     // Touch — long press para arrastar, scroll livre antes disso
     el.addEventListener('touchstart', function(e) {
       var idx = i;
-      var startX = e.touches[0].clientX;
-      var startY = e.touches[0].clientY;
       _holdT = setTimeout(function() {
         _dragI = idx;
         el.classList.add('is-holding');
         if (navigator.vibrate) navigator.vibrate(40);
-        // Só agora registra o listener bloqueante de scroll
         document.addEventListener('touchmove', _modTouchMove, {passive: false});
       }, 450);
     }, {passive: true});
@@ -1060,6 +1107,59 @@ mostrarApp = function(u) {
   if (!cache) document.getElementById('login-aviso').classList.add('show');
 })();
 
+
+
+// ── Frota Expandida ────────────────────────────────────────────────────────
+function frotaExpandir() {
+  var bg = document.getElementById('frota-full-bg');
+  if (!bg) return;
+  bg.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  renderFrotaFull();
+}
+
+function frotaRecolher() {
+  var bg = document.getElementById('frota-full-bg');
+  if (!bg) return;
+  bg.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function renderFrotaFull() {
+  var grid = document.getElementById('frota-full-grid');
+  if (!grid || !_frotaVlist.length) {
+    if (grid) grid.innerHTML = '<div class="frota-msg">Sem dados.</div>';
+    return;
+  }
+  var checklists = [];
+  try { checklists = JSON.parse(localStorage.getItem('twm_checklists')||'[]'); } catch(e) {}
+
+  var html = '';
+  _frotaVlist.forEach(function(cav) {
+    var row = _frotaVmap[cav];
+    var st  = normStatus(row[COL.STATUS]);
+    var cfg = SCFG[st];
+    var motorista = (row[COL.MOTORISTA]||'').trim();
+    // Pega primeiro nome + último sobrenome
+    var partes = motorista.split(' ');
+    var nomeAbrev = partes.length > 1 ? partes[0] + ' ' + partes[partes.length-1] : motorista;
+    var temManut = checklists.some(function(c){ return c.solicitacao_manutencao && (c.cavalo||'').toUpperCase().indexOf(cav.toUpperCase().slice(0,4)) >= 0; });
+
+    html += '<div class="frota-full-card" onclick="fmAbrirFull(\'' + cav.replace(/'/g,"\'") + '\')" style="border-color:' + (temManut ? '#EF4444' : 'transparent') + '">'
+          + (temManut ? '<div class="frota-full-badge">!</div>' : '')
+          + '<div class="frota-full-ico" style="background:' + cfg.bg + '">' + icoFrota(st, cfg.cor, 30) + '</div>'
+          + '<div class="frota-full-id">' + cav + '</div>'
+          + '<div class="frota-full-motorista">' + nomeAbrev + '</div>'
+          + '<div class="frota-full-st" style="background:' + cfg.bg + ';color:' + cfg.cor + '">' + cfg.lbl + '</div>'
+          + '</div>';
+  });
+  grid.innerHTML = html;
+}
+
+function fmAbrirFull(cav) {
+  frotaRecolher();
+  setTimeout(function(){ fmAbrir(cav); }, 200);
+}
 
 // ── PULL TO REFRESH ──────────────────────────────────────────────────────────
 (function() {
