@@ -565,27 +565,26 @@ function mostrarErro(msg) {
 }
 
 function mostrarApp(u) {
-  document.getElementById('login-screen').classList.remove('active');
-  // Nome no header
-  const nome = (u.nome || u.email || '').split(' ')[0];
-  document.getElementById('user-name').textContent = nome;
-  // Preenche menu com dados do usuário
-  const nomeCompleto = u.nome || u.email || '—';
-  const iniciais = nomeCompleto.split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase();
-  document.getElementById('menu-avatar').textContent = iniciais;
-  document.getElementById('menu-user-nome').textContent = nomeCompleto;
-  document.getElementById('menu-user-mat').textContent = u.matricula ? '🪪 Matrícula: ' + u.matricula : '';
-  document.getElementById('menu-user-email').textContent = u.email || '';
-  // Salva dados do usuário para uso global
+  // Esconde login e mostra conteúdo do estoque
+  const ls = document.getElementById('login-screen');
+  if (ls) ls.classList.remove('active');
   window._twmUser = u;
-  // Atualiza stats
+  // Nome no header se existir
   try {
-    const cl = JSON.parse(localStorage.getItem('twm_checklists')||'[]');
-    const hoje = new Date();
-    const d = String(hoje.getDate()).padStart(2,'0')+'/'+String(hoje.getMonth()+1).padStart(2,'0');
-    document.getElementById('s3').textContent = cl.filter(c=>c.data_hora&&c.data_hora.startsWith(d)).length||0;
-    document.getElementById('s4').textContent = cl.filter(c=>c.solicitacao_manutencao).length||0;
-  } catch(e){}
+    const nome = (u.nome || u.email || '').split(' ')[0];
+    const el = document.getElementById('user-name');
+    if (el) el.textContent = nome;
+    const nomeCompleto = u.nome || u.email || '—';
+    const iniciais = nomeCompleto.split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase();
+    const av = document.getElementById('menu-avatar');
+    if (av) av.textContent = iniciais;
+    const mn = document.getElementById('menu-user-nome');
+    if (mn) mn.textContent = nomeCompleto;
+    const mm = document.getElementById('menu-user-mat');
+    if (mm) mm.textContent = u.matricula ? '🪪 ' + u.matricula : '';
+    const me = document.getElementById('menu-user-email');
+    if (me) me.textContent = u.email || '';
+  } catch(e) {}
 }
 
 document.getElementById('login-senha').addEventListener('keypress', e => {
@@ -795,12 +794,7 @@ function iniciarFrotaModulos() {
   }, 30 * 1000);
 }
 
-// ── Aciona frota+módulos ao mostrar o app ──────────────────────────────────
-var _mostrarAppOrig = mostrarApp;
-mostrarApp = function(u) {
-  _mostrarAppOrig(u);
-  iniciarFrotaModulos();
-};
+// mostrarApp configurado acima
 
 // ── Init principal ───────────────────────────────────────────────────────────
 (function() {
