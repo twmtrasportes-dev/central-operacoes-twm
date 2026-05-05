@@ -640,7 +640,9 @@ function menuAcao(acao) {
 }
 
 // Toggle tema claro/escuro
-let temaClaro = localStorage.getItem('twm_tema') === 'claro';
+// Tema automático por hora (ou preferência do usuário)
+let _pref = localStorage.getItem('twm_tema') || 'auto';
+let temaClaro = _pref === 'claro' ? true : _pref === 'escuro' ? false : (new Date().getHours() >= 6 && new Date().getHours() < 18);
 
 function aplicarTema() {
   if (temaClaro) {
@@ -655,8 +657,14 @@ function aplicarTema() {
 }
 
 function toggleTema() {
-  temaClaro = !temaClaro;
-  localStorage.setItem('twm_tema', temaClaro ? 'claro' : 'escuro');
+  // Cicla: auto → claro → escuro → auto
+  var p = localStorage.getItem('twm_tema') || 'auto';
+  if (p === 'auto') p = 'claro';
+  else if (p === 'claro') p = 'escuro';
+  else p = 'auto';
+  localStorage.setItem('twm_tema', p);
+  _pref = p;
+  temaClaro = p === 'claro' ? true : p === 'escuro' ? false : (new Date().getHours() >= 6 && new Date().getHours() < 18);
   aplicarTema();
 }
 
