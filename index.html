@@ -54,6 +54,20 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 /* Tema claro */
 body.light{--bg:#F0F0F5;--bg2:#FFFFFF;--bg3:#F8F7FF;--border:rgba(0,0,0,0.06);--border2:rgba(0,0,0,0.12);--text:#1A1A2E;--muted:#6B6B8A}
 body.light .login-screen{background:var(--bg)}
+</style>
+<!-- Tema automático — aplicado ANTES de renderizar para evitar flash -->
+<script>
+(function() {
+  var pref = localStorage.getItem('twm_tema') || 'auto';
+  var claro;
+  if (pref === 'claro') claro = true;
+  else if (pref === 'escuro') claro = false;
+  else { var h = new Date().getHours(); claro = h >= 6 && h < 18; }
+  if (claro) document.documentElement.classList.add('pre-light');
+})();
+</script>
+<style>
+html.pre-light body { --bg:#F0F0F5;--bg2:#FFFFFF;--bg3:#F8F7FF;--border:rgba(0,0,0,0.06);--border2:rgba(0,0,0,0.12);--text:#1A1A2E;--muted:#6B6B8A }
 .logo-text{display:flex;flex-direction:column}
 .logo-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;letter-spacing:2px;color:var(--text);line-height:1}
 .logo-sub{font-size:10px;font-weight:500;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
@@ -442,7 +456,7 @@ body.light .login-screen{background:var(--bg)}
     <div class="theme-toggle" onclick="toggleTema()">
       <div style="display:flex;align-items:center;gap:10px">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="opacity:.7"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-        <span id="tema-label">Tema Claro</span>
+        <span id="tema-label">Automático</span>
       </div>
       <div class="toggle-switch" id="tema-toggle"></div>
     </div>
@@ -709,29 +723,66 @@ function menuAcao(acao) {
 }
 
 // Toggle tema claro/escuro
-let temaClaro = localStorage.getItem('twm_tema') === 'claro';
+// ── TEMA: automático por hora ou preferência do usuário ───────
+// 'auto' = segue hora | 'claro' = sempre claro | 'escuro' = sempre escuro
+let temaPreferencia = localStorage.getItem('twm_tema') || 'auto';
+
+function temaAutoClaro() {
+  const h = new Date().getHours();
+  return h >= 6 && h < 18; // Claro das 06h às 18h
+}
+
+function temaDeveSerClaro() {
+  if (temaPreferencia === 'claro') return true;
+  if (temaPreferencia === 'escuro') return false;
+  return temaAutoClaro(); // auto
+}
 
 function aplicarTema() {
-  if (temaClaro) {
+  const claro = temaDeveSerClaro();
+  if (claro) {
     document.body.classList.add('light');
-    document.getElementById('tema-label').textContent = 'Tema Escuro';
-    document.getElementById('tema-toggle').classList.add('on');
+    document.documentElement.classList.add('pre-light');
   } else {
     document.body.classList.remove('light');
-    document.getElementById('tema-label').textContent = 'Tema Claro';
-    document.getElementById('tema-toggle').classList.remove('on');
+    document.documentElement.classList.remove('pre-light');
+  }
+  // Atualiza label e toggle
+  const label = document.getElementById('tema-label');
+  const toggle = document.getElementById('tema-toggle');
+  if (!label || !toggle) return;
+  if (temaPreferencia === 'auto') {
+    label.textContent = '☀️ Automático (' + (claro ? 'Claro' : 'Escuro') + ')';
+    toggle.classList.remove('on');
+    toggle.style.background = 'var(--border2)';
+  } else if (temaPreferencia === 'claro') {
+    label.textContent = '☀️ Claro';
+    toggle.classList.add('on');
+    toggle.style.background = 'var(--accent)';
+  } else {
+    label.textContent = '🌙 Escuro';
+    toggle.classList.remove('on');
+    toggle.style.background = '#222';
   }
 }
 
 function toggleTema() {
-  temaClaro = !temaClaro;
-  localStorage.setItem('twm_tema', temaClaro ? 'claro' : 'escuro');
+  // Cicla: auto → claro → escuro → auto
+  if (temaPreferencia === 'auto')   temaPreferencia = 'claro';
+  else if (temaPreferencia === 'claro')  temaPreferencia = 'escuro';
+  else                                   temaPreferencia = 'auto';
+  localStorage.setItem('twm_tema', temaPreferencia);
   aplicarTema();
 }
 
-// Aplicar tema após DOM carregar
+// Aplica ao carregar
 document.addEventListener("DOMContentLoaded", function(){ aplicarTema(); });
 if(document.readyState !== "loading") aplicarTema();
+
+// Reavalia a cada 5 minutos (para modo automático)
+setInterval(function() {
+  if (temaPreferencia === 'auto') aplicarTema();
+}, 5 * 60 * 1000);
 
 // Registro do Service Worker (PWA offline)
 
