@@ -207,7 +207,7 @@ body.light .login-screen{background:var(--bg)}
 .mod-title::after{content:"";flex:1;height:1px;background:var(--border2)}
 .mod-hint{font-size:10px;color:var(--muted);opacity:.7;display:flex;align-items:center;gap:5px;margin-left:12px;white-space:nowrap}
 .mod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.mod-item{background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:10px 6px 12px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:5px;cursor:grab;user-select:none;touch-action:pan-y;transition:transform .15s,box-shadow .15s,opacity .15s,border-color .15s;position:relative}
+.mod-item{background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:10px 6px 12px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:5px;cursor:grab;user-select:none;transition:transform .15s,box-shadow .15s,opacity .15s,border-color .15s;position:relative}
 .mod-item.dim{opacity:.55}
 .mod-item.is-dragging{opacity:.25}
 .mod-item.is-over{border-color:var(--accent);border-style:dashed;box-shadow:0 4px 18px rgba(123,63,228,.25);transform:scale(1.04)}
@@ -1017,15 +1017,33 @@ function renderMods() {
       _clearOver();
     });
 
-    // Touch — long press para arrastar, scroll livre antes disso
+    // Touch — cancela drag se mover antes dos 450ms (scroll normal)
     el.addEventListener('touchstart', function(e) {
       var idx = i;
+      var startX = e.touches[0].clientX;
+      var startY = e.touches[0].clientY;
+      var moved = false;
+
+      function onEarlyMove(ev) {
+        var dx = Math.abs(ev.touches[0].clientX - startX);
+        var dy = Math.abs(ev.touches[0].clientY - startY);
+        if (dx > 6 || dy > 6) {
+          moved = true;
+          clearTimeout(_holdT);
+          document.removeEventListener('touchmove', onEarlyMove);
+        }
+      }
+
+      document.addEventListener('touchmove', onEarlyMove, {passive: true});
+
       _holdT = setTimeout(function() {
+        document.removeEventListener('touchmove', onEarlyMove);
+        if (moved) return;
         _dragI = idx;
         el.classList.add('is-holding');
         if (navigator.vibrate) navigator.vibrate(40);
         document.addEventListener('touchmove', _modTouchMove, {passive: false});
-      }, 450);
+      }, 500);
     }, {passive: true});
 
     el.addEventListener('touchend', function() {
