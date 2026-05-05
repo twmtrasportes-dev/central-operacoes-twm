@@ -129,11 +129,15 @@ body.light{--bg:#F4F3FF;--bg2:#FFFFFF;--bg3:#FAFAFA;--border:rgba(0,0,0,0.07);--
 .print-only{display:none}
 </style>
 <script>
-(function(){
-  if(localStorage.getItem('twm_tema')==='claro'){
-    document.addEventListener('DOMContentLoaded',function(){document.body.classList.add('light');});
-    if(document.readyState!=='loading') document.body.classList.add('light');
-  }
+(function() {
+  var pref = localStorage.getItem('twm_tema') || 'auto';
+  var claro;
+  if (pref === 'claro') claro = true;
+  else if (pref === 'escuro') claro = false;
+  else { var h = new Date().getHours(); claro = h >= 6 && h < 18; }
+  function aplicar() { if (claro) document.body.classList.add('light'); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', aplicar);
+  else aplicar();
 })();
 </script>
 </head>
