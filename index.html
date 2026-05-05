@@ -651,48 +651,14 @@ function carregarCadastro() {
   xhr.open('GET', CADASTRO_CSV + '&_=' + Date.now(), true);
   xhr.onload = function() {
     if (xhr.status !== 200 || !xhr.responseText) return;
-    var txt   = xhr.responseText.replace(/
-/g,'
-').replace(/
-/g,'
-');
-    var lines = txt.split('
-');
-    if (!lines.length) return;
-
-    // Detecta separador: vírgula ou ponto e vírgula
-    var sep = (lines[0].indexOf(';') > lines[0].indexOf(',') && lines[0].indexOf(';') >= 0) ? ';' : ',';
-
+    var lines = xhr.responseText.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
     _frotaNumMap = {};
     for (var i = 1; i < lines.length; i++) {
-      var line = lines[i];
-      if (!line.trim()) continue;
-
-      // Parser robusto igual ao parseCsv
-      var cols = [], cur = '', inQ = false;
-      for (var k = 0; k < line.length; k++) {
-        var c = line[k];
-        if (c === '"') { inQ = !inQ; }
-        else if (c === sep && !inQ) { cols.push(cur.trim()); cur = ''; }
-        else { cur += c; }
-      }
-      cols.push(cur.trim());
-
-      // Col A = FROTA (idx 0), Col C = VEÍCULO (idx 2)
+      var cols = lines[i].split(',');
+      // Col A = FROTA (índice 0), Col C = VEÍCULO (índice 2)
       var frota   = (cols[0]||'').replace(/"/g,'').trim();
       var veiculo = (cols[2]||'').replace(/"/g,'').trim();
-
-      if (!frota || !veiculo) continue;
-
-      // Normaliza: remove traços e espaços para comparação flexível
-      var veicNorm = veiculo.toUpperCase().replace(/[-\s]/g,'');
-      _frotaNumMap[veicNorm]            = frota; // sem traço
-      _frotaNumMap[veiculo.toUpperCase()] = frota; // com traço original
-    }
-    // Re-renderiza frota se já tiver dados carregados
-    if (_frotaVlist && _frotaVlist.length > 0) {
-      var cl = []; try { cl = JSON.parse(localStorage.getItem('twm_checklists')||'[]'); } catch(e) {}
-      renderPaginaFrota(cl);
+      if (frota && veiculo) _frotaNumMap[veiculo.toUpperCase()] = frota;
     }
   };
   xhr.send();
@@ -808,10 +774,7 @@ function renderPaginaFrota(checklists) {
     var st  = normStatus(row[COL.STATUS]);
     var cfg = SCFG[st];
     var temManut = checklists.some(function(c){ return c.solicitacao_manutencao && (c.cavalo||'').toUpperCase().indexOf(cav.toUpperCase().slice(0,4)) >= 0; });
-    // Busca com e sem traço para flexibilidade
-    var cavUp    = cav.toUpperCase();
-    var cavNorm  = cavUp.replace(/[-\s]/g,'');
-    var numFrota = _frotaNumMap[cavUp] || _frotaNumMap[cavNorm] || '';
+    var numFrota = _frotaNumMap[cav.toUpperCase()] || '';
     html += '<div class="frota-card" onclick="fmAbrir(\'' + cav.replace(/'/g, "\'") + '\')">'
           + (temManut ? '<div class="frota-badge">!</div>' : '')
           + '<div class="frota-ico" style="background:' + cfg.bg + '">' + icoFrota(st, cfg.cor, 20) + '</div>'
