@@ -534,7 +534,6 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4BZz60sy9BsFACdqKk
     try {
       const u = JSON.parse(cache);
       if (u && u.email) {
-        // Renova loginTime para manter sessão ativa
         u.loginTime = Date.now();
         localStorage.setItem('twm_user_cache', JSON.stringify(u));
         mostrarApp(u);
@@ -542,7 +541,8 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4BZz60sy9BsFACdqKk
       }
     } catch(e) {}
   }
-  // Não logado — volta para index para fazer login
+  // Salva página destino e redireciona para login
+  localStorage.setItem('twm_redirect', 'estoque.html');
   window.location.href = 'index.html';
 })();
 
@@ -819,20 +819,22 @@ mostrarApp = function(u) {
   iniciarFrotaModulos();
 };
 
-// ── Init principal — roda depois que tudo está definido ─────────────────────
+// ── Init principal — verifica sessão ─────────────────────────────────────────
 (function() {
   var cache = localStorage.getItem('twm_user_cache');
   if (cache) {
     try {
       var u = JSON.parse(cache);
-      if (Date.now() - (u.loginTime||0) < OITO_HORAS) {
+      if (u && u.email) {
+        u.loginTime = Date.now();
+        localStorage.setItem('twm_user_cache', JSON.stringify(u));
         mostrarApp(u);
         return;
       }
     } catch(e) {}
   }
-  document.getElementById('login-screen').classList.add('active');
-  if (!cache) document.getElementById('login-aviso').classList.add('show');
+  localStorage.setItem('twm_redirect', 'estoque.html');
+  window.location.href = 'index.html';
 })();
 
 
