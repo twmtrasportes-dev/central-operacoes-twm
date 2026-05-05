@@ -967,35 +967,40 @@ function renderMods() {
       _clearOver();
     });
 
-    // Touch
+    // Touch — long press para arrastar, scroll livre antes disso
     el.addEventListener('touchstart', function(e) {
       var idx = i;
+      var startX = e.touches[0].clientX;
+      var startY = e.touches[0].clientY;
       _holdT = setTimeout(function() {
         _dragI = idx;
         el.classList.add('is-holding');
         if (navigator.vibrate) navigator.vibrate(40);
+        // Só agora registra o listener bloqueante de scroll
+        document.addEventListener('touchmove', _modTouchMove, {passive: false});
       }, 450);
     }, {passive: true});
 
-    el.addEventListener('touchmove', function(e) {
-      if (_dragI === null) { clearTimeout(_holdT); return; }
-      e.preventDefault(); // só bloqueia quando arrastando após long press
-      var t = e.touches[0];
-      var hit = document.elementFromPoint(t.clientX, t.clientY);
-      var card = hit && hit.closest ? hit.closest('[data-i]') : null;
-      if (card && card !== el) {
-        var ni = parseInt(card.getAttribute('data-i'));
-        if (!isNaN(ni) && ni !== _dragI) { _overI = ni; _refreshOver(); }
-      }
-    }, {passive: false});
-
     el.addEventListener('touchend', function() {
       clearTimeout(_holdT);
+      document.removeEventListener('touchmove', _modTouchMove);
       _doReorder();
       _dragI = null; _overI = null;
       _clearOver();
-    });
+    }, {passive: true});
   });
+}
+
+function _modTouchMove(e) {
+  if (_dragI === null) return;
+  e.preventDefault();
+  var t = e.touches[0];
+  var hit = document.elementFromPoint(t.clientX, t.clientY);
+  var card = hit && hit.closest ? hit.closest('[data-i]') : null;
+  if (card) {
+    var ni = parseInt(card.getAttribute('data-i'));
+    if (!isNaN(ni) && ni !== _dragI) { _overI = ni; _refreshOver(); }
+  }
 }
 
 function _refreshOver() {
