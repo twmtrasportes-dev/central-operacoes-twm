@@ -277,49 +277,67 @@ function normStatus(s) {
 
 // ── INIT ────────────────────────────────────────────────────────
 function init() {
-  // Verifica sessão
-  const cache = lerLocal('twm_user_cache');
-  if (!cache || !JSON.parse(cache||'{}').email) {
+  // Verifica sessão de forma segura
+  try {
+    const cache = lerLocal('twm_user_cache');
+    if (!cache) {
+      sessionStorage.setItem('twm_after_login', 'estoque.html');
+      window.location.href = 'index.html';
+      return;
+    }
+    const u = typeof cache === 'object' ? cache : JSON.parse(cache);
+    if (!u || !u.email) {
+      sessionStorage.setItem('twm_after_login', 'estoque.html');
+      window.location.href = 'index.html';
+      return;
+    }
+  } catch(e) {
     sessionStorage.setItem('twm_after_login', 'estoque.html');
     window.location.href = 'index.html';
     return;
   }
 
-  // Carrega cache local primeiro
+  // Mostra loading imediatamente
+  setSyncBar('⏳ Carregando estoque...');
+  document.getElementById('tireList').innerHTML = '<div class="empty">⏳ Buscando dados da planilha...</div>';
+  renderCounters();
+
+  // Cache local — exibe enquanto busca
   const cached = lerLocal('twm_estoque') || [];
   if (cached.length) {
     estoque = cached.map(p => ({...p, status: normStatus(p.status)}));
     render();
   }
 
-  // Busca do servidor
+  // Busca servidor imediatamente
   sincronizar();
 }
 
 function sincronizar() {
-  setSyncBar('⏳ Sincronizando com planilha...');
+  setSyncBar('⏳ Buscando planilha...');
   fetch(SCRIPT_URL + '?action=getEstoque&t=' + Date.now())
-    .then(r => r.json())
-    .then(d => {
-      if (d.ok && d.estoque) {
-        const novos = d.estoque.map(p => ({...p, status: normStatus(p.status)}));
-        // Detecta mudanças comparando com cache
-        const cacheStr = JSON.stringify(estoque.map(p=>p.fogo).sort());
-        const novosStr = JSON.stringify(novos.map(p=>p.fogo).sort());
-        const mudou = cacheStr !== novosStr || novos.length !== estoque.length;
-        estoque = novos;
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.ok && d.estoque && d.estoque.length > 0) {
+        estoque = d.estoque.map(function(p) {
+          return Object.assign({}, p, {status: normStatus(p.status)});
+        });
         salvarLocal('twm_estoque', estoque);
         render();
-        if (mudou) {
-          setSyncBar('🔄 Planilha atualizada!', 3000);
-        } else {
-          setSyncBar('✅ Sincronizado — ' + estoque.length + ' pneus', 2000);
-        }
+        setSyncBar('✅ ' + estoque.length + ' pneus carregados', 3000);
+      } else if (d.ok && d.estoque && d.estoque.length === 0) {
+        setSyncBar('⚠ Planilha vazia ou aba ESTOQUE não encontrada', 4000);
+        document.getElementById('tireList').innerHTML = '<div class="empty">⚠ Nenhum pneu na planilha.<br>Verifique a aba ESTOQUE.</div>';
       } else {
-        setSyncBar('📵 Sem dados do servidor', 2000);
+        setSyncBar('❌ Erro: ' + (d.msg||'desconhecido'), 4000);
       }
     })
-    .catch(() => setSyncBar('📵 Offline — dados locais', 2000));
+    .catch(function(err) {
+      setSyncBar('📵 Offline — mostrando cache local', 2000);
+      if (!estoque.length) {
+        document.getElementById('tireList').innerHTML = '<div class="empty">📵 Sem conexão e sem cache local.</div>';
+      }
+    });
 }
 
 // ── TABS ────────────────────────────────────────────────────────
