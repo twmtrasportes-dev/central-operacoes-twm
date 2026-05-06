@@ -665,12 +665,58 @@ function mostrarErro(msg) {
   el.textContent = msg; el.style.display = 'block';
 }
 
+function verificarPermissao(modulo) {
+  try {
+    var perm = JSON.parse(localStorage.getItem('twm_permissoes') || '{}');
+    // Admin tem acesso a tudo
+    if (perm.admin) return true;
+    // Mapeamento de arquivo → permissão
+    var mapa = {
+      'check_list_twm_oficial.html': 'checklist_frota',
+      'checklist_lvt.html':          'lvt',
+      'checklist_seguranca_mensal.html': 'seg_mensal',
+      'pneus.html':                  'pneus',
+      'estoque.html':                'estoque',
+      'carros-apoio.html':           'carros_apoio',
+    };
+    var chave = mapa[modulo];
+    if (!chave) return true; // módulo sem controle → libera
+    return perm[chave] === true;
+  } catch(e) { return true; }
+}
+
+function abrirModulo(modulo) {
+  if (!verificarPermissao(modulo)) {
+    showToastIndex('🔒 Sem permissão para acessar este módulo.');
+    return;
+  }
+  window.location.href = modulo;
+}
+
+function showToastIndex(msg) {
+  var t = document.getElementById('toast-index');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast-index';
+    t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1E1B2E;border:1px solid rgba(255,255,255,.15);color:#F0EEF8;padding:12px 22px;border-radius:24px;font-size:13px;font-weight:600;z-index:9999;pointer-events:none;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.5);transition:.3s;opacity:0';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  setTimeout(function(){ t.style.opacity = '0'; }, 3000);
+}
+
 function mostrarApp(u) {
   document.getElementById('login-screen').classList.remove('active');
   // Se veio de outro módulo, redireciona de volta
   var destino = sessionStorage.getItem('twm_after_login');
   if (destino) {
     sessionStorage.removeItem('twm_after_login');
+    // Verifica permissão antes de redirecionar
+    if (!verificarPermissao(destino)) {
+      showToastIndex('🔒 Sem permissão para acessar este módulo.');
+      return;
+    }
     window.location.href = destino;
     return;
   }
@@ -1084,11 +1130,32 @@ var _dragI = null, _overI = null, _holdT = null;
 function renderMods() {
   var g = document.getElementById('mod-grid');
   if (!g) return;
+  var _perm = (function() {
+    try { return JSON.parse(localStorage.getItem('twm_permissoes') || '{}'); } catch(e) { return {}; }
+  })();
+  var _mapaP = {
+    'checklist.html':'checklist_frota',
+    'check_list_twm_oficial.html':'checklist_frota',
+    'checklist_lvt.html':'lvt',
+    'checklist_seguranca_mensal.html':'seg_mensal',
+    'pneus.html':'pneus',
+    'estoque.html':'estoque',
+    'carros-apoio.html':'carros_apoio',
+  };
+  var temPerm = function(href) {
+    if (!href || href === '#') return true;
+    if (_perm.admin) return true;
+    var chave = _mapaP[href];
+    if (!chave) return true;
+    return _perm[chave] === true;
+  };
   var h = '';
   for (var i = 0; i < _mods.length; i++) {
     var m = _mods[i];
-    h += '<div class="mod-item'+(m.badge==='cinza'?' dim':'')+'" data-i="'+i+'" draggable="true">'
+    var bloq = !temPerm(m.href);
+    h += '<div class="mod-item'+(m.badge==='cinza'?' dim':'')+(bloq?' mod-bloqueado':'')+'" data-i="'+i+'" draggable="true">'
        + '<div class="mod-badge '+m.badge+'">'+m.bl+'</div>'
+       + (bloq ? '<div class="mod-lock">🔒</div>' : '')
        + '<div class="mod-ico" style="background:'+m.bg+'">'+m.ico+'</div>'
        + '<div class="mod-name">'+m.nome+'</div>'
        + '<div class="mod-desc">'+m.desc+'</div>'
@@ -1103,7 +1170,7 @@ function renderMods() {
 
     el.addEventListener('click', function(e) {
       if (_dragI !== null) return;
-      if (m.href && m.href !== '#') window.location.href = m.href;
+      if (m.href && m.href !== '#') abrirModulo(m.href);
     });
 
     // Desktop drag
