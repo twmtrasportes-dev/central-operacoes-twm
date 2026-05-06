@@ -141,7 +141,12 @@ body.light .app-header{box-shadow:0 1px 8px rgba(0,0,0,.08)}
     </div>
     <div class="header-title">Estoque de Pneus</div>
   </div>
-  <div class="header-badge">PNEUS</div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <button onclick="sincronizar()" style="width:34px;height:34px;background:rgba(255,255,255,.07);border:1px solid var(--border2);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+    </button>
+    <div class="header-badge">PNEUS</div>
+  </div>
 </div>
 
 <div class="sync-bar" id="syncBar"></div>
@@ -292,15 +297,24 @@ function init() {
 }
 
 function sincronizar() {
-  setSyncBar('⏳ Sincronizando...');
-  fetch(SCRIPT_URL + '?action=getEstoque')
+  setSyncBar('⏳ Sincronizando com planilha...');
+  fetch(SCRIPT_URL + '?action=getEstoque&t=' + Date.now())
     .then(r => r.json())
     .then(d => {
-      if (d.ok && d.estoque && d.estoque.length) {
-        estoque = d.estoque.map(p => ({...p, status: normStatus(p.status)}));
+      if (d.ok && d.estoque) {
+        const novos = d.estoque.map(p => ({...p, status: normStatus(p.status)}));
+        // Detecta mudanças comparando com cache
+        const cacheStr = JSON.stringify(estoque.map(p=>p.fogo).sort());
+        const novosStr = JSON.stringify(novos.map(p=>p.fogo).sort());
+        const mudou = cacheStr !== novosStr || novos.length !== estoque.length;
+        estoque = novos;
         salvarLocal('twm_estoque', estoque);
         render();
-        setSyncBar('✅ Sincronizado', 2000);
+        if (mudou) {
+          setSyncBar('🔄 Planilha atualizada!', 3000);
+        } else {
+          setSyncBar('✅ Sincronizado — ' + estoque.length + ' pneus', 2000);
+        }
       } else {
         setSyncBar('📵 Sem dados do servidor', 2000);
       }
