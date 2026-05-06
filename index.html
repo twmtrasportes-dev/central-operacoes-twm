@@ -667,11 +667,11 @@ function mostrarErro(msg) {
 
 function mostrarApp(u) {
   document.getElementById('login-screen').classList.remove('active');
-  // Verifica se há redirect pendente
-  const redirect = localStorage.getItem('twm_redirect');
-  if (redirect) {
-    localStorage.removeItem('twm_redirect');
-    window.location.href = redirect;
+  // Se veio de outro módulo, redireciona de volta
+  var destino = sessionStorage.getItem('twm_after_login');
+  if (destino) {
+    sessionStorage.removeItem('twm_after_login');
+    window.location.href = destino;
     return;
   }
   // Nome no header
