@@ -234,6 +234,10 @@ html.pre-light body { --bg:#F0F0F5;--bg2:#FFFFFF;--bg3:#F8F7FF;--border:rgba(0,0
 .mod-badge.vermelho{background:rgba(239,68,68,.18);color:#EF4444;font-size:13px;padding:2px 7px}
 .mod-badge.cinza{background:rgba(255,255,255,.07);color:var(--muted)}
 .mod-footer{text-align:center;padding:8px 0 0;font-size:10px;color:rgba(255,255,255,.15);letter-spacing:2px;text-transform:uppercase}
+.mod-item.mod-bloqueado{opacity:.38;cursor:not-allowed}
+.mod-item.mod-bloqueado .mod-ico{filter:grayscale(1)}
+.mod-item.mod-bloqueado .mod-name,.mod-item.mod-bloqueado .mod-desc{color:var(--muted)}
+.mod-lock{position:absolute;top:6px;left:6px;font-size:13px;line-height:1}
 </style>
 
 <style>
@@ -612,6 +616,31 @@ html.pre-light body { --bg:#F0F0F5;--bg2:#FFFFFF;--bg3:#F8F7FF;--border:rgba(0,0
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4BZz60sy9BsFACdqKktKpzJOfP8mj0U6s1G7Em5pwhaC_kQHCk-GPbLNZOlwjvrOwsw/exec';
 const OITO_HORAS = 30 * 24 * 60 * 60 * 1000; // 30 dias
 
+// Converte o que vier do Apps Script para o formato padronizado de permissões
+// O Apps Script pode retornar: { permissoes: {...} } ou campos soltos como CHECK_FROTA, LVT, etc.
+function normalizarPermissoes(motorista) {
+  if (!motorista) return {};
+  if (motorista.permissoes && typeof motorista.permissoes === 'object') {
+    return motorista.permissoes;
+  }
+  function ativo(v) {
+    if (!v) return false;
+    var s = String(v).trim().toLowerCase();
+    return s === 'x' || s === 'true' || s === 'sim' || s === '1';
+  }
+  var m = motorista;
+  var isAdmin = ativo(m.admin || m.ADMIN);
+  return {
+    admin:           isAdmin,
+    checklist_frota: isAdmin || ativo(m.check_frota  || m.CHECK_FROTA  || m.checklist_frota  || m.CHECKLIST_FROTA),
+    lvt:             isAdmin || ativo(m.lvt          || m.LVT),
+    seg_mensal:      isAdmin || ativo(m.seg_mensal   || m.SEG_MENSAL   || m.segmensal        || m.SEGMENSAL),
+    pneus:           isAdmin || ativo(m.pneus        || m.PNEUS),
+    estoque:         isAdmin || ativo(m.estoque      || m.ESTOQUE),
+    carros_apoio:    isAdmin || ativo(m.carros_apoio || m.CARROS_APOIO || m.carros           || m.CARROS),
+  };
+}
+
 // init() é chamada no final
 (function _init_placeholder() {
   const cache = localStorage.getItem('twm_user_cache');
@@ -619,10 +648,9 @@ const OITO_HORAS = 30 * 24 * 60 * 60 * 1000; // 30 dias
     try {
       const u = JSON.parse(cache);
       if (Date.now() - (u.loginTime||0) < OITO_HORAS) {
-        // Restaura permissões do cache se não estiverem no localStorage
-        if (u.permissoes && !localStorage.getItem('twm_permissoes')) {
-          localStorage.setItem('twm_permissoes', JSON.stringify(u.permissoes));
-        }
+        // Sempre renormaliza permissões ao restaurar do cache
+        const perm = normalizarPermissoes(u);
+        localStorage.setItem('twm_permissoes', JSON.stringify(perm));
         mostrarApp(u);
         return;
       }
@@ -649,8 +677,8 @@ async function fazerLogin() {
     if (data.ok) {
       const u = {...data.motorista, senha, loginTime: Date.now()};
       localStorage.setItem('twm_user_cache', JSON.stringify(u));
-      // Salva permissões para controle de acesso aos módulos
-      const perm = (data.motorista && data.motorista.permissoes) ? data.motorista.permissoes : {};
+      // Normaliza permissões — suporta tanto objeto pronto quanto campos soltos da planilha
+      const perm = normalizarPermissoes(data.motorista);
       localStorage.setItem('twm_permissoes', JSON.stringify(perm));
       mostrarApp(u);
     } else {
@@ -1300,10 +1328,9 @@ mostrarApp = function(u) {
     try {
       var u = JSON.parse(cache);
       if (Date.now() - (u.loginTime||0) < OITO_HORAS) {
-        // Restaura permissões do cache se não estiverem no localStorage
-        if (u.permissoes && !localStorage.getItem('twm_permissoes')) {
-          localStorage.setItem('twm_permissoes', JSON.stringify(u.permissoes));
-        }
+        // Sempre renormaliza permissões ao restaurar do cache
+        var perm = normalizarPermissoes(u);
+        localStorage.setItem('twm_permissoes', JSON.stringify(perm));
         mostrarApp(u);
         return;
       }
