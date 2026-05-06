@@ -743,6 +743,11 @@ function showToastIndex(msg) {
 }
 
 function mostrarApp(u) {
+  // Sempre regrava twm_permissoes a partir do objeto do usuário ao entrar no app
+  var permAtual = normalizarPermissoes(u);
+  localStorage.setItem('twm_permissoes', JSON.stringify(permAtual));
+  console.log('[TWM] mostrarApp — permissões aplicadas:', JSON.stringify(permAtual));
+
   document.getElementById('login-screen').classList.remove('active');
   // Se veio de outro módulo, redireciona de volta
   var destino = sessionStorage.getItem('twm_after_login');
@@ -1169,6 +1174,8 @@ function renderMods() {
   var _perm = (function() {
     try { return JSON.parse(localStorage.getItem('twm_permissoes') || '{}'); } catch(e) { return {}; }
   })();
+  console.log('[TWM] twm_permissoes:', JSON.stringify(_perm));
+  try { var _uc = JSON.parse(localStorage.getItem('twm_user_cache')||'{}'); console.log('[TWM] user.permissoes:', JSON.stringify(_uc.permissoes)); } catch(e) {}
   var _mapaP = {
     'checklist.html':              'checklist_frota',
     'check_list_twm_oficial.html': 'checklist_frota',
