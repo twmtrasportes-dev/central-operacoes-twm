@@ -81,6 +81,13 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 .sulco-unit{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted);font-weight:600;pointer-events:none}
 .modal-btns{display:flex;gap:10px;margin-top:20px}
 .btn-cancel{padding:14px 18px;border:1.5px solid var(--border2);border-radius:12px;background:transparent;font-size:14px;color:var(--muted);cursor:pointer;font-family:'Barlow',sans-serif}
+.status-troca-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:4px}
+.st-btn{padding:10px 4px;border:1.5px solid var(--border2);border-radius:10px;cursor:pointer;text-align:center;font-size:11px;font-weight:700;color:var(--muted);transition:.15s;background:transparent}
+.st-btn.ativo-disponivel{border-color:#10B981;background:rgba(16,185,129,.15);color:#10B981}
+.st-btn.ativo-reforma{border-color:#3B82F6;background:rgba(59,130,246,.15);color:#3B82F6}
+.st-btn.ativo-conserto{border-color:#F97316;background:rgba(249,115,22,.15);color:#F97316}
+.st-btn.ativo-descarte{border-color:#EF4444;background:rgba(239,68,68,.15);color:#EF4444}
+.st-btn.ativo-venda{border-color:#F59E0B;background:rgba(245,158,11,.15);color:#F59E0B}
 .btn-confirm{flex:1;padding:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:12px;color:white;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:1px;cursor:pointer}
 .btn-confirm:active{opacity:.8}
 .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:12px 22px;border-radius:24px;font-size:13px;font-weight:600;z-index:300;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.5)}
@@ -170,6 +177,16 @@ body.light .app-header{box-shadow:0 1px 8px rgba(0,0,0,.08)}
       <label>Borracheiro</label>
       <input class="modal-input2" id="mW" placeholder="Nome do borracheiro">
     </div>
+    <div class="mfg">
+      <label>Status do pneu retirado</label>
+      <div class="status-troca-grid">
+        <div class="st-btn" id="st-disponivel" onclick="selST('disponivel')">🟢 Disponível</div>
+        <div class="st-btn" id="st-reforma"    onclick="selST('reforma')">🔄 Reforma</div>
+        <div class="st-btn" id="st-conserto"   onclick="selST('conserto')">🔧 Conserto</div>
+        <div class="st-btn" id="st-descarte"   onclick="selST('descarte')">🗑 Descarte</div>
+        <div class="st-btn" id="st-venda"      onclick="selST('venda')">💰 Venda</div>
+      </div>
+    </div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
       <button class="btn-confirm" onclick="salvarTroca()">✓ Confirmar</button>
@@ -184,6 +201,7 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4BZz60sy9BsFACdqKk
 
 // ── ESTADO ────────────────────────────────────────────────────
 let CAV = [], CAR = [];
+let statusTroca = ''; // status do pneu retirado
 let tires = {}, historico = [], fogos = {};
 let curV = null, curP = null, curTab = 'c';
 
@@ -582,6 +600,14 @@ function renderSVG(v, isCav, trs) {
 }
 
 // ── MODAL ─────────────────────────────────────────────────────
+function selST(s) {
+  statusTroca = s;
+  ['disponivel','reforma','conserto','descarte','venda'].forEach(opt => {
+    const el = document.getElementById('st-' + opt);
+    if (el) el.className = 'st-btn' + (opt === s ? ' ativo-' + s : '');
+  });
+}
+
 function selP(id) {
   curP = id;
   const pos = getPosicoes().find(p => p.id === id);
@@ -593,6 +619,11 @@ function selP(id) {
   document.getElementById('mN').value = '';
   document.getElementById('mS').value = '';
   document.getElementById('mW').value = '';
+  statusTroca = '';
+  ['disponivel','reforma','conserto','descarte','venda'].forEach(opt => {
+    const el = document.getElementById('st-' + opt);
+    if (el) el.className = 'st-btn';
+  });
   document.getElementById('modalOverlay').classList.add('open');
   history.pushState({tela:'modal'}, '');
   setTimeout(() => document.getElementById('mN').focus(), 300);
@@ -618,6 +649,7 @@ function salvarTroca() {
   const who   = document.getElementById('mW').value.trim();
   if (!nf)  { showToast('⚠ Informe o número de fogo novo'); return; }
   if (!who) { showToast('⚠ Informe o nome do borracheiro'); return; }
+  if (!statusTroca) { showToast('⚠ Informe o status do pneu retirado'); return; }
 
   const pos        = getPosicoes().find(p => p.id === curP);
   const trs        = getTires(curV.f);
@@ -654,9 +686,25 @@ function salvarTroca() {
       action:'salvarTroca', aba,
       veiculo: curV.f, posicao_id: curP, posicao_nome: pos.name,
       fogo_antigo: fogoAntigo, fogo_novo: nf,
-      sulco: sulco||'', borracheiro: who, data, data_montagem: dataMont
+      sulco: sulco||'', borracheiro: who, data, data_montagem: dataMont,
+      status_pneu_retirado: statusTroca
     });
     fetch(SCRIPT_URL + '?' + params.toString()).catch(() => {});
+
+    // Atualiza status do pneu retirado no estoque
+    if (fogoAntigo) {
+      const paramsEstoque = new URLSearchParams({
+        action: 'atualizarStatusEstoque',
+        fogo: fogoAntigo,
+        status: statusTroca,
+        sulco_mm: sulco||'',
+        frota: '',
+        posicao: '',
+        data_saida: data,
+        borracheiro: who
+      });
+      fetch(SCRIPT_URL + '?' + paramsEstoque.toString()).catch(() => {});
+    }
   }
 
   // Fecha modal via history.back para manter o stack correto
