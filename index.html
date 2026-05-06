@@ -619,6 +619,10 @@ const OITO_HORAS = 30 * 24 * 60 * 60 * 1000; // 30 dias
     try {
       const u = JSON.parse(cache);
       if (Date.now() - (u.loginTime||0) < OITO_HORAS) {
+        // Restaura permissões do cache se não estiverem no localStorage
+        if (u.permissoes && !localStorage.getItem('twm_permissoes')) {
+          localStorage.setItem('twm_permissoes', JSON.stringify(u.permissoes));
+        }
         mostrarApp(u);
         return;
       }
@@ -645,6 +649,9 @@ async function fazerLogin() {
     if (data.ok) {
       const u = {...data.motorista, senha, loginTime: Date.now()};
       localStorage.setItem('twm_user_cache', JSON.stringify(u));
+      // Salva permissões para controle de acesso aos módulos
+      const perm = (data.motorista && data.motorista.permissoes) ? data.motorista.permissoes : {};
+      localStorage.setItem('twm_permissoes', JSON.stringify(perm));
       mostrarApp(u);
     } else {
       mostrarErro(data.msg || 'Email ou senha incorretos.');
@@ -672,6 +679,7 @@ function verificarPermissao(modulo) {
     if (perm.admin) return true;
     // Mapeamento de arquivo → permissão
     var mapa = {
+      'checklist.html':              'checklist_frota',
       'check_list_twm_oficial.html': 'checklist_frota',
       'checklist_lvt.html':          'lvt',
       'checklist_seguranca_mensal.html': 'seg_mensal',
@@ -1134,13 +1142,13 @@ function renderMods() {
     try { return JSON.parse(localStorage.getItem('twm_permissoes') || '{}'); } catch(e) { return {}; }
   })();
   var _mapaP = {
-    'checklist.html':'checklist_frota',
-    'check_list_twm_oficial.html':'checklist_frota',
-    'checklist_lvt.html':'lvt',
-    'checklist_seguranca_mensal.html':'seg_mensal',
-    'pneus.html':'pneus',
-    'estoque.html':'estoque',
-    'carros-apoio.html':'carros_apoio',
+    'checklist.html':              'checklist_frota',
+    'check_list_twm_oficial.html': 'checklist_frota',
+    'checklist_lvt.html':          'lvt',
+    'checklist_seguranca_mensal.html': 'seg_mensal',
+    'pneus.html':                  'pneus',
+    'estoque.html':                'estoque',
+    'carros-apoio.html':           'carros_apoio',
   };
   var temPerm = function(href) {
     if (!href || href === '#') return true;
@@ -1292,6 +1300,10 @@ mostrarApp = function(u) {
     try {
       var u = JSON.parse(cache);
       if (Date.now() - (u.loginTime||0) < OITO_HORAS) {
+        // Restaura permissões do cache se não estiverem no localStorage
+        if (u.permissoes && !localStorage.getItem('twm_permissoes')) {
+          localStorage.setItem('twm_permissoes', JSON.stringify(u.permissoes));
+        }
         mostrarApp(u);
         return;
       }
