@@ -371,6 +371,13 @@ function getLista() {
   else if (curTab === 'venda')   lista = estoque.filter(p => ['venda','vendido'].includes(p.status));
   else if (curTab === 'conserto') lista = estoque.filter(p => ['conserto','recuperacao'].includes(p.status));
   else if (curTab === 'descarte') lista = estoque.filter(p => p.status === 'descarte');
+
+  // Na aba TODOS ordena por status (disponivel, reforma, conserto, descarte, venda, em_uso)
+  if (curTab === 'todos' && !curFiltro) {
+    const ordem = {disponivel:0, reforma:1, conserto:2, descarte:3, venda:4, vendido:5, em_uso:6};
+    lista = [...lista].sort((a,b) => (ordem[a.status]??7) - (ordem[b.status]??7));
+  }
+
   if (curFiltro) {
     lista = lista.filter(p =>
       (p.fogo||'').toLowerCase().includes(curFiltro) ||
@@ -425,8 +432,10 @@ function renderLista() {
     el.innerHTML = '<div class="empty">Nenhum pneu encontrado.</div>';
     return;
   }
+  const LIMITE = 500;
   const st = STATUS_LABELS;
-  el.innerHTML = lista.slice(0, 200).map(p => {
+  const mostrar = lista.slice(0, LIMITE);
+  el.innerHTML = mostrar.map(p => {
     const s = p.status || 'disponivel';
     const info = st[s] || {label: s, cls: ''};
     return `<div class="tire-card" onclick="abrirDetalhe('${p.fogo}')">
@@ -442,7 +451,10 @@ function renderLista() {
       </div>
       <svg viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" width="18" height="18"><path d="M9 18l6-6-6-6"/></svg>
     </div>`;
-  }).join('');
+  }).join('') + (lista.length > LIMITE ? `
+    <div class="empty" style="padding:16px;font-size:12px">
+      Mostrando ${LIMITE} de ${lista.length} pneus. Use a busca para filtrar.
+    </div>` : '');
 }
 
 // ── DETALHE ─────────────────────────────────────────────────────
