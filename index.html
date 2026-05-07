@@ -641,43 +641,26 @@ function normalizarPermissoes(motorista) {
   };
 }
 
-// init() é chamada no final
-(function _init_placeholder() {
-  const cache = localStorage.getItem('twm_user_cache');
-  if (cache) {
-    try {
-      const u = JSON.parse(cache);
-      if (Date.now() - (u.loginTime||0) < OITO_HORAS) {
-        // Sempre renormaliza permissões ao restaurar do cache
-        const perm = normalizarPermissoes(u);
-        localStorage.setItem('twm_permissoes', JSON.stringify(perm));
-        mostrarApp(u);
-        return;
-      }
-    } catch(e) {}
-  }
-  // Mostra tela de login
-  document.getElementById('login-screen').classList.add('active');
-  // Aviso primeiro acesso
-  if (!cache) document.getElementById('login-aviso').classList.add('show');
-})();
+
 
 async function fazerLogin() {
   const email = document.getElementById('login-email').value.trim().toLowerCase();
   const senha = document.getElementById('login-senha').value.trim();
   if (!email || !senha) { mostrarErro('Preencha email e senha.'); return; }
   const btn = document.getElementById('login-btn');
-  btn.textContent = 'Verificando...'; btn.disabled = true;
+  btn.classList.add('loading'); btn.disabled = true;
   document.getElementById('login-error').style.display = 'none';
+
+  function resetBtn() { btn.classList.remove('loading'); btn.disabled = false; }
+
   try {
     const url = `${SCRIPT_URL}?action=login&email=${encodeURIComponent(email)}&senha=${encodeURIComponent(senha)}`;
     const res  = await fetch(url, {redirect:'follow'});
     const data = await res.json();
-    btn.textContent = 'Entrar'; btn.disabled = false;
+    resetBtn();
     if (data.ok) {
       const u = {...data.motorista, senha, loginTime: Date.now()};
       localStorage.setItem('twm_user_cache', JSON.stringify(u));
-      // Normaliza permissões — suporta tanto objeto pronto quanto campos soltos da planilha
       const perm = normalizarPermissoes(data.motorista);
       localStorage.setItem('twm_permissoes', JSON.stringify(perm));
       mostrarApp(u);
@@ -685,11 +668,13 @@ async function fazerLogin() {
       mostrarErro(data.msg || 'Email ou senha incorretos.');
     }
   } catch(e) {
-    btn.textContent = 'Entrar'; btn.disabled = false;
+    resetBtn();
     const cache = localStorage.getItem('twm_user_cache');
     if (cache) {
-      const u = JSON.parse(cache);
-      if (u.email === email && u.senha === senha) { mostrarApp(u); return; }
+      try {
+        const u = JSON.parse(cache);
+        if (u.email === email && u.senha === senha) { mostrarApp(u); return; }
+      } catch(ex) {}
     }
     mostrarErro('Sem conexão. Tente novamente.');
   }
@@ -1484,15 +1469,7 @@ if ('serviceWorker' in navigator) {
       c.appendChild(p);
     }
   }
-  // Loading no botão
-  var _origFazerLogin = window.fazerLogin;
-  if (typeof _origFazerLogin === 'function') {
-    window.fazerLogin = function() {
-      var btn = document.getElementById('login-btn');
-      if (btn) btn.classList.add('loading');
-      _origFazerLogin.apply(this, arguments);
-    };
-  }
+  // Loading gerenciado dentro de fazerLogin() — wrapper removido
 })();
 </script>
 </body>
