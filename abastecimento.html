@@ -249,11 +249,15 @@ main{padding:14px;max-width:600px;margin:0 auto;padding-bottom:40px}
     <div class="cfg-box">
       <div class="cfg-title">Google Sheets — Integração</div>
       <div class="field"><label>ID da Planilha</label><input type="text" id="cfg-sheetid" placeholder="1LU69Ni7..."></div>
-      <div class="field"><label>Nome da Aba</label><input type="text" id="cfg-sheetname" placeholder="Abastecimento-2025"></div>
+      <div class="field"><label>Nome da Aba</label><input type="text" id="cfg-sheetname" placeholder="2026"></div>
       <div class="field">
         <label>Access Token (OAuth2)</label>
         <input type="text" id="cfg-token" placeholder="ya29.a0...">
-        <div class="cfg-note">Acesse <strong>developers.google.com/oauthplayground</strong>, autorize o escopo <strong>spreadsheets</strong> e cole o token aqui. Expira em ~1h.</div>
+        <div class="cfg-note">
+        <strong>Opção 1 (recomendada):</strong> Deixe o campo em branco. O sistema usa o Apps Script para salvar automaticamente.<br><br>
+        <strong>Opção 2 (token direto):</strong> Acesse <a href="https://developers.google.com/oauthplayground/" target="_blank" style="color:var(--diesel)">OAuth Playground</a>, autorize <strong>spreadsheets</strong> e cole o token. Expira em ~1h.
+      </div>
+      <button class="btn btn-ghost" style="margin-top:6px" onclick="testarConexao()">🔌 Testar conexão</button>
       </div>
       <button class="btn btn-p" onclick="salvarConfig()">💾 Salvar Config</button>
     </div>
@@ -281,8 +285,8 @@ const CFG_KEY   = 'twm_abast_cfg';
 const REG_KEY   = 'twm_abast_reg';
 
 var cfg = {
-  sheetId:   '1LU69Ni7lmG9TYtGMpMg7gQxDqSBFSxmnW_1WCSui198',
-  sheetName: 'Abastecimento-2025',
+  sheetId:   '1Cx2RR_3GNOuJZD60vYtA2JcgnvdfSEXHzR-IXGHHtw4',
+  sheetName: '2026',
   token:     '',
   scriptUrl: 'https://script.google.com/macros/s/AKfycbw4BZz60sy9BsFACdqKktKpzJOfP8mj0U6s1G7Em5pwhaC_kQHCk-GPbLNZOlwjvrOwsw/exec',
   cavalos:   'VP-189,VP-190,VP-191,VP-309,VP-314,VP-317,VP-320,VP-324,VP-452,VP-457,VP-458,VP-460,VP-461,VP-463,VP-464,VP-521,VP-523,VA-903,VA-945,VA-9340,VPL-185,VPL-186,VPL-187,VPL-188,VPL-189,VPL-190',
@@ -311,7 +315,7 @@ function loadAll() {
 
 function salvarConfig() {
   cfg.sheetId   = document.getElementById('cfg-sheetid').value.trim();
-  cfg.sheetName = document.getElementById('cfg-sheetname').value.trim() || 'Abastecimento-2025';
+  cfg.sheetName = document.getElementById('cfg-sheetname').value.trim() || '2026';
   cfg.token     = document.getElementById('cfg-token').value.trim();
   salvarLocal(CFG_KEY, cfg);
   toast('✅ Config salva!', 'ok');
@@ -452,18 +456,25 @@ function limparForm() {
 //  GOOGLE SHEETS — Envio direto via API REST
 // ══════════════════════════════════════════════════════
 async function enviarPlanilha(reg) {
-  if (!cfg.token || !cfg.sheetId) return;
+  // Se não tiver token OAuth, usa o Apps Script como fallback
+  if (!cfg.token) {
+    enviarScript(reg);
+    setSyncBar('📤 Enviado via Apps Script', true);
+    setTimeout(()=>hideSyncBar(), 2000);
+    return;
+  }
   setSyncBar('Enviando para planilha...', true);
   try {
+    // Colunas da planilha: DATA/HORA | FROTA | MOTORISTA | KM ATUAL | DIESEL | ARLA | POSTO | OBSERVAÇÃO
     var row = [
-      reg.dataHora,
-      reg.frota,
-      reg.motorista,
-      reg.km || '',
-      reg.diesel > 0 ? reg.diesel : '',
-      reg.arla   > 0 ? reg.arla   : '',
-      reg.posto  || '',
-      reg.obs    || '',
+      reg.dataHora,          // A - DATA/HORA (automático)
+      reg.frota,             // B - FROTA
+      reg.motorista,         // C - MOTORISTA
+      reg.km || '',          // D - KM ATUAL
+      reg.diesel > 0 ? reg.diesel : '',  // E - DIESEL
+      reg.arla   > 0 ? reg.arla   : '',  // F - ARLA
+      reg.posto  || '',      // G - POSTO
+      reg.obs    || '',      // H - OBSERVAÇÃO
     ];
     var url = 'https://sheets.googleapis.com/v4/spreadsheets/'+cfg.sheetId+'/values/'+encodeURIComponent(cfg.sheetName)+':append?valueInputOption=USER_ENTERED';
     var res = await fetch(url, {
@@ -622,6 +633,31 @@ function hideSyncBar() {
 }
 
 // INIT
+async function testarConexao() {
+  var id = cfg.sheetId || document.getElementById('cfg-sheetid').value.trim();
+  var tk = cfg.token   || document.getElementById('cfg-token').value.trim();
+  if (!id) { toast('⚠ Configure o ID da planilha', 'err'); return; }
+  if (!tk) {
+    // Testa via Apps Script
+    if (!cfg.scriptUrl) { toast('⚠ Configure o Script URL', 'err'); return; }
+    try {
+      var res = await fetch(cfg.scriptUrl + '?action=ping');
+      toast('✅ Apps Script conectado!', 'ok');
+    } catch(e) { toast('⚠ Erro ao conectar', 'err'); }
+    return;
+  }
+  try {
+    var res = await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+id+'?fields=properties.title',
+      {headers:{'Authorization':'Bearer '+tk}});
+    if (res.ok) {
+      var d = await res.json();
+      toast('✅ Conectado: '+d.properties.title, 'ok');
+    } else {
+      toast('⚠ Token inválido ou expirado', 'err');
+    }
+  } catch(e) { toast('⚠ Erro de conexão', 'err'); }
+}
+
 window.onload = loadAll;
 </script>
 </body>
