@@ -157,9 +157,6 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 
 .empty{text-align:center;padding:32px 20px;color:var(--muted);font-size:13px}
 
-html.pre-light body,  background:var(--bg2);color:var(--text);border-color:var(--border2);
-}
-/* ─────────────────────────────────────────────────── */
 body.light{--bg:#F4F3FF;--bg2:#FFFFFF;--bg3:#FAFAFA;--border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.13);--text:#1A1A2E;--muted:#6B6880}
 body.light .app-header{box-shadow:0 1px 8px rgba(0,0,0,.08)}
 </style>
@@ -387,13 +384,11 @@ var histFiltro  = 'todos';
 // ══════════════════════════════════════════════════════════
 function quinzenaisRB() {
   return cfg.quinzenais ? cfg.quinzenais.split(',').map(function(f){return f.trim();}).filter(Boolean) : QUINZENAIS_RB_DEFAULT;
-}
 
 function periodo(f) {
   if (f.startsWith('VPL')) return DIAS_Q;          // VPL → 15 dias
   if (f.startsWith('VP'))  return DIAS_M;           // VP  → 30 dias
   return quinzenaisRB().includes(f) ? DIAS_Q : DIAS_M; // RB quinzenal→15d, demais→30d
-}
 
 function tipoPer(f) { return periodo(f) === DIAS_Q ? 'QUINZENAL (15d)' : 'MENSAL (30d)'; }
 function perBadge(f) { return periodo(f) === DIAS_Q ? '<span class="per-badge per-q">15d</span>' : '<span class="per-badge per-m">30d</span>'; }
@@ -406,7 +401,6 @@ function diasRest(f) {
   var d = new Date(u);
   var v = new Date(d.getTime() + periodo(f) * 86400000);
   return Math.ceil((v - hoje()) / 86400000);
-}
 
 function status(f) {
   var d = diasRest(f);
@@ -414,13 +408,11 @@ function status(f) {
   if (d < 0)     return 'vencido';
   if (d <= 5)    return 'proximo';   // alerta com 5 dias de antecedência
   return 'ok';
-}
 
 function fmtDate(iso) {
   if (!iso) return '—';
   var p = iso.split('-');
   return p[2]+'/'+p[1]+'/'+p[0];
-}
 
 // ══════════════════════════════════════════════════════════
 //  STORAGE
@@ -435,7 +427,6 @@ function loadAll() {
   renderLogMini();
   setSyncBar('Pronto' + (cfg.token ? '' : ' — configure o token em Config'), '');
   document.getElementById('reg-data').value = new Date().toISOString().split('T')[0];
-}
 
 function saveC() { localStorage.setItem('twm_lav_cfg', JSON.stringify(cfg)); }
 function saveR() { localStorage.setItem('twm_lav_reg', JSON.stringify(registros)); }
@@ -446,7 +437,6 @@ function recalc() {
     if (!ultimasLavagens[r.frota] || r.data > ultimasLavagens[r.frota])
       ultimasLavagens[r.frota] = r.data;
   });
-}
 
 function applyConfig() {
   document.getElementById('cfg-id').value        = cfg.sheetId   || '';
@@ -455,13 +445,11 @@ function applyConfig() {
   document.getElementById('cfg-cavalos').value   = cfg.cavalos   || '';
   document.getElementById('cfg-carretas').value  = cfg.carretas  || '';
   document.getElementById('cfg-quinzenais').value= cfg.quinzenais|| QUINZENAIS_RB_DEFAULT.join(',');
-}
 
 function setSyncBar(txt, tipo) {
   var b = document.getElementById('sync-bar');
   b.textContent = txt;
   b.className = 'sync-bar' + (tipo ? ' '+tipo : '');
-}
 
 // ══════════════════════════════════════════════════════════
 //  ALERTAS — vencidos e próximos no topo
@@ -511,7 +499,6 @@ function renderAlertas() {
   } else {
     wb.classList.remove('show');
   }
-}
 
 // ══════════════════════════════════════════════════════════
 //  STATS
@@ -534,7 +521,6 @@ function renderStats(second) {
   var el2 = document.getElementById('stats-row2');
   if (el1) el1.innerHTML = html;
   if (el2) el2.innerHTML = html;
-}
 
 // ══════════════════════════════════════════════════════════
 //  FROTAS HELPERS
@@ -544,7 +530,6 @@ function allFrotas() {
   cfg.cavalos.split(',').forEach(function(f){ f=f.trim(); if(f) list.push({frota:f, tipo:'CAVALO'}); });
   cfg.carretas.split(',').forEach(function(f){ f=f.trim(); if(f) list.push({frota:f, tipo:'CARRETA'}); });
   return list;
-}
 
 // ══════════════════════════════════════════════════════════
 //  FORM — SELECT FROTAS
@@ -579,7 +564,6 @@ function updateFrotas() {
 
   document.getElementById('reg-data').value = new Date().toISOString().split('T')[0];
   document.getElementById('reg-preview').style.display = 'none';
-}
 
 function updatePreview() {
   var f  = document.getElementById('reg-frota').value;
@@ -602,7 +586,6 @@ function updatePreview() {
   el.className = 'preview-tag '+cls;
   el.innerHTML = html;
   el.style.display = 'block';
-}
 
 // ══════════════════════════════════════════════════════════
 //  REGISTRAR
@@ -621,7 +604,6 @@ function registrar() {
   renderLogMini(); updatePreview(); renderStats(false); renderAlertas();
   toast('✅ '+frota+' registrada — '+fmtDate(data), 'ok');
   appendSheet(r);
-}
 
 // ══════════════════════════════════════════════════════════
 //  GOOGLE SHEETS
@@ -640,7 +622,6 @@ async function appendSheet(r) {
     if (res.ok) setSyncBar('✅ Sincronizado · '+new Date().toLocaleTimeString('pt-BR'), 'ok');
     else { var e = await res.json(); setSyncBar('Erro: '+((e.error&&e.error.message)||res.status), 'err'); }
   } catch(e) { setSyncBar('Erro de conexão — salvo localmente', 'err'); }
-}
 
 async function syncNow() {
   if (!cfg.token || !cfg.sheetId) { toast('Configure o token primeiro', 'err'); return; }
@@ -668,7 +649,6 @@ async function syncNow() {
       }
     } else setSyncBar('Erro: '+res.status, 'err');
   } catch(e) { setSyncBar('Erro de conexão', 'err'); }
-}
 
 // ══════════════════════════════════════════════════════════
 //  RENDER LOG MINI
@@ -685,7 +665,6 @@ function renderLogMini() {
       '<div class="li-loc '+(x.local==='INTERNO'?'loc-int':'loc-ext')+'">'+x.local+'</div>' +
       '</div>';
   }).join('');
-}
 
 // ══════════════════════════════════════════════════════════
 //  RENDER HISTÓRICO
@@ -695,7 +674,6 @@ function setHistFiltro(f, el) {
   document.querySelectorAll('#hist-pills .pill').forEach(function(p){ p.classList.remove('on'); });
   el.classList.add('on');
   renderHistorico();
-}
 
 function renderHistorico() {
   var el = document.getElementById('log-full');
@@ -716,7 +694,6 @@ function renderHistorico() {
       '<div class="li-loc '+(x.local==='INTERNO'?'loc-int':'loc-ext')+'">'+x.local+'</div>' +
       '</div>';
   }).join('');
-}
 
 // ══════════════════════════════════════════════════════════
 //  RENDER LISTA DE FROTAS
@@ -726,7 +703,6 @@ function setFiltro(f, el) {
   document.querySelectorAll('.filter-pills .pill').forEach(function(p){ p.classList.remove('on'); });
   el.classList.add('on');
   renderFrotas();
-}
 
 function renderFrotas() {
   renderStats(true);
@@ -765,7 +741,6 @@ function renderFrotas() {
       '<button class="fi-btn" onclick="regRapido(\''+f.tipo+'\',\''+f.frota+'\')">Registrar</button>' +
       '</div>';
   }).join('');
-}
 
 // ══════════════════════════════════════════════════════════
 //  REGISTRO RÁPIDO (clique no alerta ou na lista)
@@ -782,7 +757,6 @@ function regRapido(tipo, frota) {
     updatePreview();
     document.getElementById('btn-reg').scrollIntoView({behavior:'smooth'});
   }, 150);
-}
 
 // ══════════════════════════════════════════════════════════
 //  NAVEGAÇÃO
@@ -795,7 +769,6 @@ function goTab(id, el) {
   if (id==='frotas')    { renderStats(true); renderFrotas(); }
   if (id==='historico') renderHistorico();
   if (id==='config')    applyConfig();
-}
 
 // ══════════════════════════════════════════════════════════
 //  CONFIG
@@ -805,14 +778,12 @@ function salvarCfg() {
   cfg.sheetName = document.getElementById('cfg-aba').value.trim() || 'Lavagem-2025';
   cfg.token     = document.getElementById('cfg-token').value.trim();
   saveC(); toast('✅ Config salva', 'ok');
-}
 
 function salvarFrotas() {
   cfg.cavalos    = document.getElementById('cfg-cavalos').value;
   cfg.carretas   = document.getElementById('cfg-carretas').value;
   cfg.quinzenais = document.getElementById('cfg-quinzenais').value;
   saveC(); renderAlertas(); renderStats(false); toast('✅ Frotas atualizadas', 'ok');
-}
 
 async function testarCfg() {
   var id = document.getElementById('cfg-id').value.trim();
@@ -824,7 +795,6 @@ async function testarCfg() {
     if (res.ok) { var d = await res.json(); toast('✅ Conectado: '+d.properties.title, 'ok'); }
     else { var e = await res.json(); toast('Erro: '+((e.error&&e.error.message)||res.status), 'err'); }
   } catch(e) { toast('Erro de conexão', 'err'); }
-}
 
 // ══════════════════════════════════════════════════════════
 //  TOAST
@@ -836,7 +806,6 @@ function toast(msg, tipo) {
   el.className   = 'toast show' + (tipo ? ' '+tipo : '');
   clearTimeout(_toastT);
   _toastT = setTimeout(function(){ el.classList.remove('show'); }, 3500);
-}
 
 // ══════════════════════════════════════════════════════════
 //  INIT
