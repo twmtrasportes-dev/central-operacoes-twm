@@ -630,16 +630,33 @@ function normalizarPermissoes(motorista) {
   }
   var m = motorista;
   var isAdmin = ativo(m.admin || m.ADMIN);
-  return {
-    admin:           isAdmin,
-    checklist_frota: isAdmin || ativo(m.check_frota  || m.CHECK_FROTA  || m.checklist_frota  || m.CHECKLIST_FROTA),
-    lvt:             isAdmin || ativo(m.lvt          || m.LVT),
-    seg_mensal:      isAdmin || ativo(m.seg_mensal   || m.SEG_MENSAL   || m.segmensal        || m.SEGMENSAL),
-    pneus:           isAdmin || ativo(m.pneus        || m.PNEUS),
-    abastecimento:   isAdmin || ativo(m.abastecimento || m.ABASTECIMENTO),
-    estoque:         isAdmin || ativo(m.estoque      || m.ESTOQUE),
-    carros_apoio:    isAdmin || ativo(m.carros_apoio || m.CARROS_APOIO || m.carros           || m.CARROS),
+
+  // ── Permissões fixas conhecidas ──────────────────────────────
+  var perm = {
+    admin:            isAdmin,
+    checklist_frota:  isAdmin || ativo(m.checklist_frota  || m.CHECK_FROTA       || m.check_frota),
+    lvt:              isAdmin || ativo(m.lvt              || m.LVT),
+    seg_mensal:       isAdmin || ativo(m.seg_mensal       || m.SEG_MENSAL        || m.segmensal),
+    pneus:            isAdmin || ativo(m.pneus            || m.PNEUS),
+    estoque:          isAdmin || ativo(m.estoque          || m.ESTOQUE),
+    carros_apoio:     isAdmin || ativo(m.carros_apoio     || m.CARROS_APOIO      || m.carros),
+    controle_lavagem: isAdmin || ativo(m.controle_lavagem || m.CONTROLE_LAVAGEM  || m.lavagem),
+    abastecimento:    isAdmin || ativo(m.abastecimento    || m.ABASTECIMENTO),
   };
+
+  // ── Permissões dinâmicas — qualquer chave retornada pelo Apps Script ──
+  // Se o Apps Script retornar uma nova permissão (ex: perm.manutencao_os),
+  // ela é automaticamente incorporada aqui sem precisar alterar o código.
+  Object.keys(m).forEach(function(chave) {
+    if (chave in perm) return; // já tratada acima
+    if (typeof m[chave] === 'boolean') {
+      perm[chave] = isAdmin || m[chave];
+    } else {
+      perm[chave] = isAdmin || ativo(m[chave]);
+    }
+  });
+
+  return perm;
 }
 
 
@@ -701,6 +718,7 @@ function verificarPermissao(modulo) {
       'estoque.html':                'estoque',
       'carros-apoio.html':           'carros_apoio',
     'abastecimento.html':          'abastecimento',
+    'lavagem.html':                'controle_lavagem',
     };
     var chave = mapa[modulo];
     if (!chave) return true; // módulo sem controle → libera
@@ -1166,18 +1184,38 @@ function renderMods() {
   console.log('[TWM] twm_permissoes:', JSON.stringify(_perm));
   try { var _uc = JSON.parse(localStorage.getItem('twm_user_cache')||'{}'); console.log('[TWM] user.permissoes:', JSON.stringify(_uc.permissoes)); } catch(e) {}
   var _mapaP = {
-    'checklist.html':              'checklist_frota',
+    // ── Mapeamento fixo: arquivo.html → chave de permissão ──────
+    // Para novos módulos: adicione aqui OU use o sistema dinâmico abaixo
     'check_list_twm_oficial.html': 'checklist_frota',
-    'checklist_lvt.html':          'lvt',
-    'checklist_seguranca_mensal.html': 'seg_mensal',
+    'lvt.html':                    'lvt',
+    'seg_mensal.html':             'seg_mensal',
     'pneus.html':                  'pneus',
     'estoque.html':                'estoque',
     'carros-apoio.html':           'carros_apoio',
+    'lavagem.html':                'controle_lavagem',
+    'abastecimento.html':          'abastecimento',
+    // ── Módulos futuros — adicione só a linha abaixo ─────────────
+    // 'novo_modulo.html':         'nome_da_permissao',
+    // 'manutencao_os.html':       'manutencao_os',
+    // 'relatorios.html':          'relatorios',
+    // 'financeiro.html':          'financeiro',
+    // 'rh.html':                  'rh',
+    // 'combustivel.html':         'combustivel',
   };
+
+  // ── Sistema dinâmico: se o arquivo não estiver no mapa acima,
+  // tenta usar o nome do arquivo (sem .html) como chave de permissão.
+  // Ex: 'manutencao.html' → tenta perm.manutencao automaticamente.
+  function _getPermChave(href) {
+    var chave = _getPermChave(href);
+    if (chave) return chave;
+    // Fallback dinâmico: remove .html e normaliza
+    return href.replace('.html','').replace(/-/g,'_').toLowerCase();
+  }
   var temPerm = function(href) {
     if (!href || href === '#') return true;
     if (_perm.admin) return true;
-    var chave = _mapaP[href];
+    var chave = _getPermChave(href);
     if (!chave) return true;
     return _perm[chave] === true;
   };
