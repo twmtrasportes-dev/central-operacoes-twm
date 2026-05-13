@@ -156,7 +156,25 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 .regra-desc{font-size:11px;color:var(--muted);flex:1;line-height:1.4}
 
 .empty{text-align:center;padding:32px 20px;color:var(--muted);font-size:13px}
+
+html.pre-light body,  background:var(--bg2);color:var(--text);border-color:var(--border2);
+}
+/* ─────────────────────────────────────────────────── */
+body.light{--bg:#F4F3FF;--bg2:#FFFFFF;--bg3:#FAFAFA;--border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.13);--text:#1A1A2E;--muted:#6B6880}
+body.light .app-header{box-shadow:0 1px 8px rgba(0,0,0,.08)}
 </style>
+<script>
+(function() {
+  var pref = localStorage.getItem('twm_tema') || 'auto';
+  var claro;
+  if (pref === 'claro') claro = true;
+  else if (pref === 'escuro') claro = false;
+  else { var h = new Date().getHours(); claro = h >= 6 && h < 18; }
+  function aplicar() { if (claro) document.body.classList.add('light'); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', aplicar);
+  else aplicar();
+})();
+</script>
 </head>
 <body>
 
