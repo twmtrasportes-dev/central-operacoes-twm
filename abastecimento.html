@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0A0A0F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>TWM — Abastecimento</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icone-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0A0A0F;--bg2:#0F0F18;--bg3:#13131E;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.14);--text:#F0EEF8;--muted:#7A7890;--diesel:#F59E0B;--arla:#06B6D4;--green:#10B981;--red:#EF4444;--accent:#7B3FE4;--accent2:#A855F7;--gold:#F59E0B}
+body.light{--bg:#F4F3FF;--bg2:#FFFFFF;--bg3:#FAFAFA;--border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.13);--text:#1A1A2E;--muted:#6B6880}
+body.light .app-header{box-shadow:0 1px 8px rgba(0,0,0,.08)}
+</style>
+<script>
+(function() {
+  var pref = localStorage.getItem('twm_tema') || 'auto';
+  var claro;
+  if (pref === 'claro') claro = true;
+  else if (pref === 'escuro') claro = false;
+  else { var h = new Date().getHours(); claro = h >= 6 && h < 18; }
+  function aplicar() { if (claro) document.body.classList.add('light'); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', aplicar);
+  else aplicar();
+})();
+</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+.app-header{background:var(--bg2);border-bottom:2px solid var(--diesel);padding:0 16px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-badge{width:34px;height:34px;background:linear-gradient(135deg,#7B3FE4,#A855F7);border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:900;color:#fff}
+.logo-title{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;letter-spacing:1px;text-transform:uppercase}
+.btn-back{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:4px}
+
+.nav-tabs{background:var(--bg2);border-bottom:1px solid var(--border2);display:flex;overflow-x:auto;scrollbar-width:none}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nav-tab{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:10px 14px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:.15s;display:flex;align-items:center;gap:5px}
+.nav-tab.on{color:var(--diesel);border-bottom-color:var(--diesel)}
+
+.page{display:none;padding:14px;max-width:600px;margin:0 auto;padding-bottom:40px}
+.page.on{display:block}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.scard{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 8px;text-align:center;border-top:2px solid transparent}
+.scard.d{border-top-color:var(--diesel)}.scard.a{border-top-color:var(--arla)}.scard.t{border-top-color:var(--accent2)}
+.sn{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;line-height:1}
+.scard.d .sn{color:var(--diesel)}.scard.a .sn{color:var(--arla)}.scard.t .sn{color:var(--accent2)}
+.sl{font-size:8px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:2px}
+
+/* DATETIME */
+.dt-box{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.dt-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--diesel)}
+.dt-val{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--gold)}
+
+/* FORM */
+.form-card{background:var(--bg3);border:1px solid var(--border2);border-radius:14px;padding:16px;margin-bottom:14px}
+.form-title{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--diesel);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.field{margin-bottom:12px}
+.field label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);display:block;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;background:var(--bg);border:1.5px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Barlow',sans-serif;font-size:14px;padding:11px 13px;outline:none;transition:.15s;-webkit-appearance:none;appearance:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--diesel)}
+.field textarea{min-height:60px;resize:none}
+
+/* COMBUSTÍVEL */
+.comb-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.comb-btn{background:var(--bg);border:1.5px solid var(--border2);border-radius:10px;padding:14px 8px;text-align:center;cursor:pointer;transition:.15s}
+.comb-btn.on-d{border-color:var(--diesel);background:rgba(245,158,11,.08)}
+.comb-btn.on-a{border-color:var(--arla);background:rgba(6,182,212,.08)}
+.comb-icon{font-size:22px;margin-bottom:4px}
+.comb-name{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.comb-btn.on-d .comb-name{color:var(--diesel)}
+.comb-btn.on-a .comb-name{color:var(--arla)}
+.qty-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* BOTÃO */
+.btn-reg{width:100%;padding:14px;background:linear-gradient(135deg,#7B3FE4,#A855F7);border:none;border-radius:12px;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 20px rgba(123,63,228,.3)}
+.btn-ghost{padding:10px 16px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);cursor:pointer;width:100%}
+
+/* HISTÓRICO */
+.filter-row{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.fbtn{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:5px 12px;border-radius:20px;background:var(--bg3);border:1px solid var(--border2);color:var(--muted);cursor:pointer}
+.fbtn.on{background:var(--diesel);border-color:var(--diesel);color:#000}
+.hist-item{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px}
+.hi-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;gap:8px}
+.hi-frota{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:var(--gold)}
+.hi-mot{font-size:11px;color:var(--muted);margin-top:1px}
+.hi-dt{font-size:10px;color:var(--muted);text-align:right;line-height:1.4}
+.hi-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px}
+.chip-d{background:rgba(245,158,11,.12);color:var(--diesel);border:1px solid rgba(245,158,11,.2)}
+.chip-a{background:rgba(6,182,212,.12);color:var(--arla);border:1px solid rgba(6,182,212,.2)}
+.chip-p{background:rgba(255,255,255,.05);color:var(--muted);border:1px solid var(--border2)}
+
+/* RELATÓRIO */
+.rel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.rel-datas{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+
+/* CONFIG */
+.cfg-card{background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:14px;margin-bottom:12px}
+.cfg-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px}
+.cfg-note{font-size:10px;color:var(--muted);line-height:1.6;margin-top:6px}
+
+/* SYNC */
+.sync-bar{display:none;text-align:center;padding:6px 16px;font-size:11px;font-weight:600;letter-spacing:.5px;position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--bg2);border-top:1px solid var(--border2)}
+.sync-bar.on{display:block}
+.sync-bar.ok{color:var(--green)}.sync-bar.err{color:var(--red)}
+
+/* TOAST */
+.toast{position:fixed;bottom:50px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:10px 20px;font-size:12px;font-weight:600;z-index:999;transition:.3s;white-space:nowrap}
+.toast.on{transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:rgba(16,185,129,.4);color:var(--green)}
+.toast.err{border-color:rgba(239,68,68,.4);color:var(--red)}
+
+.empty{text-align:center;padding:32px 16px;color:var(--muted);font-size:12px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+<div class="sync-bar" id="syncBar"></div>
+
+<div class="app-header">
+  <div class="logo">
+    <div class="logo-badge">TWM</div>
+    <div class="logo-title">Abastecimento</div>
+  </div>
+  <a class="btn-back" href="index.html">← Central</a>
+</div>
+
+<div class="nav-tabs">
+  <div class="nav-tab on" id="tab-registrar" onclick="goTab('registrar',this)">⛽ Registrar</div>
+  <div class="nav-tab" id="tab-historico" onclick="goTab('historico',this)">📋 Histórico</div>
+  <div class="nav-tab" id="tab-relatorio" onclick="goTab('relatorio',this)">📊 Relatório</div>
+  <div class="nav-tab" id="tab-config" onclick="goTab('config',this)">⚙️ Config</div>
+</div>
+
+<!-- ABA REGISTRAR -->
+<div class="page on" id="page-registrar">
+  <div class="dt-box">
+    <div class="dt-label">Data e Hora (automático)</div>
+    <div class="dt-val" id="dtDisplay">--/--/---- --:--</div>
+  </div>
+  <div class="form-card">
+    <div class="form-title">⛽ Novo Abastecimento</div>
+    <div class="field">
+      <label>Frota / Prefixo *</label>
+      <select id="reg-frota" onchange="onFrotaChange()">
+        <option value="">Carregando frotas...</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Motorista *</label>
+      <input type="text" id="reg-motorista" placeholder="Nome completo do motorista" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>KM Atual</label>
+      <input type="number" id="reg-km" placeholder="Ex: 145230">
+    </div>
+    <div class="field">
+      <label>Combustível(s) abastecido(s) *</label>
+      <div class="comb-row">
+        <div class="comb-btn" id="btn-diesel" onclick="toggleComb('diesel')">
+          <div class="comb-icon">🛢️</div>
+          <div class="comb-name">Diesel</div>
+        </div>
+        <div class="comb-btn" id="btn-arla" onclick="toggleComb('arla')">
+          <div class="comb-icon">💧</div>
+          <div class="comb-name">Arla 32</div>
+        </div>
+      </div>
+      <div class="qty-grid">
+        <div class="field" id="field-diesel" style="display:none;margin:0">
+          <label>Litros Diesel</label>
+          <input type="number" id="reg-diesel" placeholder="0" step="0.1" min="0">
+        </div>
+        <div class="field" id="field-arla" style="display:none;margin:0">
+          <label>Litros Arla</label>
+          <input type="number" id="reg-arla" placeholder="0" step="0.1" min="0">
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Posto / Local</label>
+      <input type="text" id="reg-posto" placeholder="Nome do posto ou base">
+    </div>
+    <div class="field">
+      <label>Observação</label>
+      <textarea id="reg-obs" placeholder="Observações opcionais..."></textarea>
+    </div>
+    <button class="btn-reg" onclick="registrar()">⛽ Registrar Abastecimento</button>
+  </div>
+</div>
+
+<!-- ABA HISTÓRICO -->
+<div class="page" id="page-historico">
+  <div class="stats">
+    <div class="scard d"><div class="sn" id="st-diesel">0</div><div class="sl">Litros Diesel</div></div>
+    <div class="scard a"><div class="sn" id="st-arla">0</div><div class="sl">Litros Arla</div></div>
+    <div class="scard t"><div class="sn" id="st-regs">0</div><div class="sl">Registros</div></div>
+  </div>
+  <div class="filter-row">
+    <div class="fbtn on" onclick="setFiltro('todos',this)">Todos</div>
+    <div class="fbtn" onclick="setFiltro('diesel',this)">Diesel</div>
+    <div class="fbtn" onclick="setFiltro('arla',this)">Arla</div>
+    <div class="fbtn" onclick="setFiltro('hoje',this)">Hoje</div>
+  </div>
+  <div id="lista-hist"></div>
+</div>
+
+<!-- ABA RELATÓRIO -->
+<div class="page" id="page-relatorio">
+  <div class="rel-grid">
+    <div class="scard d"><div class="sn" id="rel-diesel">0</div><div class="sl">Total Diesel (L)</div></div>
+    <div class="scard a"><div class="sn" id="rel-arla">0</div><div class="sl">Total Arla (L)</div></div>
+    <div class="scard t"><div class="sn" id="rel-frotas">0</div><div class="sl">Frotas</div></div>
+  </div>
+  <div class="rel-datas">
+    <div class="field" style="margin:0"><label>De</label><input type="date" id="rel-de"></div>
+    <div class="field" style="margin:0"><label>Até</label><input type="date" id="rel-ate"></div>
+  </div>
+  <button class="btn-ghost" onclick="gerarRelatorio()" style="margin-bottom:14px">📊 Gerar Relatório</button>
+  <div id="lista-rel"></div>
+</div>
+
+<!-- ABA CONFIG -->
+<div class="page" id="page-config">
+  <div class="cfg-card">
+    <div class="cfg-title">Google Apps Script</div>
+    <div class="field">
+      <label>SCRIPT URL</label>
+      <input type="text" id="cfg-script" placeholder="https://script.google.com/...">
+    </div>
+    <button class="btn-ghost" onclick="salvarConfig()" style="margin-top:8px">💾 Salvar</button>
+  </div>
+  <div class="cfg-card">
+    <div class="cfg-title">Frotas cadastradas</div>
+    <div class="cfg-note" style="margin-bottom:10px">
+      Lista carregada automaticamente da planilha de operação.<br>
+      Carretas (RB, RA, RBL) são ignoradas automaticamente.
+    </div>
+    <button class="btn-ghost" onclick="carregarFrotas()">🔄 Atualizar lista agora</button>
+  </div>
+  <div class="cfg-card">
+    <div class="cfg-title">Dados locais</div>
+    <button class="btn-ghost" onclick="limparDados()" style="color:#EF4444;border-color:#EF4444">🗑️ Limpar histórico local</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  CONSTANTES
+// ═══════════════════════════════════════════════
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4BZz60sy9BsFACdqKktKpzJOfP8mj0U6s1G7Em5pwhaC_kQHCk-GPbLNZOlwjvrOwsw/exec';
+var FROTA_CSV  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQx62CxMqSchj3wdG83U48YiyM8eH9vIj8Jv7Gg1QVWm0Ow7abDlyYWtAEecM4iCPWTvH8e5Y84jJdf/pub?gid=644783428&single=true&output=csv';
+var COL_CAVALO = 7;
+var REG_KEY    = 'twm_abast_reg';
+var CFG_KEY    = 'twm_abast_cfg';
+
+// ═══════════════════════════════════════════════
+//  ESTADO
+// ═══════════════════════════════════════════════
+var registros  = [];
+var filtroAtual = 'todos';
+var combAtivos = {diesel: false, arla: false};
+
+// ═══════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════
+function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+function dataHojeISO() {
+  var d = new Date();
+  return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+}
+
+function salvar(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }
+function ler(k)       { try { return JSON.parse(localStorage.getItem(k)); } catch(e) { return null; } }
+
+function toast(msg, tipo) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast on' + (tipo ? ' ' + tipo : '');
+  setTimeout(function(){ el.className = 'toast'; }, 3500);
+}
+
+function setSyncBar(msg, tipo) {
+  var el = document.getElementById('syncBar');
+  el.textContent = msg;
+  el.className = 'sync-bar on' + (tipo ? ' ' + tipo : '');
+  if (tipo === 'ok') {
+    setTimeout(function(){ el.className = 'sync-bar'; }, 3000);
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  RELÓGIO
+// ═══════════════════════════════════════════════
+function iniciarRelogio() {
+  function tick() {
+    var d   = new Date();
+    var str = pad(d.getDate()) + '/' + pad(d.getMonth()+1) + '/' + d.getFullYear() +
+              ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+    var el  = document.getElementById('dtDisplay');
+    if (el) el.textContent = str;
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
+// ═══════════════════════════════════════════════
+//  FROTAS — carrega do CSV
+// ═══════════════════════════════════════════════
+function carregarFrotas() {
+  var sel = document.getElementById('reg-frota');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Buscando frotas...</option>';
+
+  var xhr = new XMLHttpRequest();
+  xhr.timeout = 10000;
+  xhr.open('GET', FROTA_CSV + '&_=' + Date.now(), true);
+
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState !== 4) return;
+    if (xhr.status === 200 && xhr.responseText) {
+      var frotas = parsearCSV(xhr.responseText);
+      if (frotas.length > 0) {
+        salvar('twm_frotas_cache', frotas);
+        preencherFrotas(sel, frotas);
+      } else {
+        usarCacheFrotas(sel);
+      }
+    } else {
+      usarCacheFrotas(sel);
+    }
+  };
+
+  xhr.onerror   = function() { usarCacheFrotas(sel); };
+  xhr.ontimeout = function() { usarCacheFrotas(sel); };
+  xhr.send();
+}
+
+function parsearCSV(txt) {
+  var frotas = [], vistas = {};
+  var linhas = txt.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+  for (var i = 1; i < linhas.length; i++) {
+    var linha = linhas[i].trim();
+    if (!linha) continue;
+    var cols = [], cur = '', inQ = false;
+    for (var j = 0; j < linha.length; j++) {
+      var ch = linha[j];
+      if (ch === '"') { inQ = !inQ; }
+      else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+      else { cur += ch; }
+    }
+    cols.push(cur.trim());
+    var cav = (cols[COL_CAVALO] || '').trim().toUpperCase();
+    if (!cav) continue;
+    // Apenas cavalos — ignora carretas
+    if (cav.indexOf('RB') === 0 || cav.indexOf('RA') === 0 || cav.indexOf('RBL') === 0) continue;
+    if (!vistas[cav]) { vistas[cav] = true; frotas.push(cav); }
+  }
+  frotas.sort();
+  return frotas;
+}
+
+function usarCacheFrotas(sel) {
+  var cache = ler('twm_frotas_cache');
+  if (cache && cache.length) {
+    preencherFrotas(sel, cache);
+  } else {
+    sel.innerHTML = '<option value="">Sem frotas — verifique conexão</option>';
+  }
+}
+
+function preencherFrotas(sel, frotas) {
+  var html = '<option value="">Selecione a frota...</option>';
+  for (var i = 0; i < frotas.length; i++) {
+    html += '<option value="' + frotas[i] + '">' + frotas[i] + '</option>';
+  }
+  sel.innerHTML = html;
+}
+
+function onFrotaChange() {
+  var frota = document.getElementById('reg-frota').value;
+  if (!frota) return;
+  // Sugere motorista do último registro dessa frota
+  for (var i = 0; i < registros.length; i++) {
+    if (registros[i].frota === frota && registros[i].motorista) {
+      document.getElementById('reg-motorista').value = registros[i].motorista;
+      break;
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  COMBUSTÍVEL
+// ═══════════════════════════════════════════════
+function toggleComb(tipo) {
+  combAtivos[tipo] = !combAtivos[tipo];
+  var btn   = document.getElementById('btn-' + tipo);
+  var campo = document.getElementById('field-' + tipo);
+  btn.className   = 'comb-btn' + (combAtivos[tipo] ? ' on-' + tipo : '');
+  campo.style.display = combAtivos[tipo] ? 'block' : 'none';
+}
+
+// ═══════════════════════════════════════════════
+//  REGISTRAR
+// ═══════════════════════════════════════════════
+function registrar() {
+  var frota     = document.getElementById('reg-frota').value.trim();
+  var motorista = document.getElementById('reg-motorista').value.trim();
+  var km        = document.getElementById('reg-km').value.trim();
+  var diesel    = combAtivos.diesel ? parseFloat(document.getElementById('reg-diesel').value) || 0 : 0;
+  var arla      = combAtivos.arla   ? parseFloat(document.getElementById('reg-arla').value)   || 0 : 0;
+  var posto     = document.getElementById('reg-posto').value.trim();
+  var obs       = document.getElementById('reg-obs').value.trim();
+
+  if (!frota)    { toast('⚠️ Selecione a frota', 'err'); return; }
+  if (!motorista){ toast('⚠️ Informe o motorista', 'err'); return; }
+  if (!combAtivos.diesel && !combAtivos.arla) { toast('⚠️ Selecione um combustível', 'err'); return; }
+  if (combAtivos.diesel && diesel <= 0) { toast('⚠️ Informe os litros de diesel', 'err'); return; }
+  if (combAtivos.arla   && arla   <= 0) { toast('⚠️ Informe os litros de arla', 'err'); return; }
+
+  var agora = new Date();
+  var dataHora = pad(agora.getDate()) + '/' + pad(agora.getMonth()+1) + '/' + agora.getFullYear() +
+                 ' ' + pad(agora.getHours()) + ':' + pad(agora.getMinutes());
+  var isoDate  = agora.getFullYear() + '-' + pad(agora.getMonth()+1) + '-' + pad(agora.getDate());
+
+  var reg = {
+    id: Date.now().toString(36),
+    ts: Date.now(),
+    frota: frota,
+    motorista: motorista,
+    km: km,
+    diesel: diesel,
+    arla: arla,
+    posto: posto,
+    obs: obs,
+    dataHora: dataHora,
+    isoDate: isoDate
+  };
+
+  registros.unshift(reg);
+  salvar(REG_KEY, registros);
+
+  enviarParaPlanilha(reg);
+
+  toast('✅ ' + frota + ' registrado!', 'ok');
+  limparForm();
+  renderStats();
+}
+
+function limparForm() {
+  document.getElementById('reg-frota').value     = '';
+  document.getElementById('reg-motorista').value = '';
+  document.getElementById('reg-km').value        = '';
+  document.getElementById('reg-diesel').value    = '';
+  document.getElementById('reg-arla').value      = '';
+  document.getElementById('reg-posto').value     = '';
+  document.getElementById('reg-obs').value       = '';
+  combAtivos = {diesel: false, arla: false};
+  document.getElementById('btn-diesel').className  = 'comb-btn';
+  document.getElementById('btn-arla').className    = 'comb-btn';
+  document.getElementById('field-diesel').style.display = 'none';
+  document.getElementById('field-arla').style.display   = 'none';
+}
+
+// ═══════════════════════════════════════════════
+//  ENVIO PARA PLANILHA
+//  Planilha: A=FROTA | B=MOTORISTA | C=KM ATUAL
+//            D=DIESEL | E=ARLA | F=POSTO
+//            G=DATA HORA | H=OBSERVAÇÃO
+// ═══════════════════════════════════════════════
+function enviarParaPlanilha(reg) {
+  setSyncBar('⏳ Enviando para planilha...', '');
+
+  var script = ler(CFG_KEY) && ler(CFG_KEY).scriptUrl ? ler(CFG_KEY).scriptUrl : SCRIPT_URL;
+
+  var params = 'action=registrarAbastecimento' +
+    '&frota='     + encodeURIComponent(reg.frota) +
+    '&motorista=' + encodeURIComponent(reg.motorista) +
+    '&km='        + encodeURIComponent(reg.km || '') +
+    '&diesel='    + encodeURIComponent(reg.diesel > 0 ? reg.diesel : '') +
+    '&arla='      + encodeURIComponent(reg.arla   > 0 ? reg.arla   : '') +
+    '&posto='     + encodeURIComponent(reg.posto  || '') +
+    '&obs='       + encodeURIComponent(reg.obs    || '') +
+    '&data_hora=' + encodeURIComponent(reg.dataHora);
+
+  var xhr = new XMLHttpRequest();
+  xhr.timeout = 15000;
+  xhr.open('GET', script + '?' + params, true);
+
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState !== 4) return;
+    try {
+      var resp = JSON.parse(xhr.responseText);
+      if (resp.ok) {
+        setSyncBar('✅ Salvo na planilha!', 'ok');
+      } else {
+        setSyncBar('⚠️ Erro: ' + (resp.msg || 'falha'), 'err');
+      }
+    } catch(e) {
+      // Resposta não é JSON (redirect do Apps Script) — provavelmente salvou
+      setSyncBar('✅ Enviado!', 'ok');
+    }
+  };
+
+  xhr.onerror = function() {
+    setSyncBar('📵 Sem conexão — salvo localmente', '');
+  };
+
+  xhr.ontimeout = function() {
+    setSyncBar('⏱️ Timeout — verifique a planilha', 'err');
+  };
+
+  xhr.send();
+}
+
+// ═══════════════════════════════════════════════
+//  HISTÓRICO
+// ═══════════════════════════════════════════════
+function setFiltro(f, el) {
+  filtroAtual = f;
+  var btns = document.querySelectorAll('.fbtn');
+  for (var i = 0; i < btns.length; i++) btns[i].className = 'fbtn';
+  el.className = 'fbtn on';
+  renderHistorico();
+}
+
+function renderHistorico() {
+  var hoje = dataHojeISO();
+  var lista = registros.filter(function(r) {
+    if (filtroAtual === 'diesel') return r.diesel > 0;
+    if (filtroAtual === 'arla')   return r.arla   > 0;
+    if (filtroAtual === 'hoje')   return r.isoDate === hoje;
+    return true;
+  });
+
+  var el = document.getElementById('lista-hist');
+  if (!lista.length) {
+    el.innerHTML = '<div class="empty">Nenhum abastecimento encontrado.</div>';
+    return;
+  }
+
+  var html = '';
+  for (var i = 0; i < lista.length; i++) {
+    var r = lista[i];
+    var chips = '';
+    if (r.diesel > 0) chips += '<span class="chip chip-d">⛽ ' + r.diesel.toFixed(1) + ' L Diesel</span>';
+    if (r.arla   > 0) chips += '<span class="chip chip-a">💧 ' + r.arla.toFixed(1)   + ' L Arla</span>';
+    if (r.posto)      chips += '<span class="chip chip-p">📍 ' + r.posto + '</span>';
+    html += '<div class="hist-item">' +
+      '<div class="hi-top">' +
+        '<div><div class="hi-frota">' + r.frota + '</div><div class="hi-mot">' + r.motorista + (r.km ? ' · ' + Number(r.km).toLocaleString('pt-BR') + ' km' : '') + '</div></div>' +
+        '<div class="hi-dt">' + r.dataHora + '</div>' +
+      '</div>' +
+      '<div class="hi-chips">' + chips + '</div>' +
+    '</div>';
+  }
+  el.innerHTML = html;
+}
+
+function renderStats() {
+  var td = 0, ta = 0;
+  for (var i = 0; i < registros.length; i++) {
+    td += registros[i].diesel || 0;
+    ta += registros[i].arla   || 0;
+  }
+  var ed = document.getElementById('st-diesel');
+  var ea = document.getElementById('st-arla');
+  var er = document.getElementById('st-regs');
+  if (ed) ed.textContent = td.toFixed(0);
+  if (ea) ea.textContent = ta.toFixed(0);
+  if (er) er.textContent = registros.length;
+}
+
+// ═══════════════════════════════════════════════
+//  RELATÓRIO
+// ═══════════════════════════════════════════════
+function gerarRelatorio() {
+  var de  = document.getElementById('rel-de').value;
+  var ate = document.getElementById('rel-ate').value;
+
+  var lista = registros.filter(function(r) {
+    if (de  && r.isoDate < de)  return false;
+    if (ate && r.isoDate > ate) return false;
+    return true;
+  });
+
+  var td = 0, ta = 0, frotas = {};
+  for (var i = 0; i < lista.length; i++) {
+    td += lista[i].diesel || 0;
+    ta += lista[i].arla   || 0;
+    if (!frotas[lista[i].frota]) frotas[lista[i].frota] = {diesel:0, arla:0, n:0};
+    frotas[lista[i].frota].diesel += lista[i].diesel || 0;
+    frotas[lista[i].frota].arla   += lista[i].arla   || 0;
+    frotas[lista[i].frota].n++;
+  }
+
+  var el = document.getElementById('rel-diesel'); if(el) el.textContent = td.toFixed(0);
+  el = document.getElementById('rel-arla');       if(el) el.textContent = ta.toFixed(0);
+  el = document.getElementById('rel-frotas');     if(el) el.textContent = Object.keys(frotas).length;
+
+  var chaves = Object.keys(frotas).sort(function(a,b){ return frotas[b].diesel - frotas[a].diesel; });
+  var html = '';
+  for (var i = 0; i < chaves.length; i++) {
+    var f = chaves[i], d = frotas[f];
+    var chips = '';
+    if (d.diesel > 0) chips += '<span class="chip chip-d">⛽ ' + d.diesel.toFixed(1) + ' L</span>';
+    if (d.arla   > 0) chips += '<span class="chip chip-a">💧 ' + d.arla.toFixed(1)   + ' L</span>';
+    html += '<div class="hist-item"><div class="hi-top"><div class="hi-frota">' + f + '</div><div class="hi-dt">' + d.n + ' abast.</div></div><div class="hi-chips">' + chips + '</div></div>';
+  }
+  var lr = document.getElementById('lista-rel');
+  if (lr) lr.innerHTML = html || '<div class="empty">Nenhum registro no período.</div>';
+}
+
+// ═══════════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════════
+function salvarConfig() {
+  var scriptVal = document.getElementById('cfg-script').value.trim();
+  var cfg = ler(CFG_KEY) || {};
+  cfg.scriptUrl = scriptVal || SCRIPT_URL;
+  salvar(CFG_KEY, cfg);
+  toast('✅ Config salva!', 'ok');
+}
+
+function carregarConfig() {
+  var cfg = ler(CFG_KEY);
+  var el  = document.getElementById('cfg-script');
+  if (el) el.value = (cfg && cfg.scriptUrl) ? cfg.scriptUrl : SCRIPT_URL;
+}
+
+function limparDados() {
+  if (!confirm('Limpar todo o histórico local?')) return;
+  registros = [];
+  salvar(REG_KEY, registros);
+  renderStats();
+  renderHistorico();
+  toast('🗑️ Histórico limpo', '');
+}
+
+// ═══════════════════════════════════════════════
+//  NAVEGAÇÃO
+// ═══════════════════════════════════════════════
+function goTab(id, el) {
+  var pages = document.querySelectorAll('.page');
+  var tabs  = document.querySelectorAll('.nav-tab');
+  for (var i = 0; i < pages.length; i++) pages[i].className = 'page';
+  for (var i = 0; i < tabs.length;  i++) tabs[i].className  = 'nav-tab';
+  var pg = document.getElementById('page-' + id);
+  if (pg) pg.className = 'page on';
+  if (el) el.className = 'nav-tab on';
+
+  if (id === 'historico') { renderStats(); renderHistorico(); }
+  if (id === 'relatorio') gerarRelatorio();
+  if (id === 'config')    carregarConfig();
+}
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+window.onload = function() {
+  // Carrega registros
+  var r = ler(REG_KEY);
+  if (r && r.length) registros = r;
+
+  // Inicia relógio
+  iniciarRelogio();
+
+  // Carrega frotas do CSV
+  carregarFrotas();
+
+  // Stats iniciais
+  renderStats();
+};
+</script>
+</body>
+</html>
