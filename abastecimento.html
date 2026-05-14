@@ -269,10 +269,9 @@ body.light .app-header{box-shadow:0 1px 8px rgba(0,0,0,.08)}
     </div>
     <div class="cfg-box">
       <div class="cfg-title">Frotas cadastradas</div>
-      <div class="field">
-        <label>Frotas que abastecem (VP, VPL, VA — separadas por vírgula)</label>
-        <textarea id="cfg-cavalos" style="min-height:80px" placeholder="VP-189, VP-190, VPL-185, VA-903..."></textarea>
-        <div style="font-size:10px;color:var(--muted);margin-top:4px">⚠️ Apenas cavalos abastecem. RB, RA e RBL (carretas) não são listados.</div>
+      <div class="cfg-note" style="margin-bottom:10px">
+        Lista carregada automaticamente da planilha de operação.<br>
+        Carretas (RB, RA, RBL) são ignoradas automaticamente.
       </div>
       <button class="btn btn-ghost" onclick="renderFrotas();toast('🔄 Lista atualizada!','ok')">🔄 Atualizar lista agora</button>
     </div>
@@ -313,13 +312,11 @@ function salvarLocal(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e
 function lerLocal(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}}
 
 function loadAll() {
-  var c = lerLocal(CFG_KEY);
-  if (c) Object.assign(cfg, c);
-  var r = lerLocal(REG_KEY);
-  if (r) registros = r;
-  applyConfig();
-  renderFrotas();
-  atualizarRelogio();
+  try { var lc = lerLocal(CFG_KEY); if (lc) Object.assign(cfg, lc); } catch(e){}
+  try { var lr = lerLocal(REG_KEY); if (lr) registros = lr; } catch(e){}
+  try { applyConfig(); } catch(e){ console.error('applyConfig erro:', e); }
+  try { renderFrotas(); } catch(e){ console.error('renderFrotas erro:', e); }
+  try { atualizarRelogio(); } catch(e){}
 }
 
 function salvarConfig() {
@@ -339,22 +336,26 @@ function salvarScriptUrl() {
 }
 
 function applyConfig() {
-  document.getElementById('cfg-sheetid').value   = cfg.sheetId || '';
-  document.getElementById('cfg-sheetname').value = cfg.sheetName || '';
-  document.getElementById('cfg-token').value     = cfg.token || '';
-  document.getElementById('cfg-scripturl').value = cfg.scriptUrl || '';
-  // lista de frotas vem do CSV — não precisa de cfg
+  var el;
+  el = document.getElementById('cfg-sheetid');    if(el) el.value = cfg.sheetId   || '';
+  el = document.getElementById('cfg-sheetname');  if(el) el.value = cfg.sheetName || '';
+  el = document.getElementById('cfg-token');      if(el) el.value = cfg.token     || '';
+  el = document.getElementById('cfg-scripturl');  if(el) el.value = cfg.scriptUrl || '';
 }
 
 // ══════════════════════════════════════════════════════
 //  RELÓGIO AUTOMÁTICO
 // ══════════════════════════════════════════════════════
 function atualizarRelogio() {
+  function pad(n) { return String(n).length < 2 ? '0'+n : String(n); }
   function atualizar() {
-    var now = new Date();
-    var pad = n => String(n).padStart(2,'0');
-    var str = pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear()+' '+pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
-    document.getElementById('dtDisplay').textContent = str;
+    try {
+      var now = new Date();
+      var str = pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear()+
+                ' '+pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
+      var el = document.getElementById('dtDisplay');
+      if (el) el.textContent = str;
+    } catch(e) {}
   }
   atualizar();
   setInterval(atualizar, 1000);
@@ -464,7 +465,7 @@ function registrar() {
   if (combAtivos.arla   && (!arla   || arla<=0))   { toast('⚠ Informe os litros de arla', 'err'); return; }
 
   var now     = new Date();
-  var pad     = n => String(n).padStart(2,'0');
+  function pad(n) { return String(n).length < 2 ? '0'+n : String(n); }
   var dataHora = pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear()+' '+pad(now.getHours())+':'+pad(now.getMinutes());
   var isoDate  = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate());
 
@@ -602,7 +603,7 @@ function renderHistorico() {
 
 function filtrarRegistros() {
   var now2 = new Date();
-  var pad2 = function(n){return String(n).padStart(2,'0');};
+  function pad2(n){ return String(n).length < 2 ? '0'+n : String(n); }
   var hoje = now2.getFullYear()+'-'+pad2(now2.getMonth()+1)+'-'+pad2(now2.getDate());
   return registros.filter(function(r){
     if (filtroAtual==='diesel') return r.diesel>0;
@@ -677,11 +678,14 @@ function gerarRelatorio() {
 function goTab(id, el) {
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('on');});
-  document.getElementById('scr-'+id).classList.add('on');
-  el.classList.add('on');
-  if (id==='historico') { renderHistorico(); renderStats(); }
-  if (id==='relatorio') gerarRelatorio();
-  if (id==='config')    applyConfig();
+  var pg = document.getElementById('scr-'+id);
+  if (pg) pg.classList.add('on');
+  if (el) el.classList.add('on');
+  try {
+    if (id==='historico') { renderHistorico(); renderStats(); }
+    if (id==='relatorio') gerarRelatorio();
+    if (id==='config')    applyConfig();
+  } catch(e) { console.error('goTab erro:', e); }
 }
 
 // ══════════════════════════════════════════════════════
