@@ -290,35 +290,37 @@ function allFrotas(){
   return list;
 }
 function carregarFrotasCSV(){
+  // Mostra cache imediatamente
+  try{
+    var cache=JSON.parse(localStorage.getItem('twm_lav_frotas')||'[]');
+    if(cache.length>0){renderAlertas();renderStats(false);renderStats(true);}
+  }catch(e){}
+  // Busca do Apps Script
   var xhr=new XMLHttpRequest();xhr.timeout=10000;
-  xhr.open('GET',FROTA_CSV+'&_='+Date.now(),true);
+  xhr.open('GET',SCRIPT_LAV+'?action=getFrota&_='+Date.now(),true);
   xhr.onreadystatechange=function(){
     if(xhr.readyState!==4)return;
-    if(xhr.status===200&&xhr.responseText){
-      var todas=[],v={};
-      xhr.responseText.replace(/
-/g,'
-').replace(/
-/g,'
-').split('
-').forEach(function(ln,idx){
-        if(idx===0||!ln.trim())return;
-        var cols=[],cur='',inQ=false;
-        for(var j=0;j<ln.length;j++){var ch=ln[j];if(ch==='"'){inQ=!inQ;}else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}else{cur+=ch;}}
-        cols.push(cur.trim());
-        var f=(cols[7]||'').trim().toUpperCase();
-        if(!f||v[f])return;v[f]=1;
-        var t=(f.indexOf('RB')===0||f.indexOf('RA')===0||f.indexOf('RBL')===0)?'CARRETA':'CAVALO';
-        todas.push({frota:f,tipo:t});
-      });
-      if(todas.length){
-        localStorage.setItem('twm_lav_frotas',JSON.stringify(todas));
-        renderAlertas();renderStats(false);renderStats(true);
-        var scr=document.getElementById('scr-frotas');
-        if(scr&&scr.classList.contains('on'))renderFrotas();
-        setSyncBar('✅ '+todas.length+' frotas','ok');
+    try{
+      var resp=JSON.parse(xhr.responseText);
+      if(resp.ok){
+        var todas=[],vistas={};
+        (resp.cavalos||[]).forEach(function(v){
+          var f=(v.f||'').trim().toUpperCase();
+          if(f&&!vistas[f]){vistas[f]=1;todas.push({frota:f,tipo:'CAVALO'});}
+        });
+        (resp.carretas||[]).forEach(function(v){
+          var f=(v.f||'').trim().toUpperCase();
+          if(f&&!vistas[f]){vistas[f]=1;todas.push({frota:f,tipo:'CARRETA'});}
+        });
+        if(todas.length>0){
+          localStorage.setItem('twm_lav_frotas',JSON.stringify(todas));
+          renderAlertas();renderStats(false);renderStats(true);
+          var scr=document.getElementById('scr-frotas');
+          if(scr&&scr.classList.contains('on'))renderFrotas();
+          setSyncBar('✅ '+todas.length+' frotas carregadas','ok');
+        }
       }
-    }
+    }catch(e){setSyncBar('📵 Sem conexão — usando lista salva','');}
   };
   xhr.onerror=xhr.ontimeout=function(){setSyncBar('📵 Sem conexão','');};
   xhr.send();
