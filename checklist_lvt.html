@@ -91,6 +91,8 @@ body.light{--bg:#F4F3FF;--bg2:#FFFFFF;--bg3:#FAFAFA;--border:rgba(0,0,0,0.07);--
   .section-header{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .item-row{page-break-inside:avoid;font-size:9px}
 }
+body.light{--bg:#F4F3FF;--bg2:#FFFFFF;--bg3:#FAFAFA;--border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.13);--text:#1A1A2E;--muted:#6B6880}
+body.light .app-header{box-shadow:0 1px 8px rgba(0,0,0,.08)}
 </style>
 <script>
 (function() {
@@ -103,6 +105,9 @@ body.light{--bg:#F4F3FF;--bg2:#FFFFFF;--bg3:#FAFAFA;--border:rgba(0,0,0,0.07);--
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', aplicar);
   else aplicar();
 })();
+</script>
+<script>
+(function(){var p=localStorage.getItem('twm_tema')||'auto';var claro;if(p==='claro')claro=true;else if(p==='escuro')claro=false;else{var h=new Date().getHours();claro=h>=6&&h<18;}function ap(){if(claro)document.body.classList.add('light');}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ap);else ap();})();
 </script>
 </head>
 <body>
@@ -323,11 +328,15 @@ const SECOES = [
     {n:48, desc:'DANFE — Documento Auxiliar da Nota Fiscal Eletrônica'},
   ]},
 ];
+// Pré-marca todos os itens como SIM
+SECOES.forEach(sec => { (sec.itens||[]).forEach(item => { respostas[item.n] = 'sim'; }); });
 
 // ── ESTADO ────────────────────────────────────────────────────
 let todasFrotas = [];
 let frotaAtual = null;
 let respostas = {};
+// Pré-marca todos os itens como SIM (operador só muda os NAO)
+
 let vencimentos = {};
 let liberado = null;
 let telaAtual = 'lista';
@@ -444,8 +453,8 @@ function construirForm() {
           ${item.venc ? `<input style="margin-top:4px;width:100%;padding:5px 8px;border:1px solid var(--border2);border-radius:6px;background:var(--bg);color:var(--text);font-size:11px;font-family:Barlow,sans-serif;outline:none" placeholder="Vencimento: DD/MM/AAAA" id="venc-${item.n}">` : ''}
         </div>
         <div class="item-btns">
-          <button class="btn-opt" id="bs-${item.n}" onclick="marcar(${item.n},'sim')">S</button>
-          <button class="btn-opt" id="bn-${item.n}" onclick="marcar(${item.n},'nao')">N</button>
+          <button class="btn-opt ${respostas[item.n]==='sim'?'sim-sel':''}" id="bs-${item.n}" onclick="marcar(${item.n},'sim')">S</button>
+          <button class="btn-opt ${respostas[item.n]==='nao'?'nao-sel':''}" id="bn-${item.n}" onclick="marcar(${item.n},'nao')">N</button>
         </div>`;
       el.appendChild(div);
     });
