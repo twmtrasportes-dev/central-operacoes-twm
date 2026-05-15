@@ -680,6 +680,8 @@ async function fazerLogin() {
     if (data.ok) {
       const u = {...data.motorista, senha, loginTime: Date.now()};
       localStorage.setItem('twm_user_cache', JSON.stringify(u));
+      // Sessão compartilhada com todos os módulos (checklist, lvt, etc.)
+      localStorage.setItem('twm_session', JSON.stringify({motorista: u, ts: Date.now()}));
       const perm = normalizarPermissoes(data.motorista);
       localStorage.setItem('twm_permissoes', JSON.stringify(perm));
       mostrarApp(u);
@@ -811,6 +813,7 @@ function menuAcao(acao) {
   document.getElementById('menu-dropdown').classList.remove('open');
   if (acao === 'sair') {
     localStorage.removeItem('twm_user_cache');
+        localStorage.removeItem('twm_session');
     document.getElementById('login-screen').classList.add('active');
     document.getElementById('user-name').textContent = 'Online';
     document.getElementById('menu-avatar').textContent = '?';
