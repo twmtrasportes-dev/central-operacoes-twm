@@ -408,6 +408,8 @@ const SECOES = [
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4BZz60sy9BsFACdqKktKpzJOfP8mj0U6s1G7Em5pwhaC_kQHCk-GPbLNZOlwjvrOwsw/exec';
 let frotaAtual = null;
 let respostas = {}; // {itemN: 'sim'|'nao'|'na'}
+// Pré-marca todos os 53 itens como SIM
+for (let _i = 1; _i <= 53; _i++) { respostas[_i] = 'sim'; }
 let aprovacao = null;
 let telaAtual = 'lista';
 let checklistView = null;
@@ -556,9 +558,9 @@ function construirForm() {
         <span class="item-num">${item.n}</span>
         <span class="item-desc">${item.desc}</span>
         <div class="item-btns">
-          <button class="btn-opt" id="btn-sim-${item.n}" onclick="marcar(${item.n},'sim')">S</button>
-          <button class="btn-opt" id="btn-nao-${item.n}" onclick="marcar(${item.n},'nao')">N</button>
-          <button class="btn-opt" id="btn-na-${item.n}"  onclick="marcar(${item.n},'na')">N/A</button>
+          <button class="btn-opt ${respostas[item.n]==='sim'?'sim-sel':''}" id="btn-sim-${item.n}" onclick="marcar(${item.n},'sim')">S</button>
+          <button class="btn-opt ${respostas[item.n]==='nao'?'nao-sel':''}" id="btn-nao-${item.n}" onclick="marcar(${item.n},'nao')">N</button>
+          <button class="btn-opt ${respostas[item.n]==='na'?'na-sel':''}"  id="btn-na-${item.n}"  onclick="marcar(${item.n},'na')">N/A</button>
         </div>`;
       el.appendChild(div);
     });
