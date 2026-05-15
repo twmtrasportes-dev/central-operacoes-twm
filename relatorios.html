@@ -13,6 +13,20 @@
 :root{--bg:#0A0A0F;--bg2:#0F0F18;--bg3:#13131E;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.14);--text:#F0EEF8;--muted:#7A7890;--accent:#06B6D4;--accent2:#22D3EE;--green:#10B981;--red:#EF4444;--gold:#F59E0B;--purple:#A855F7;--blue:#3B82F6}
 body.light{--bg:#F4F3FF;--bg2:#FFFFFF;--bg3:#FAFAFA;--border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.13);--text:#1A1A2E;--muted:#6B6880}
 body.light .app-header{box-shadow:0 1px 8px rgba(0,0,0,.08)}
+
+/* Checklist lista */
+.seg-item{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:.15s}
+.seg-item:active{opacity:.8}
+.seg-item.ap{border-left:3px solid var(--green)}
+.seg-item.rep{border-left:3px solid var(--red)}
+.si-top{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.si-frota{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:var(--accent2)}
+.si-mot{font-size:11px;color:var(--muted);flex:1}
+.si-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase}
+.si-badge.ap{background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.2)}
+.si-badge.rep{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.si-info{font-size:10px;color:var(--muted)}
+
 </style>
 <script>
 (function(){var p=localStorage.getItem('twm_tema')||'auto';var claro;if(p==='claro')claro=true;else if(p==='escuro')claro=false;else{var h=new Date().getHours();claro=h>=6&&h<18;}function ap(){if(claro)document.body.classList.add('light');}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ap);else ap();})();
@@ -144,6 +158,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
   <div class="tab" onclick="goTab('abastecimento',this)">⛽ Abast.</div>
   <div class="tab" onclick="goTab('pneus',this)">🔧 Pneus</div>
   <div class="tab" onclick="goTab('estoque',this)">📦 Estoque</div>
+  <div class="tab" onclick="goTab('seguranca',this)">🛡️ Seg. Mensal</div>
 </div>
 
 <!-- ══ DASHBOARD ══ -->
@@ -704,12 +719,300 @@ function goTabBtn(id){
   goTab(id,tabs[mapa[id]||0]);
 }
 
+
+// ══════════════════════════════════════════════════════════════════
+// CHECK LIST MENSAL DE SEGURANÇA — FQ-TWM-CO-19-01 Rev.06
+// ══════════════════════════════════════════════════════════════════
+
+var SECOES_CLS = [
+  { titulo:'MOTORISTA / VEÍCULO', itens:[
+    {n:1,  txt:'CNH e curso MOPP dentro da validade'},
+    {n:2,  txt:'CRLV (do ano corrente, placa confere com a identificada no veículo)'},
+    {n:3,  txt:'CIV (cavalo e carreta dentro da validade)'},
+    {n:4,  txt:'CIPP (carreta dentro da validade)'},
+    {n:5,  txt:'Laudo de verificação do INMETRO (dentro da data de validade)'},
+    {n:6,  txt:'Cronotacógrafo (dentro da data de validade)'},
+    {n:7,  txt:'01 pasta contendo as Licenças Ambientais das empresas (Licenças dentro da validade)'},
+    {n:8,  txt:'Sem sinais de embriaguez, sonolência ou problemas físicos'},
+  ]},
+  { titulo:'EQUIPAMENTOS DE PROTEÇÃO INDIVIDUAL', itens:[
+    {n:9,  txt:'Calçado de Segurança'},
+    {n:10, txt:'Luvas de PVC'},
+    {n:11, txt:'Capacete com protetor facial (Produto escuro) sem protetor facial para produto claro'},
+    {n:12, txt:'Óculos de segurança'},
+    {n:13, txt:'Cinto de segurança tipo pára-quedista'},
+    {n:14, txt:'Respirador com purificador de ar (Produto escuro)'},
+    {n:15, txt:'Avental de Raspa (Produto escuro)'},
+    {n:16, txt:'Protetor Auditivo'},
+  ]},
+  { titulo:'EQUIPAMENTOS DE SEGURANÇA / EMERGÊNCIA', itens:[
+    {n:17, txt:'Extintores PQS 08 Kg (ABC) produto claro, PQS 12 kg (BC) produto escuro, com selo, recarga na validade, manômetro na posição verde'},
+    {n:18, txt:'01 Extintor ABC 02 Kg (na cabine do veículo), com selo, recarga na validade, manômetro na posição verde'},
+    {n:19, txt:'Cabo terra sem emenda com capa transparente'},
+    {n:20, txt:'Balde em alumínio com cabo terra'},
+    {n:21, txt:'Calço de rodas: 2 para caminhão trator e semi-reboque e 04 para caminhão reboque bitrem ou bitrenzão'},
+    {n:22, txt:'Cones — Cor laranja com faixa refletiva e emborrachado conforme legislação vigente (4 peças)'},
+    {n:23, txt:'Painéis de segurança, rótulo de risco e número ONU conforme produto a ser carregado e em boas condições'},
+    {n:24, txt:'Triângulo de sinalização, Macaco, chave de roda, pino para reboque'},
+    {n:25, txt:'Jogo de Ferramentas: Alicate universal, Chave de fenda ou philips e chave de boca para desconexão do cabo da bateria'},
+    {n:26, txt:'Kit para pequenos derrames (4 Batoques, 2 cordões, 6 mantas, 1 lona, 1 martelo, 1 sabão, 2 cx durepóxi, 1 pct pó absorvente, 1 colete, 10 sacos 50L, 1 pá plástico)'},
+    {n:27, txt:'Chave de bascular cabine'},
+    {n:28, txt:'Porta mangotes / mangotes de borracha com mínimo 4 metros e em perfeita condição de uso e sem vazamentos'},
+    {n:29, txt:'Mangueira de Dreno do Tanque (Cocho) Desobstruída'},
+    {n:30, txt:'Ausência de arames, barbantes, cordas, pedaço de pano na estrutura do caminhão'},
+  ]},
+  { titulo:'CONDIÇÕES DO VEÍCULO', itens:[
+    {n:31, txt:'Rodas com parafusos e sem amassados'},
+    {n:32, txt:'Pneus em bom estado de conservação, com sulcos mínimos de 1,6 mm'},
+    {n:33, txt:'Protetor de rodas traseiras em bom estado de conservação'},
+    {n:34, txt:'Chave geral blindada com indicação L/D, ligada no pólo positivo da bateria'},
+    {n:35, txt:'Ligação do tanque no chassis (continuidade elétrica). Pontos de aterramento nas laterais do tanque isentos de pintura e corrosão'},
+    {n:36, txt:'Faróis, Lanternas e setas, luz de placa em bom estado, sem trincas e funcionando'},
+    {n:37, txt:'Fiação contida em dutos (emendas só nas caixas de passagem), isolamento perfeito, bateria isolada'},
+    {n:38, txt:'Todas as saídas do produto com pontos de lacração e isentos de vazamentos'},
+    {n:39, txt:'Escada e passadiço com piso antiderrapante'},
+    {n:40, txt:'Espelhos retrovisores regulamentários e adicionais isentos de trincas'},
+    {n:41, txt:'(Para-sol) proteção interna contra o sol para o motorista em boas condições'},
+    {n:42, txt:'Buzina e sirene de Marcha ré funcionando'},
+    {n:43, txt:'Ponto baixo dotado de dreno e estanqueidade em relação à penetração de água e outros contaminantes'},
+    {n:44, txt:'Proteção do suspensor (cavalo e carreta)'},
+  ]},
+  { titulo:'CARACTERIZAÇÃO DO VEÍCULO', itens:[
+    {n:45, txt:'Adesivo de Informação de TARA dos dois lados do veículo, legíveis'},
+    {n:46, txt:'Adesivo com identificação do número de frota em boas condições de visibilidade'},
+    {n:47, txt:'Adesivo com a identificação da caixa de ferramentas em boas condições de visibilidade'},
+    {n:48, txt:'Números dos telefones de emergência em ambos os lados do semi-reboque'},
+    {n:49, txt:'Capacidade dos compartimentos demarcada no bocal de descarga e nas bocas de visita'},
+    {n:50, txt:'Placa traseira com a informação de "COMO ESTOU DIRIGINDO", legível'},
+    {n:51, txt:'Adesivo contendo a placa do reboque fixado na traseira do mesmo, legível'},
+    {n:52, txt:'Faixa refletiva ao redor do reboque e parachoque em boas condições de visibilidade'},
+    {n:53, txt:'Placa traseira com a informação de "VEÍCULO LONGO" em boas condições de visibilidade'},
+  ]},
+];
+
+var _rsRegistros = [];  // todos os registros buscados
+var _rsAtual    = null; // registro sendo visualizado
+
+// ── Busca registros no Apps Script ────────────────────────────────
+function buscarChecklists(){
+  var de       = document.getElementById('rs-de').value;
+  var ate      = document.getElementById('rs-ate').value;
+  var frota    = (document.getElementById('rs-frota').value||'').trim().toUpperCase();
+  var motorista= (document.getElementById('rs-motorista').value||'').trim().toLowerCase();
+  var aprovado = document.getElementById('rs-aprovado').value;
+
+  var lista   = document.getElementById('rs-lista');
+  lista.innerHTML = '<div class="empty">🔍 Buscando...</div>';
+
+  var xhr = new XMLHttpRequest();
+  xhr.timeout = 15000;
+  xhr.open('GET', SCRIPT + '?action=getChecklistsSeg' +
+    '&de='       + encodeURIComponent(de) +
+    '&ate='      + encodeURIComponent(ate) +
+    '&frota='    + encodeURIComponent(frota) +
+    '&motorista='+ encodeURIComponent(motorista) +
+    '&aprovado=' + encodeURIComponent(aprovado) +
+    '&_=' + Date.now(), true);
+
+  xhr.onreadystatechange = function(){
+    if(xhr.readyState !== 4) return;
+    try {
+      var resp = JSON.parse(xhr.responseText);
+      if(resp.ok && resp.registros){
+        _rsRegistros = resp.registros;
+        renderListaSeg(_rsRegistros);
+      } else {
+        // Fallback: tenta ler do localStorage do checklist
+        var local = lerLocal('twm_checklist_seg') || [];
+        if(local.length){
+          _rsRegistros = local.filter(function(r){
+            if(de && r.data < de) return false;
+            if(ate && r.data > ate) return false;
+            if(frota && (r.frota||'').indexOf(frota)<0) return false;
+            if(motorista && (r.motorista||'').toLowerCase().indexOf(motorista)<0) return false;
+            if(aprovado !== 'todos' && r.aprovado !== aprovado) return false;
+            return true;
+          });
+          renderListaSeg(_rsRegistros);
+        } else {
+          lista.innerHTML = '<div class="empty">Nenhum registro encontrado.<br>Verifique os filtros ou se o Apps Script está configurado.</div>';
+        }
+      }
+    } catch(e) {
+      lista.innerHTML = '<div class="empty">⚠️ Erro ao buscar — verifique conexão</div>';
+    }
+  };
+  xhr.onerror = xhr.ontimeout = function(){
+    // Fallback local
+    var local = lerLocal('twm_checklist_seg') || [];
+    if(local.length){
+      _rsRegistros = local;
+      renderListaSeg(_rsRegistros);
+    } else {
+      lista.innerHTML = '<div class="empty">📵 Sem conexão e sem dados locais</div>';
+    }
+  };
+  xhr.send();
+}
+
+function renderListaSeg(dados){
+  var lista = document.getElementById('rs-lista');
+  if(!dados.length){lista.innerHTML='<div class="empty">Nenhum registro encontrado</div>';return;}
+  lista.innerHTML = '<div style="font-size:10px;color:var(--muted);margin-bottom:8px">'+dados.length+' registro(s) encontrado(s) — clique para visualizar</div>' +
+  dados.map(function(r,i){
+    var ap = r.aprovado==='SIM';
+    return '<div class="seg-item '+(ap?'ap':'rep')+'" onclick="visualizarSeg('+i+')">' +
+      '<div class="si-top">'+
+        '<span class="si-frota">'+(r.frota||r.veiculo||'—')+'</span>'+
+        '<span class="si-mot">'+(r.motorista||'—')+'</span>'+
+        '<span class="si-badge '+(ap?'ap':'rep')+'">'+(ap?'✅ Aprovado':'❌ Reprovado')+'</span>'+
+      '</div>'+
+      '<div class="si-info">📅 '+(r.data||r.data_hora||'—')+' &nbsp;·&nbsp; 🚛 '+(r.placa_cav||'—')+'/'+(r.placa_car||r.rb||'—')+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+function visualizarSeg(idx){
+  _rsAtual = _rsRegistros[idx];
+  var html = montarDocumentoSeg(_rsAtual);
+  var doc = document.getElementById('rs-doc');
+  if(doc) doc.innerHTML = html;
+  var pb = document.getElementById('rs-preview');
+  if(pb) pb.classList.add('on');
+  pb.scrollIntoView({behavior:'smooth'});
+}
+
+// ── Monta o documento no formato exato FQ-TWM-CO-19-01 ───────────
+function montarDocumentoSeg(r){
+  if(!r) return '';
+  var respostas = r.respostas || {};
+
+  function resp(n){
+    var v = respostas[n] || respostas['item_'+n] || '';
+    return {
+      sim: v==='sim'||v==='SIM'||v===true||v==='S'?'✓':'',
+      nao: v==='nao'||v==='NAO'||v===false||v==='N'?'✗':'',
+      na:  v==='na'||v==='NA'||v==='N/A'?'—':''
+    };
+  }
+
+  var html = '<div style="font-family:Arial,sans-serif;color:#000;font-size:9px;line-height:1.3">';
+
+  // ── CABEÇALHO ──
+  html += '<div style="background:#1e3a8a;color:#fff;padding:8px 12px;margin-bottom:0;display:flex;align-items:center;justify-content:space-between">' +
+    '<div>' +
+      '<div style="font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:.5px">CHECK-LIST MENSAL DE SEGURANÇA DOS VEÍCULOS</div>' +
+      '<div style="font-size:8px;opacity:.8;margin-top:2px">FQ-TWM-CO-19-01 &nbsp;|&nbsp; Rev.:06 &nbsp;|&nbsp; TWM Transportes Especiais Ltda</div>' +
+    '</div>' +
+    '<div style="text-align:right">' +
+      '<div style="font-size:10px;font-weight:700">'+(r.data||r.data_hora||'—')+'</div>' +
+      '<div style="font-size:8px;opacity:.8">Data da inspeção</div>' +
+    '</div>' +
+  '</div>';
+
+  // ── DADOS DO VEÍCULO ──
+  html += '<div style="background:#dbeafe;border:1px solid #93c5fd;padding:6px 10px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:0">' +
+    campo('MOTORISTA', r.motorista||'—') +
+    campo('VEÍCULO (VP)', r.frota||r.veiculo||'—') +
+    campo('KM', r.km_atual||r.km||'—') +
+    campo('PLACA CAVALO', r.placa_cav||r.placa||'—') +
+    campo('PLACA CARRETA / RB', r.placa_car||r.rb||'—') +
+    campo('ANO FAB. CAVALO', r.ano_cav||'—') +
+  '</div>' +
+  '<div style="background:#dbeafe;border:1px solid #93c5fd;border-top:none;padding:6px 10px;display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px">' +
+    campo('LOCAL DA INSPEÇÃO', r.local||'—') +
+    campo('RESPONSÁVEL PELA INSPEÇÃO', r.responsavel||'—') +
+  '</div>';
+
+  // ── CABEÇALHO DA TABELA ──
+  html += '<table style="width:100%;border-collapse:collapse;margin-bottom:6px">' +
+    '<thead><tr style="background:#1e3a8a">' +
+      '<th style="color:#fff;padding:4px 6px;text-align:center;width:28px;font-size:8px;font-weight:700">Nº</th>' +
+      '<th style="color:#fff;padding:4px 6px;text-align:left;font-size:8px;font-weight:700">ITEM DE VERIFICAÇÃO</th>' +
+      '<th style="color:#fff;padding:4px 6px;text-align:center;width:32px;font-size:8px;font-weight:700">SIM</th>' +
+      '<th style="color:#fff;padding:4px 6px;text-align:center;width:32px;font-size:8px;font-weight:700">NÃO</th>' +
+      '<th style="color:#fff;padding:4px 6px;text-align:center;width:32px;font-size:8px;font-weight:700">N/A</th>' +
+    '</tr></thead><tbody>';
+
+  SECOES_CLS.forEach(function(sec){
+    // Linha de seção
+    html += '<tr style="background:#dbeafe"><td colspan="5" style="padding:4px 8px;font-weight:700;font-size:8px;color:#1e3a8a;text-transform:uppercase;letter-spacing:.5px">'+sec.titulo+'</td></tr>';
+    sec.itens.forEach(function(item, idx){
+      var bg = idx%2===0?'#fff':'#f0f9ff';
+      var rv = resp(item.n);
+      html += '<tr style="background:'+bg+'">' +
+        '<td style="padding:3px 6px;text-align:center;font-weight:700;font-size:8px;border-bottom:1px solid #e0e0e0">'+item.n+'</td>' +
+        '<td style="padding:3px 6px;font-size:8px;border-bottom:1px solid #e0e0e0">'+item.txt+'</td>' +
+        '<td style="padding:3px 6px;text-align:center;font-size:11px;font-weight:700;color:#16a34a;border-bottom:1px solid #e0e0e0">'+rv.sim+'</td>' +
+        '<td style="padding:3px 6px;text-align:center;font-size:11px;font-weight:700;color:#dc2626;border-bottom:1px solid #e0e0e0">'+rv.nao+'</td>' +
+        '<td style="padding:3px 6px;text-align:center;font-size:9px;color:#6b7280;border-bottom:1px solid #e0e0e0">'+rv.na+'</td>' +
+      '</tr>';
+    });
+  });
+
+  html += '</tbody></table>';
+
+  // ── JUSTIFICATIVA E OBSERVAÇÕES ──
+  html += '<div style="border:1px solid #ccc;padding:6px 8px;margin-bottom:6px">' +
+    '<div style="font-weight:700;font-size:8px;text-transform:uppercase;color:#1e3a8a;margin-bottom:4px">SE ASSINALOU (N) EM ALGUM ITEM — JUSTIFIQUE:</div>' +
+    '<div style="min-height:24px;font-size:8px;border-top:1px solid #eee;padding-top:4px">'+(r.justificativa||r.obs||'&nbsp;')+'</div>' +
+  '</div>';
+
+  // ── SOLICITAÇÃO DE MANUTENÇÃO ──
+  if(r.solicitacao_manutencao){
+    html += '<div style="border:1px solid #fca5a5;background:#fef2f2;padding:6px 8px;margin-bottom:6px">' +
+      '<div style="font-weight:700;font-size:8px;text-transform:uppercase;color:#dc2626;margin-bottom:4px">⚠️ SOLICITAÇÃO DE MANUTENÇÃO:</div>' +
+      '<div style="font-size:8px">'+(r.solicitacao_manutencao)+'</div>' +
+    '</div>';
+  }
+
+  // ── RESULTADO ──
+  var aprovado = r.aprovado==='SIM';
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;border:2px solid '+(aprovado?'#16a34a':'#dc2626')+';padding:6px 12px;margin-bottom:8px;border-radius:4px">' +
+    '<div style="font-weight:900;font-size:10px;text-transform:uppercase;color:'+(aprovado?'#14532d':'#991b1b')+'">VEÍCULO APROVADO PARA OPERAÇÃO?</div>' +
+    '<div style="font-size:14px;font-weight:900;color:'+(aprovado?'#16a34a':'#dc2626')+'">'+(aprovado?'✓ SIM':'✗ NÃO')+'</div>' +
+  '</div>';
+
+  // ── ASSINATURAS ──
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:8px">' +
+    assinatura('Motorista / Operador', r.motorista||'') +
+    assinatura('Responsável pela Inspeção', r.responsavel||'') +
+  '</div>';
+
+  // ── RODAPÉ ──
+  html += '<div style="margin-top:10px;padding-top:6px;border-top:1px solid #e0e0e0;display:flex;justify-content:space-between;font-size:7px;color:#9ca3af">' +
+    '<span>FQ-TWM-CO-19-01 | Rev.:06 | TWM Transportes Especiais Ltda</span>' +
+    '<span>Emitido em: '+dtEmit()+'</span>' +
+  '</div>';
+
+  html += '</div>';
+  return html;
+}
+
+function campo(label, val){
+  return '<div><div style="font-size:7px;font-weight:700;text-transform:uppercase;color:#1e40af;letter-spacing:.5px">'+label+'</div>'+
+    '<div style="font-size:9px;font-weight:600;color:#1e3a8a">'+val+'</div></div>';
+}
+function assinatura(label, nome){
+  return '<div style="text-align:center">' +
+    '<div style="border-top:1px solid #000;padding-top:4px;font-size:8px;font-weight:700">'+nome+'</div>' +
+    '<div style="font-size:7px;color:#6b7280;text-transform:uppercase">'+label+'</div>' +
+  '</div>';
+}
+
+function imprimirSeg(){
+  if(!_rsAtual){toast('Selecione um registro primeiro','err');return;}
+  var doc=document.getElementById('rs-doc');
+  imprimir(doc?doc.innerHTML:'');
+}
+function pdfSeg(){toast('💡 Escolha Salvar como PDF','');setTimeout(imprimirSeg,600);}
+
 // ── INIT ──────────────────────────────────────────
 window.onload=function(){
   // Datas padrão
   var h=new Date();
   var ini=new Date(h.getFullYear(),h.getMonth(),1);
-  ['rl-','ra-'].forEach(function(p){
+  ['rl-','ra-','rs-'].forEach(function(p){
     var de=document.getElementById(p+'de'),ate=document.getElementById(p+'ate');
     if(de)de.value=ini.getFullYear()+'-'+pad(ini.getMonth()+1)+'-'+pad(ini.getDate());
     if(ate)ate.value=h.getFullYear()+'-'+pad(h.getMonth()+1)+'-'+pad(h.getDate());
@@ -721,5 +1024,55 @@ window.onload=function(){
   carregarDashboard();
 };
 </script>
+
+<!-- ══ CHECKLIST SEGURANÇA MENSAL ══ -->
+<div class="scr" id="scr-seguranca">
+
+  <div class="rel-section">
+    <div class="rel-section-title">🗓️ Período</div>
+    <div class="filtros-grid">
+      <div class="filtro-group"><label>De</label><input type="date" id="rs-de"></div>
+      <div class="filtro-group"><label>Até</label><input type="date" id="rs-ate"></div>
+    </div>
+  </div>
+
+  <div class="rel-section">
+    <div class="rel-section-title">🔍 Filtros</div>
+    <div class="filtros-grid" style="margin-bottom:8px">
+      <div class="filtro-group">
+        <label>Frota (VP)</label>
+        <input type="text" id="rs-frota" placeholder="Ex: VP-183">
+      </div>
+      <div class="filtro-group">
+        <label>Motorista</label>
+        <input type="text" id="rs-motorista" placeholder="Nome parcial...">
+      </div>
+    </div>
+    <div class="filtro-group">
+      <label>Resultado</label>
+      <select id="rs-aprovado">
+        <option value="todos">Todos</option>
+        <option value="SIM">Aprovados</option>
+        <option value="NAO">Reprovados</option>
+      </select>
+    </div>
+  </div>
+
+  <button class="btn-vis" onclick="buscarChecklists()">🔍 Buscar Registros</button>
+
+  <!-- Lista de registros encontrados -->
+  <div id="rs-lista" style="margin-top:12px"></div>
+
+  <!-- Preview do documento selecionado -->
+  <div class="preview-box" id="rs-preview">
+    <div class="rel-section-title" style="margin-bottom:8px">📄 Documento FQ-TWM-CO-19-01 Rev.06</div>
+    <div id="rs-doc"></div>
+    <div class="preview-actions" style="margin-top:10px">
+      <button class="btn-pr btn-pr-az" onclick="imprimirSeg()">🖨️ Imprimir</button>
+      <button class="btn-pr btn-pr-pd"  onclick="pdfSeg()">📥 PDF</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
