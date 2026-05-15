@@ -634,6 +634,7 @@ function normalizarPermissoes(motorista) {
   // ── Permissões fixas conhecidas ──────────────────────────────
   var perm = {
     admin:            isAdmin,
+    admin_master:     ativo(m.admin_master || m.ADMIN_MASTER),
     checklist_frota:  isAdmin || ativo(m.checklist_frota  || m.CHECK_FROTA       || m.check_frota),
     lvt:              isAdmin || ativo(m.lvt              || m.LVT),
     seg_mensal:       isAdmin || ativo(m.seg_mensal       || m.SEG_MENSAL        || m.segmensal),
@@ -1160,7 +1161,7 @@ var MODS = [
   {id:'abastecimento', nome:'ABASTECIMENTO',         desc:'Diesel, Arla 32 e consumo da frota',          href:'abastecimento.html',               badge:'verde',    bl:'Ativo',    bg:'rgba(245,158,11,.18)',  ico:'<svg width="28" height="28" viewBox="0 0 32 32" fill="none"><path d="M8 6 L8 26 L20 26 L20 12 L14 6 Z" fill="#F59E0B" opacity=".15" stroke="#F59E0B" stroke-width="2" stroke-linejoin="round"/><path d="M14 6 L14 12 L20 12" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M22 14 L26 14 L26 22 Q26 24 24 24 Q22 24 22 22 Z" fill="#F59E0B" opacity=".6" stroke="#F59E0B" stroke-width="1.5"/><line x1="22" y1="14" x2="22" y2="10" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/><line x1="11" y1="17" x2="17" y2="17" stroke="#F59E0B" stroke-width="1.8" stroke-linecap="round"/><line x1="11" y1="21" x2="17" y2="21" stroke="#F59E0B" stroke-width="1.8" stroke-linecap="round"/></svg>'},
   {id:'docs',      nome:'DOCUMENTAÇÃO',            desc:'CRLV, CIV, CNH e mais',                      href:'#',                                badge:'cinza',    bl:'Em breve', bg:'rgba(245,158,11,.18)',  ico:'<svg width="28" height="28" viewBox="0 0 32 32" fill="none"><path d="M6 2 L22 2 L28 9 L28 30 L6 30 Z" fill="#F59E0B" opacity=".12" stroke="#F59E0B" stroke-width="2" stroke-linejoin="round"/><path d="M22 2 L22 9 L28 9" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" fill="none"/><line x1="11" y1="14" x2="21" y2="14" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/><line x1="11" y1="19" x2="21" y2="19" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/><line x1="11" y1="24" x2="17" y2="24" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/></svg>'},
   {id:'gps',       nome:'GPS LOCALIZAÇÃO',         desc:'Rastreamento em tempo real',                  href:'#',                                badge:'cinza',    bl:'Em breve', bg:'rgba(16,185,129,.18)',  ico:'<svg width="28" height="28" viewBox="0 0 32 32" fill="none"><path d="M16 3 C10 3 6 8 6 13 C6 21 16 30 16 30 C16 30 26 21 26 13 C26 8 22 3 16 3 Z" fill="#10B981" opacity=".15" stroke="#10B981" stroke-width="2"/><circle cx="16" cy="13" r="4" fill="#10B981"/><circle cx="16" cy="13" r="2" fill="white"/><path d="M10 7 C8 9 8 13 8 13" stroke="#10B981" stroke-width="1.5" stroke-linecap="round" opacity=".5"/><path d="M22 7 C24 9 24 13 24 13" stroke="#10B981" stroke-width="1.5" stroke-linecap="round" opacity=".5"/></svg>'},
-  {id:'rel',       nome:'RELATÓRIOS',              desc:'Dashboards e histórico da frota',             href:'#',                                badge:'cinza',    bl:'Em breve', bg:'rgba(6,182,212,.18)',   ico:'<svg width="28" height="28" viewBox="0 0 32 32" fill="none"><line x1="5" y1="27" x2="27" y2="27" stroke="#22D3EE" stroke-width="2" stroke-linecap="round"/><line x1="5" y1="5" x2="5" y2="27" stroke="#22D3EE" stroke-width="2" stroke-linecap="round"/><rect x="8" y="18" width="4" height="9" rx="1.5" fill="#22D3EE" opacity=".5"/><rect x="14" y="12" width="4" height="15" rx="1.5" fill="#22D3EE" opacity=".75"/><rect x="20" y="7" width="4" height="20" rx="1.5" fill="#22D3EE"/></svg>'},
+  {id:'rel',       nome:'RELATÓRIOS',              desc:'Dashboards e histórico da frota',             href:'relatorios.html',                  badge:'ciano',    bl:'Ativo', bg:'rgba(6,182,212,.18)',   ico:'<svg width="28" height="28" viewBox="0 0 32 32" fill="none"><line x1="5" y1="27" x2="27" y2="27" stroke="#22D3EE" stroke-width="2" stroke-linecap="round"/><line x1="5" y1="5" x2="5" y2="27" stroke="#22D3EE" stroke-width="2" stroke-linecap="round"/><rect x="8" y="18" width="4" height="9" rx="1.5" fill="#22D3EE" opacity=".5"/><rect x="14" y="12" width="4" height="15" rx="1.5" fill="#22D3EE" opacity=".75"/><rect x="20" y="7" width="4" height="20" rx="1.5" fill="#22D3EE"/></svg>'},
 ];
 
 var _mods = (function(){
@@ -1197,7 +1198,7 @@ function renderMods() {
     // ── Módulos futuros — adicione só a linha abaixo ─────────────
     // 'novo_modulo.html':         'nome_da_permissao',
     // 'manutencao_os.html':       'manutencao_os',
-    // 'relatorios.html':          'relatorios',
+    'relatorios.html':             'relatorios',
     // 'financeiro.html':          'financeiro',
     // 'rh.html':                  'rh',
     // 'combustivel.html':         'combustivel',
