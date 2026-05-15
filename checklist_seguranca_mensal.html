@@ -127,6 +127,8 @@ body.light{--bg:#F4F3FF;--bg2:#FFFFFF;--bg3:#FAFAFA;--border:rgba(0,0,0,0.07);--
   .chk-box{width:16px;height:16px;border:1.5px solid #666;display:inline-block;text-align:center;line-height:14px;font-size:10px;font-weight:bold}
 }
 .print-only{display:none}
+body.light{--bg:#F4F3FF;--bg2:#FFFFFF;--bg3:#FAFAFA;--border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.13);--text:#1A1A2E;--muted:#6B6880}
+body.light .app-header{box-shadow:0 1px 8px rgba(0,0,0,.08)}
 </style>
 <script>
 (function() {
@@ -139,6 +141,9 @@ body.light{--bg:#F4F3FF;--bg2:#FFFFFF;--bg3:#FAFAFA;--border:rgba(0,0,0,0.07);--
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', aplicar);
   else aplicar();
 })();
+</script>
+<script>
+(function(){var p=localStorage.getItem('twm_tema')||'auto';var claro;if(p==='claro')claro=true;else if(p==='escuro')claro=false;else{var h=new Date().getHours();claro=h>=6&&h<18;}function ap(){if(claro)document.body.classList.add('light');}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ap);else ap();})();
 </script>
 </head>
 <body>
@@ -617,9 +622,57 @@ function salvarChecklist() {
   lista.unshift(cl);
   salvarLocal('twm_cl_' + frotaAtual, lista);
 
-  // Envia ao servidor
+  // Salva no cache global para o módulo de relatórios
+  const cacheGlobal = lerLocal('twm_checklist_seg') || [];
+  cacheGlobal.unshift({
+    id:          cl.id,
+    data_hora:   cl.data + ' ' + cl.hora,
+    data:        cl.data.split('/').reverse().join('-'),
+    frota:       cl.frota,
+    veiculo:     cl.frota,
+    motorista:   cl.motorista,
+    km_atual:    cl.km||'',
+    placa_cav:   cl.placa_cav||'',
+    placa_car:   cl.placa_car||'',
+    rb:          cl.rb||'',
+    ano_cav:     cl.ano_cav||'',
+    ano_car:     cl.ano_car||'',
+    local:       cl.local||'',
+    responsavel: cl.responsavel||'',
+    aprovado:    cl.aprovacao === 'sim' ? 'SIM' : 'NAO',
+    justificativa:          cl.obs||'',
+    solicitacao_manutencao: cl.obs||'',
+    respostas:   cl.respostas,
+  });
+  salvarLocal('twm_checklist_seg', cacheGlobal.slice(0, 200));
+
+  // Envia ao servidor — action salvarChecklistSeg (salva na planilha do Drive)
   if (navigator.onLine) {
     const params = new URLSearchParams({
+      action:                  'salvarChecklistSeg',
+      frota:                   cl.frota,
+      data_hora:               cl.data + ' ' + cl.hora,
+      motorista:               cl.motorista,
+      km:                      cl.km||'',
+      placa_cav:               cl.placa_cav||'',
+      placa_car:               cl.placa_car||'',
+      rb:                      cl.rb||'',
+      ano_cav:                 cl.ano_cav||'',
+      ano_car:                 cl.ano_car||'',
+      local:                   cl.local||'',
+      responsavel:             cl.responsavel||'',
+      aprovado:                cl.aprovacao === 'sim' ? 'SIM' : 'NAO',
+      justificativa:           cl.obs||'',
+      solicitacao_manutencao:  cl.obs||'',
+      respostas:               JSON.stringify(cl.respostas),
+    });
+    fetch(SCRIPT_URL + '?' + params.toString())
+      .then(r => r.json())
+      .then(d => { if(d.ok) showToast('✅ Arquivado na planilha!'); })
+      .catch(()=>{ showToast('📵 Salvo localmente — será sincronizado'); });
+
+    // Também mantém compatibilidade com a action antiga (salva no Drive como doc)
+    const paramsOld = new URLSearchParams({
       action:      'salvarChecklistSeguranca',
       frota:       cl.frota,
       data:        cl.data,
@@ -637,10 +690,7 @@ function salvarChecklist() {
       obs:         cl.obs||'',
       respostas:   JSON.stringify(cl.respostas),
     });
-    fetch(SCRIPT_URL + '?' + params.toString())
-      .then(r => r.json())
-      .then(d => { if(d.ok) showToast('✅ Salvo na planilha: '+d.planilha); })
-      .catch(()=>{});
+    fetch(SCRIPT_URL + '?' + paramsOld.toString()).catch(()=>{});
   }
 
   showToast('✅ Check-List salvo!');
