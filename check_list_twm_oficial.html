@@ -418,7 +418,12 @@ body.light .app-header{box-shadow:0 1px 8px rgba(0,0,0,.08)}
 body.light .list-card{box-shadow:0 1px 6px rgba(0,0,0,.06)}
 body.light .modal-box{box-shadow:0 -4px 32px rgba(0,0,0,.12)}
 body.light .pneu-card{box-shadow:0 1px 6px rgba(0,0,0,.06)}
+body.light{--bg:#F4F3FF;--bg2:#FFFFFF;--bg3:#FAFAFA;--border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.13);--text:#1A1A2E;--muted:#6B6880}
+body.light .app-header{box-shadow:0 1px 8px rgba(0,0,0,.08)}
 </style>
+<script>
+(function(){var p=localStorage.getItem('twm_tema')||'auto';var claro;if(p==='claro')claro=true;else if(p==='escuro')claro=false;else{var h=new Date().getHours();claro=h>=6&&h<18;}function ap(){if(claro)document.body.classList.add('light');}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ap);else ap();})();
+</script>
 </head>
 <body>
 <script>
@@ -784,6 +789,8 @@ const CAMPOS = [
 let usuarioLogado = null;
 let caminhaoAtual = null;
 let formDados = {};
+  // Pré-preenche todos os campos simnao com 'Sim'
+  CAMPOS.filter(f => f.tipo === 'simnao').forEach(f => { formDados[f.id] = 'Sim'; });
 let checklists = JSON.parse(localStorage.getItem('twm_checklists') || '[]');
 let filaOffline = JSON.parse(localStorage.getItem('twm_fila') || '[]');
 let frotaFiltrada = [...FROTA];
@@ -1228,9 +1235,12 @@ function abrirFormChecklist() {
       <input type="file" id="foto_input_${campo.id}" accept="image/*" capture="user" style="display:none" onchange="previewFoto('${campo.id}', this)">
       <div class="photo-preview" id="preview_${campo.id}"></div>`;
     } else if (campo.tipo === 'simnao') {
+      // Pré-seleciona SIM — operador só precisa mudar os NÃO
+      const preSimSel = (formDados[campo.id] || 'Sim') === 'Sim' ? 'selected' : '';
+      const preNaoSel = formDados[campo.id] === 'Não' ? 'selected' : '';
       html += `<div class="btn-group">
-        <button class="btn-sim" id="sim_${campo.id}" onclick="selecionarSimNao('${campo.id}','Sim')">Sim</button>
-        <button class="btn-nao" id="nao_${campo.id}" onclick="selecionarSimNao('${campo.id}','Não')">Não</button>
+        <button class="btn-sim ${preSimSel}" id="sim_${campo.id}" onclick="selecionarSimNao('${campo.id}','Sim')">Sim</button>
+        <button class="btn-nao ${preNaoSel}" id="nao_${campo.id}" onclick="selecionarSimNao('${campo.id}','Não')">Não</button>
       </div>`;
     } else if (campo.tipo === 'textarea') {
       html += `<div class="field-group"><textarea id="f_${campo.id}" placeholder="${campo.id === 'justificativa' ? 'Descreva o motivo...' : 'Descreva a solicitação...'}"></textarea></div>`;
