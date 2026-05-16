@@ -1,0 +1,1851 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0A0A0F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>TWM — Manutenção</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icone-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0A0A0F;--bg2:#0F0F18;--bg3:#13131E;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.13);--text:#F0EEF8;--muted:#7A7890;--accent:#7B3FE4;--accent2:#A855F7;--green:#10B981;--red:#EF4444;--gold:#F59E0B;--cyan:#06B6D4;--orange:#F97316}
+body.light{--bg:#F4F3FF;--bg2:#FFFFFF;--bg3:#FAFAFA;--border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.13);--text:#1A1A2E;--muted:#6B6880}
+body.light .app-header{box-shadow:0 1px 8px rgba(0,0,0,.08)}
+</style>
+<script>
+(function(){var p=localStorage.getItem('twm_tema')||'auto';var claro;if(p==='claro')claro=true;else if(p==='escuro')claro=false;else{var h=new Date().getHours();claro=h>=6&&h<18;}function ap(){if(claro)document.body.classList.add('light');}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ap);else ap();})();
+</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* HEADER */
+.app-header{background:var(--bg2);border-bottom:2px solid var(--accent);padding:0 14px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
+.logo{display:flex;align-items:center;gap:8px}
+.logo-badge{width:32px;height:32px;background:linear-gradient(135deg,#7B3FE4,#A855F7);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:900;color:#fff}
+.logo-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;letter-spacing:1px;text-transform:uppercase}
+.btn-back{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:4px}
+
+/* RESUMO — sticky abaixo do header */
+.resumo{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:52px;z-index:199}
+.res{background:var(--bg3);border-radius:9px;padding:7px 5px;text-align:center;border-top:2px solid}
+.res.ab{border-color:var(--red)}.res.and{border-color:var(--gold)}.res.ag{border-color:var(--cyan)}.res.ext{border-color:var(--accent2)}.res.ok{border-color:var(--green)}
+.res-n{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;line-height:1}
+.res.ab .res-n{color:var(--red)}.res.and .res-n{color:var(--gold)}.res.ag .res-n{color:var(--cyan)}.res.ext .res-n{color:var(--accent2)}.res.ok .res-n{color:var(--green)}
+.res-l{font-size:6.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px;line-height:1.2}
+
+/* BOARD */
+.board-wrap{overflow-x:auto;padding:10px 10px 50px;display:flex;gap:9px;align-items:flex-start}
+.board-wrap::-webkit-scrollbar{height:4px}.board-wrap::-webkit-scrollbar-thumb{background:var(--accent);border-radius:2px}
+
+/* COLUNAS */
+.col{min-width:205px;max-width:205px;background:var(--bg2);border-radius:12px;flex-shrink:0}
+.col-head{padding:9px 11px;border-radius:12px 12px 0 0;border-bottom:1px solid var(--border)}
+.col-title{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;display:flex;align-items:center;gap:5px}
+.col-count{font-size:8px;font-weight:700;padding:1px 6px;border-radius:8px;margin-left:auto}
+.col-cards{padding:8px;display:flex;flex-direction:column;gap:8px}
+
+.col.aberta  .col-head{border-top:3px solid var(--red)}.col.aberta  .col-title{color:var(--red)}.col.aberta  .col-count{background:rgba(239,68,68,.12);color:var(--red)}
+.col.andando .col-head{border-top:3px solid var(--gold)}.col.andando .col-title{color:var(--gold)}.col.andando .col-count{background:rgba(245,158,11,.12);color:var(--gold)}
+.col.agpeca  .col-head{border-top:3px solid var(--cyan)}.col.agpeca  .col-title{color:var(--cyan)}.col.agpeca  .col-count{background:rgba(6,182,212,.12);color:var(--cyan)}
+.col.externa .col-head{border-top:3px solid var(--accent2)}.col.externa .col-title{color:var(--accent2)}.col.externa .col-count{background:rgba(168,85,247,.12);color:var(--accent2)}
+.col.concl   .col-head{border-top:3px solid var(--green)}.col.concl   .col-title{color:var(--green)}.col.concl   .col-count{background:rgba(16,185,129,.12);color:var(--green)}
+
+/* CARD por frota */
+.card{background:var(--bg3);border-radius:11px;overflow:hidden;border:1px solid var(--border2)}
+.card-hd{padding:8px 10px;border-bottom:1px solid var(--border)}
+.card-fr-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.card-frota{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900}
+.card-frota.cav{color:var(--gold)}.card-frota.car{color:var(--cyan)}.card-frota.ext{color:var(--accent2)}
+.card-tipo-vei{font-size:7px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.card-prio{font-size:7px;font-weight:700;padding:2px 6px;border-radius:8px;text-transform:uppercase;white-space:nowrap}
+.p-urg{background:rgba(239,68,68,.12);color:var(--red)}.p-nor{background:rgba(245,158,11,.12);color:var(--gold)}.p-bai{background:rgba(16,185,129,.12);color:var(--green)}
+.card-info-row{display:flex;align-items:center;justify-content:space-between;font-size:8px;color:var(--muted)}
+.card-origem{font-size:7.5px;color:var(--accent2);font-weight:600;margin-top:2px;display:flex;align-items:center;gap:3px}
+
+/* SERVIÇOS dentro do card */
+.svs{padding:6px 8px;display:flex;flex-direction:column;gap:5px}
+.sv{background:rgba(255,255,255,.03);border-radius:8px;padding:7px 8px;border-left:3px solid rgba(255,255,255,.08)}
+.sv.s-aberta{border-left-color:var(--red)}.sv.s-andando{border-left-color:var(--gold)}.sv.s-concl{border-left-color:var(--green);opacity:.75}.sv.s-pend{border-left-color:var(--orange)}.sv.s-agpeca{border-left-color:var(--cyan)}.sv.s-externa{border-left-color:var(--accent2)}
+.sv-top{display:flex;align-items:flex-start;justify-content:space-between;gap:4px;margin-bottom:3px}
+.sv-tipo{font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);flex:1;line-height:1.2}
+.sv-tag{font-size:6.5px;font-weight:700;padding:1px 5px;border-radius:7px;white-space:nowrap;flex-shrink:0}
+.t-ab{background:rgba(239,68,68,.12);color:var(--red)}.t-and{background:rgba(245,158,11,.12);color:var(--gold)}.t-ok{background:rgba(16,185,129,.12);color:var(--green)}.t-pend{background:rgba(249,115,22,.12);color:var(--orange)}.t-ag{background:rgba(6,182,212,.12);color:var(--cyan)}.t-ext{background:rgba(168,85,247,.12);color:var(--accent2)}
+.sv-desc{font-size:8.5px;color:var(--text);line-height:1.3;margin-bottom:4px;font-weight:500}
+.sv-sol{font-size:8px;color:var(--green);font-style:italic;margin-bottom:4px;line-height:1.3}
+.sv-pend-av{font-size:8px;color:var(--orange);font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:3px}
+.sv-pend-note{font-size:7.5px;color:var(--muted);font-style:italic;margin-bottom:4px}
+
+/* MECÂNICO por serviço */
+.sv-mec{display:flex;align-items:center;gap:5px;font-size:8px;color:var(--muted);margin-bottom:5px;flex-wrap:wrap}
+.sv-mec b{color:var(--text);font-weight:600}
+.sv-mec-tempo{color:var(--cyan);font-weight:700}
+.btn-mec{font-size:7px;font-weight:700;padding:2px 6px;border-radius:5px;background:rgba(123,63,228,.1);border:1px solid rgba(123,63,228,.2);color:var(--accent2);cursor:pointer;font-family:'Barlow',sans-serif}
+.btn-mec:hover{background:var(--accent);color:#fff}
+
+/* AÇÕES */
+.sv-acts{display:flex;gap:4px;flex-wrap:wrap}
+.btn-a{font-size:7.5px;font-weight:700;padding:3px 7px;border-radius:6px;border:none;cursor:pointer;font-family:'Barlow',sans-serif;transition:.15s;line-height:1.4}
+.btn-ok{background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.25)}.btn-ok:hover{background:var(--green);color:#fff}
+.btn-pend{background:rgba(249,115,22,.1);color:var(--orange);border:1px solid rgba(249,115,22,.25)}.btn-pend:hover{background:var(--orange);color:#fff}
+.btn-mv{background:rgba(123,63,228,.1);color:var(--accent2);border:1px solid rgba(123,63,228,.2)}.btn-mv:hover{background:var(--accent);color:#fff}
+.btn-ag{background:rgba(6,182,212,.1);color:var(--cyan);border:1px solid rgba(6,182,212,.2)}.btn-ag:hover{background:var(--cyan);color:#fff}
+
+/* ADD serviço ao card */
+.add-sv{display:flex;align-items:center;justify-content:center;gap:4px;padding:5px 8px;margin:0 8px 8px;border:1px dashed var(--border2);border-radius:7px;font-size:8.5px;color:var(--muted);cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.5px;transition:.15s}
+.add-sv:hover{border-color:var(--accent);color:var(--accent2)}
+
+/* ADD novo card */
+.add-card{margin:8px;padding:9px;border:1px dashed var(--border2);border-radius:10px;text-align:center;font-size:10px;color:var(--muted);cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:1px;transition:.15s}
+.add-card:hover{border-color:var(--accent);color:var(--accent2)}
+
+/* SEPARADOR */
+.sv-sep{height:1px;background:var(--border);margin:2px 0}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;align-items:flex-end;justify-content:center}
+.overlay.on{display:flex}
+.modal{background:var(--bg3);border-radius:16px 16px 0 0;padding:16px;width:100%;max-width:520px;border-top:3px solid var(--accent);max-height:90vh;overflow-y:auto}
+.modal-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--accent2);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.modal-close{cursor:pointer;color:var(--muted);font-size:18px;line-height:1}
+.modal-field{margin-bottom:12px}
+.modal-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:block;margin-bottom:5px}
+.modal-input,.modal-select,.modal-textarea{width:100%;background:var(--bg);border:1.5px solid var(--border2);border-radius:9px;color:var(--text);font-family:'Barlow',sans-serif;font-size:13px;padding:10px 12px;outline:none;-webkit-appearance:none}
+.modal-input:focus,.modal-select:focus,.modal-textarea:focus{border-color:var(--accent)}
+.modal-textarea{min-height:70px;resize:none}
+.modal-opts{display:flex;flex-direction:column;gap:8px}
+.mopt{padding:11px 13px;border-radius:10px;border:1px solid var(--border2);cursor:pointer;font-size:11px;font-weight:600;transition:.15s}
+.mopt.verde{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.06);color:var(--green)}
+.mopt.amarelo{border-color:rgba(249,115,22,.3);background:rgba(249,115,22,.06);color:var(--orange)}
+.mopt.cancel{color:var(--muted);text-align:center}
+.btn-salvar{width:100%;padding:13px;background:linear-gradient(135deg,#7B3FE4,#A855F7);border:none;border-radius:11px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#fff;cursor:pointer;margin-top:8px;box-shadow:0 4px 16px rgba(123,63,228,.3)}
+
+/* TOAST */
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:10px 20px;font-size:12px;font-weight:600;z-index:999;transition:.3s;white-space:nowrap;pointer-events:none}
+.toast.on{transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:rgba(16,185,129,.4);color:var(--green)}.toast.err{border-color:rgba(239,68,68,.4);color:var(--red)}
+
+.empty-col{text-align:center;padding:20px 10px;font-size:11px;color:var(--muted);line-height:1.6}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="app-header">
+  <div class="logo">
+    <div class="logo-badge">TWM</div>
+    <div class="logo-title">Manutenção</div>
+  </div>
+  <a class="btn-back" href="index.html">← Central</a>
+</div>
+
+<!-- RESUMO STICKY -->
+<div class="resumo" id="resumo">
+  <div class="res ab"><div class="res-n" id="cnt-ab">0</div><div class="res-l">Abertas</div></div>
+  <div class="res and"><div class="res-n" id="cnt-and">0</div><div class="res-l">Andamento</div></div>
+  <div class="res ag"><div class="res-n" id="cnt-ag">0</div><div class="res-l">Ag. Peça</div></div>
+  <div class="res ext"><div class="res-n" id="cnt-ext">0</div><div class="res-l">Of. Externa</div></div>
+  <div class="res ok"><div class="res-n" id="cnt-ok">0</div><div class="res-l">Concluídas</div></div>
+</div>
+
+<!-- BOARD -->
+<div class="board-wrap" id="board">
+  <div class="col aberta">
+    <div class="col-head"><div class="col-title">🔴 Aberta <span class="col-count" id="lbl-aberta">0</span></div></div>
+    <div class="col-cards" id="col-aberta"></div>
+    <div class="add-card" onclick="abrirModalNovaOS('aberta')">＋ Nova O.S.</div>
+  </div>
+  <div class="col andando">
+    <div class="col-head"><div class="col-title">🟡 Andamento <span class="col-count" id="lbl-andando">0</span></div></div>
+    <div class="col-cards" id="col-andando"></div>
+    <div class="add-card" onclick="abrirModalNovaOS('andando')">＋ Nova O.S.</div>
+  </div>
+  <div class="col agpeca">
+    <div class="col-head"><div class="col-title">🔵 Ag. Peça <span class="col-count" id="lbl-agpeca">0</span></div></div>
+    <div class="col-cards" id="col-agpeca"></div>
+    <div class="add-card" onclick="abrirModalNovaOS('agpeca')">＋ Nova O.S.</div>
+  </div>
+  <div class="col externa">
+    <div class="col-head"><div class="col-title">🏭 Of. Externa <span class="col-count" id="lbl-externa">0</span></div></div>
+    <div class="col-cards" id="col-externa"></div>
+    <div class="add-card" onclick="abrirModalNovaOS('externa')">＋ Nova O.S.</div>
+  </div>
+  <div class="col concl">
+    <div class="col-head"><div class="col-title">✅ Concluída <span class="col-count" id="lbl-concl">0</span></div></div>
+    <div class="col-cards" id="col-concl"></div>
+    <div class="add-card" style="color:var(--green);border-color:rgba(16,185,129,.2)" onclick="abrirModalNovaOS('concl')">＋ Nova O.S.</div>
+  </div>
+</div>
+
+<!-- MODAIS -->
+<!-- Modal Nova OS -->
+<div class="overlay" id="modal-nova-os">
+  <div class="modal">
+    <div class="modal-title">
+      <span>➕ Nova Ordem de Serviço</span>
+      <span class="modal-close" onclick="fecharModal('modal-nova-os')">✕</span>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Frota / Prefixo *</label>
+      <input class="modal-input" id="nos-frota" type="text" placeholder="Ex: VP-183, RB-128..." autocapitalize="characters" oninput="this.value=this.value.toUpperCase()">
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Tipo de Veículo</label>
+      <select class="modal-select" id="nos-tipo-vei">
+        <option value="Cavalo Mecânico">Cavalo Mecânico</option>
+        <option value="Carreta">Carreta</option>
+        <option value="Carro de Apoio">Carro de Apoio</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Prioridade</label>
+      <select class="modal-select" id="nos-prio">
+        <option value="normal">Normal</option>
+        <option value="urgente">🔴 Urgente</option>
+        <option value="baixa">Baixa</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Tipo de Serviço *</label>
+      <select class="modal-select" id="nos-tipo-sv">
+
+        <optgroup label="30 — CABINE">
+          <option value="[30] AR CONDICIONADO">AR CONDICIONADO</option>
+          <option value="[30] PARABRISA DANIFICADO">PARABRISA DANIFICADO</option>
+          <option value="[30] PALHETAS DO LIMPADOR">PALHETAS DO LIMPADOR</option>
+          <option value="[30] PORTA NAO ABRE">PORTA NAO ABRE</option>
+          <option value="[30] RETROVISOR">RETROVISOR</option>
+          <option value="[30] LANTERNAGEM">LANTERNAGEM</option>
+          <option value="[30] INTERCLIMA">INTERCLIMA</option>
+          <option value="[30] EMBUCHAMENTO DE CABINE">EMBUCHAMENTO DE CABINE</option>
+          <option value="[30] PISTAO DE BASCULA">PISTAO DE BASCULA</option>
+          <option value="[30] CORTINA">CORTINA</option>
+          <option value="[30] AMORTECEDOR DE CABINE">AMORTECEDOR DE CABINE</option>
+          <option value="[30] ESCADA">ESCADA</option>
+          <option value="[30] HIGIENIZACAO">HIGIENIZACAO</option>
+          <option value="[30] TETO SOLAR">TETO SOLAR</option>
+          <option value="[30] VIDRO ELETRICO">VIDRO ELETRICO</option>
+          <option value="[30] GELADEIRA">GELADEIRA</option>
+          <option value="[30] VALVULA NIVELADORA">VALVULA NIVELADORA</option>
+          <option value="[30] CINTO DE SEGURANCA">CINTO DE SEGURANCA</option>
+          <option value="[30] TAPETE">TAPETE</option>
+          <option value="[30] CAMA">CAMA</option>
+          <option value="[30] CHAVE DE IGNICAO">CHAVE DE IGNICAO</option>
+          <option value="[30] FILTRO DE AR DA CABINE">FILTRO DE AR DA CABINE</option>
+          <option value="[30] BANCO DO MOTORISTA/PASSAGEIRO">BANCO DO MOTORISTA/PASSAGEIRO</option>
+          <option value="[30] PLACA DE SIMBOLOGIA">PLACA DE SIMBOLOGIA</option>
+          <option value="[30] PLACA DE IDENTIFICACAO">PLACA DE IDENTIFICACAO</option>
+          <option value="[30] GAVETA LATERAL">GAVETA LATERAL</option>
+          <option value="[30] MANGUEIRA DE ASSOPRAR">MANGUEIRA DE ASSOPRAR</option>
+          <option value="[30] AFERICAO DO TACOGRAFO">AFERICAO DO TACOGRAFO</option>
+          <option value="[30] RADIO NAO FUNCIONA">RADIO NAO FUNCIONA</option>
+          <option value="[30] QUEBRA-SOL">QUEBRA-SOL</option>
+          <option value="[30] SOPRADOR DA CABINE">SOPRADOR DA CABINE</option>
+          <option value="[30] VENTILADOR DA CABINE">VENTILADOR DA CABINE</option>
+          <option value="[30] VELOCIMETRO OSCILANDO">VELOCIMETRO OSCILANDO</option>
+          <option value="[30] MACANETA SOLTA">MACANETA SOLTA</option>
+          <option value="[30] TAMBOR DA IGNICAO">TAMBOR DA IGNICAO</option>
+          <option value="[30] ESGUICHO DO PARABRISA">ESGUICHO DO PARABRISA</option>
+          <option value="[30] LIMPEZA DO INTERCLIMA">LIMPEZA DO INTERCLIMA</option>
+          <option value="[30] MARCADOR DE COMBUSTIVEL">MARCADOR DE COMBUSTIVEL</option>
+          <option value="[30] VOLANTE">VOLANTE</option>
+          <option value="[30] HASTE DE REGULAGEM DE ALTURA DA CABINE">HASTE DE REGULAGEM DE ALTURA DA CABINE</option>
+          <option value="[30] POLIMENTO DE CABINE">POLIMENTO DE CABINE</option>
+          <option value="[30] SAIA DO PARACHOQUE">SAIA DO PARACHOQUE</option>
+          <option value="[30] DEFLETOR GLOBE-TROTTER">DEFLETOR GLOBE-TROTTER</option>
+          <option value="[30] BOLSA DA CABINE">BOLSA DA CABINE</option>
+          <option value="[30] PAINEL APRESENTA FALHA">PAINEL APRESENTA FALHA</option>
+          <option value="[30] TROCA DO EXTINTOR">TROCA DO EXTINTOR</option>
+          <option value="[30] TROCA DE BATENTE ESTOURADO">TROCA DE BATENTE ESTOURADO</option>
+          <option value="[30] BARRA DE TORCAO DA CABINE">BARRA DE TORCAO DA CABINE</option>
+          <option value="[30] TROCA DE BATERIA DO CONTROLE">TROCA DE BATERIA DO CONTROLE</option>
+          <option value="[30] POLIMENTO DE PARACHOQUE">POLIMENTO DE PARACHOQUE</option>
+          <option value="[30] LANTERNAGEM EM PARACHOQUE">LANTERNAGEM EM PARACHOQUE</option>
+          <option value="[30] NIVELADORA DA CABINE TRAVANDO">NIVELADORA DA CABINE TRAVANDO</option>
+        </optgroup>
+        <optgroup label="31 — MOTOR">
+          <option value="[31] TROCA DE OLEO">TROCA DE OLEO</option>
+          <option value="[31] COMPLETAR OLEO">COMPLETAR OLEO</option>
+          <option value="[31] TROCA DE FILTROS">TROCA DE FILTROS</option>
+          <option value="[31] MOTOR DE PARTIDA">MOTOR DE PARTIDA</option>
+          <option value="[31] FREIO MOTOR">FREIO MOTOR</option>
+          <option value="[31] PERDA DE POTENCIA">PERDA DE POTENCIA</option>
+          <option value="[31] REVISAO DO MOTOR">REVISAO DO MOTOR</option>
+          <option value="[31] UNIDADE INJETORA">UNIDADE INJETORA</option>
+          <option value="[31] CORREIA DE HELICE">CORREIA DE HELICE</option>
+          <option value="[31] ESTADOR DE CORREIA DE HELICE">ESTADOR DE CORREIA DE HELICE</option>
+          <option value="[31] CORREIA DO ALTERNADOR">CORREIA DO ALTERNADOR</option>
+          <option value="[31] ESTICADOR DE CORREIA DO ALTERNADOR">ESTICADOR DE CORREIA DO ALTERNADOR</option>
+          <option value="[31] TUBO DE ESCAPE">TUBO DE ESCAPE</option>
+          <option value="[31] CATALISADOR">CATALISADOR</option>
+          <option value="[31] REGULAGEM DE VALVULAS">REGULAGEM DE VALVULAS</option>
+          <option value="[31] VAZAMENTO DE AGUA">VAZAMENTO DE AGUA</option>
+          <option value="[31] VAZAMENTO DE OLEO">VAZAMENTO DE OLEO</option>
+          <option value="[31] BOMBA D'AGUA">BOMBA D'AGUA</option>
+          <option value="[31] VAVULA TERMOSTATICA">VAVULA TERMOSTATICA</option>
+          <option value="[31] MANGUEIRA DO INTERCOOLER">MANGUEIRA DO INTERCOOLER</option>
+          <option value="[31] MANGUEIRA DE AGUA">MANGUEIRA DE AGUA</option>
+          <option value="[31] ENTRADA DE AR">ENTRADA DE AR</option>
+          <option value="[31] BARULHO NO MOTOR">BARULHO NO MOTOR</option>
+          <option value="[31] MACHADINHA DE AGUA">MACHADINHA DE AGUA</option>
+          <option value="[31] BOMBA DE COMBUSTIVEL">BOMBA DE COMBUSTIVEL</option>
+          <option value="[31] COXIM DE MOTOR">COXIM DE MOTOR</option>
+          <option value="[31] TURBINA">TURBINA</option>
+          <option value="[31] INTERCOOLER">INTERCOOLER</option>
+          <option value="[31] RADIADOR">RADIADOR</option>
+          <option value="[31] TROCADOR DE CALOR">TROCADOR DE CALOR</option>
+          <option value="[31] RESERVATORIO DE AGUA">RESERVATORIO DE AGUA</option>
+          <option value="[31] COMPLETAR ADITIVO">COMPLETAR ADITIVO</option>
+          <option value="[31] RETENTOR">RETENTOR</option>
+          <option value="[31] VARETA DE NIVEL DE OLEO">VARETA DE NIVEL DE OLEO</option>
+          <option value="[31] HELICE DO RADIADOR">HELICE DO RADIADOR</option>
+          <option value="[31] CORTANDO ACELERACAO">CORTANDO ACELERACAO</option>
+          <option value="[31] FUMACA ESCURA">FUMACA ESCURA</option>
+          <option value="[31] CREMALHEIRA">CREMALHEIRA</option>
+          <option value="[31] VOLANTE DO MOTOR">VOLANTE DO MOTOR</option>
+          <option value="[31] SELO DE AGUA">SELO DE AGUA</option>
+          <option value="[31] VALVULA">VALVULA</option>
+          <option value="[31] ESCAPAMENTO">ESCAPAMENTO</option>
+          <option value="[31] MANGUEIRA DO HIDRAULICO">MANGUEIRA DO HIDRAULICO</option>
+          <option value="[31] SISTEMA ARLA">SISTEMA ARLA</option>
+          <option value="[31] PREVENTIVA CONCESSIONARIA">PREVENTIVA CONCESSIONARIA</option>
+          <option value="[31] CONJUNTO ROTATIVO TURBINA">CONJUNTO ROTATIVO TURBINA</option>
+          <option value="[31] TUBO DE COMBUSTIVEL">TUBO DE COMBUSTIVEL</option>
+          <option value="[31] BOMBA HIDRAULICA">BOMBA HIDRAULICA</option>
+          <option value="[31] VERIFICACAO">VERIFICACAO</option>
+          <option value="[31] CANETAS DE INJECAO">CANETAS DE INJECAO</option>
+          <option value="[31] TUBO DE ADMISSAO">TUBO DE ADMISSAO</option>
+          <option value="[31] REAPERTO DE FILTRO">REAPERTO DE FILTRO</option>
+          <option value="[31] CAIXA DE DIRECAO">CAIXA DE DIRECAO</option>
+          <option value="[31] FALHA NO MOTOR">FALHA NO MOTOR</option>
+          <option value="[31] MOTOR VIBRANDO">MOTOR VIBRANDO</option>
+          <option value="[31] TROCA DO CAVALETE">TROCA DO CAVALETE</option>
+          <option value="[31] MANGUEIRA DA TURBINA">MANGUEIRA DA TURBINA</option>
+          <option value="[31] TROCA DE CORREIA DO MOTOR">TROCA DE CORREIA DO MOTOR</option>
+          <option value="[31] TROCA DE JUNTA">TROCA DE JUNTA</option>
+          <option value="[31] TROCA DO CARTER">TROCA DO CARTER</option>
+          <option value="[31] DEFLETOR DO MOTOR">DEFLETOR DO MOTOR</option>
+          <option value="[31] CABECOTE">CABECOTE</option>
+          <option value="[31] COMPLETOU OLEO HIDRAULICO">COMPLETOU OLEO HIDRAULICO</option>
+          <option value="[31] TROCA DE POLIA">TROCA DE POLIA</option>
+          <option value="[31] VALVULA TOPBRAK FREIO MOTOR">VALVULA TOPBRAK FREIO MOTOR</option>
+          <option value="[31] BICOS INJETORES">BICOS INJETORES</option>
+          <option value="[31] TROCA DO TENSOR">TROCA DO TENSOR</option>
+          <option value="[31] BOMBA INJETORA DE ALTA">BOMBA INJETORA DE ALTA</option>
+          <option value="[31] REGENERACAO DE GASES">REGENERACAO DE GASES</option>
+          <option value="[31] SETOR DE DIRECAO">SETOR DE DIRECAO</option>
+          <option value="[31] PROTECAO DE CALOR">PROTECAO DE CALOR</option>
+          <option value="[31] MANGUEIRA DO MACACO DE BASCULAR">MANGUEIRA DO MACACO DE BASCULAR</option>
+          <option value="[31] VALVULA TERMOSTATICA">VALVULA TERMOSTATICA</option>
+          <option value="[31] TROCA DO ADITIVO DO RADIADOR">TROCA DO ADITIVO DO RADIADOR</option>
+          <option value="[31] TROCA DE ABRACADEIRA">TROCA DE ABRACADEIRA</option>
+          <option value="[31] FALHA DE PRESSAO DE COMBUSTIVEL">FALHA DE PRESSAO DE COMBUSTIVEL</option>
+          <option value="[31] SUPORTE DO MOTOR">SUPORTE DO MOTOR</option>
+          <option value="[31] TUBO DE ENTRADA DA TURBINA">TUBO DE ENTRADA DA TURBINA</option>
+          <option value="[31] MACACO DE CABINAR">MACACO DE CABINAR</option>
+          <option value="[31] SISTEMA DE ALIMENTACAO">SISTEMA DE ALIMENTACAO</option>
+          <option value="[31] REAPERTO">REAPERTO</option>
+          <option value="[31] VERIFICAR CONSUMO DE COMBUSTIVEL">VERIFICAR CONSUMO DE COMBUSTIVEL</option>
+          <option value="[31] DIRECAO PESADA">DIRECAO PESADA</option>
+          <option value="[31] CALSO DO MOTOR">CALSO DO MOTOR</option>
+          <option value="[31] VAZAMENTO DE DIESEL">VAZAMENTO DE DIESEL</option>
+          <option value="[31] SISTEMA DE ADMISSAO">SISTEMA DE ADMISSAO</option>
+          <option value="[31] TROCA DE TUBULACAO DE DIESEL">TROCA DE TUBULACAO DE DIESEL</option>
+          <option value="[31] BALANCIN">BALANCIN</option>
+          <option value="[31] FALHA NO SISTEMA DE REGENERACAO">FALHA NO SISTEMA DE REGENERACAO</option>
+          <option value="[31] MANGUEIRA DE DIESEL">MANGUEIRA DE DIESEL</option>
+          <option value="[31] SOLDA NO TANQUE DE COMBUSTIVEL">SOLDA NO TANQUE DE COMBUSTIVEL</option>
+        </optgroup>
+        <optgroup label="32 — CAIXA">
+          <option value="[32] EMBREAGEM">EMBREAGEM</option>
+          <option value="[32] ATUADOR DE EMBREAGEM">ATUADOR DE EMBREAGEM</option>
+          <option value="[32] TROCA DE OLEO">TROCA DE OLEO</option>
+          <option value="[32] COMPLETAR OLEO">COMPLETAR OLEO</option>
+          <option value="[32] MANGUEIRA DE AGUA">MANGUEIRA DE AGUA</option>
+          <option value="[32] VALVULA">VALVULA</option>
+          <option value="[32] SELETORA DE MARCHAS">SELETORA DE MARCHAS</option>
+          <option value="[32] CAIXA DANDO TRANCO">CAIXA DANDO TRANCO</option>
+          <option value="[32] REVISAO DA CAIXA">REVISAO DA CAIXA</option>
+          <option value="[32] CAPA SECA">CAPA SECA</option>
+          <option value="[32] ESCAPANDO MARCHA">ESCAPANDO MARCHA</option>
+          <option value="[32] SERVO DE EMBREAGEM">SERVO DE EMBREAGEM</option>
+          <option value="[32] RETARDER">RETARDER</option>
+          <option value="[32] BARULHO CAIXA">BARULHO CAIXA</option>
+          <option value="[32] LUBRIFICACAO DO CARDAN">LUBRIFICACAO DO CARDAN</option>
+          <option value="[32] RETENTOR">RETENTOR</option>
+          <option value="[32] BOMBA DE DESCARGA">BOMBA DE DESCARGA</option>
+          <option value="[32] FALHA NO ENGATE DE MARCHAS">FALHA NO ENGATE DE MARCHAS</option>
+          <option value="[32] CARDAN">CARDAN</option>
+          <option value="[32] VAZAMENTO DE AR">VAZAMENTO DE AR</option>
+          <option value="[32] VAZAMENTO DE OLEO">VAZAMENTO DE OLEO</option>
+          <option value="[32] FALHA NA CAIXA">FALHA NA CAIXA</option>
+          <option value="[32] TRANSFERENCIA DA CAIXA">TRANSFERENCIA DA CAIXA</option>
+          <option value="[32] TRAMBULADOR">TRAMBULADOR</option>
+          <option value="[32] TOMADA DE FORCA">TOMADA DE FORCA</option>
+          <option value="[32] FALHA NA EMBREAGEM">FALHA NA EMBREAGEM</option>
+          <option value="[32] CAIXA COM BARULHO">CAIXA COM BARULHO</option>
+          <option value="[32] INSTALAR CAIXA">INSTALAR CAIXA</option>
+          <option value="[32] ATUADOR DO CAMBIO">ATUADOR DO CAMBIO</option>
+          <option value="[32] RETIFICA DE VOLANTE">RETIFICA DE VOLANTE</option>
+          <option value="[32] ROLAMENTO DE VOLANTE">ROLAMENTO DE VOLANTE</option>
+          <option value="[32] PLATAFORMA DE PROTECAO SUPERIOR">PLATAFORMA DE PROTECAO SUPERIOR</option>
+          <option value="[32] TROCA DO CILINDRO ATUADOR DA EMBREAGEM">TROCA DO CILINDRO ATUADOR DA EMBREAGEM</option>
+          <option value="[32] CALIBRAR CAIXA">CALIBRAR CAIXA</option>
+          <option value="[32] TRACAO PATINANDO">TRACAO PATINANDO</option>
+          <option value="[32] TROCA DO FLEXIVEL">TROCA DO FLEXIVEL</option>
+        </optgroup>
+        <optgroup label="33 — DIFERENCIAL">
+          <option value="[33] TROCA DE OLEO">TROCA DE OLEO</option>
+          <option value="[33] COMPLETAR OLEO">COMPLETAR OLEO</option>
+          <option value="[33] BARULHO NO DIFERENCIAL">BARULHO NO DIFERENCIAL</option>
+          <option value="[33] RETENTOR">RETENTOR</option>
+          <option value="[33] CARCACA">CARCACA</option>
+          <option value="[33] FOLGA NA FLANGE">FOLGA NA FLANGE</option>
+          <option value="[33] REVISAO DO DIFERENCIAL">REVISAO DO DIFERENCIAL</option>
+          <option value="[33] BARRA ESTABILIZADORA">BARRA ESTABILIZADORA</option>
+          <option value="[33] CARDANZINHO">CARDANZINHO</option>
+          <option value="[33] BLOQUEIO DO DIFERENCIAL">BLOQUEIO DO DIFERENCIAL</option>
+          <option value="[33] VAZAMENTO DE OLEO">VAZAMENTO DE OLEO</option>
+          <option value="[33] VERIFICACAO">VERIFICACAO</option>
+          <option value="[33] CAIXA SATELITE">CAIXA SATELITE</option>
+          <option value="[33] ASTE DO DIFERENCIAL">ASTE DO DIFERENCIAL</option>
+          <option value="[33] TROCA DE TRAVA ARANHA">TROCA DE TRAVA ARANHA</option>
+        </optgroup>
+        <optgroup label="34 — ELETRICA">
+          <option value="[34] SENSOR">SENSOR</option>
+          <option value="[34] FUSIVEL">FUSIVEL</option>
+          <option value="[34] REVISAO DE ALTERNADOR">REVISAO DE ALTERNADOR</option>
+          <option value="[34] LANTERNA TRASEIRA">LANTERNA TRASEIRA</option>
+          <option value="[34] LANTERNAS LATERAIS">LANTERNAS LATERAIS</option>
+          <option value="[34] TROCA DE RELE">TROCA DE RELE</option>
+          <option value="[34] SIRENE DE RE">SIRENE DE RE</option>
+          <option value="[34] FAROLETE">FAROLETE</option>
+          <option value="[34] LENTE DE FAROL/LANTERNAS">LENTE DE FAROL/LANTERNAS</option>
+          <option value="[34] ALERTA DE FALHAS NO PAINEL">ALERTA DE FALHAS NO PAINEL</option>
+          <option value="[34] BATERIA">BATERIA</option>
+          <option value="[34] SISTEMA DE ABS">SISTEMA DE ABS</option>
+          <option value="[34] SIRENES DE SETA">SIRENES DE SETA</option>
+          <option value="[34] REVISAO ELETRICA">REVISAO ELETRICA</option>
+          <option value="[34] SISTEMA DE EBS">SISTEMA DE EBS</option>
+          <option value="[34] SISTEMA DE INJECAO">SISTEMA DE INJECAO</option>
+          <option value="[34] FALHA NA SUSPENSAO">FALHA NA SUSPENSAO</option>
+          <option value="[34] FALHA NO MODULO">FALHA NO MODULO</option>
+          <option value="[34] TOMADA DE 24 VOLTS">TOMADA DE 24 VOLTS</option>
+          <option value="[34] BUZINA ELETRICA">BUZINA ELETRICA</option>
+          <option value="[34] BUZINA A AR">BUZINA A AR</option>
+          <option value="[34] ATERRAMENTO">ATERRAMENTO</option>
+          <option value="[34] FAROL">FAROL</option>
+          <option value="[34] CHAVE GERAL">CHAVE GERAL</option>
+          <option value="[34] SETA">SETA</option>
+          <option value="[34] CHICOTE">CHICOTE</option>
+          <option value="[34] LUZ DE PLACA">LUZ DE PLACA</option>
+          <option value="[34] CONECTOR">CONECTOR</option>
+          <option value="[34] SISTEMA EGR">SISTEMA EGR</option>
+          <option value="[34] TOMADA 12 VOLTS">TOMADA 12 VOLTS</option>
+          <option value="[34] COMANDOS DO VOLANTE">COMANDOS DO VOLANTE</option>
+          <option value="[34] CANETA DO BOTAO">CANETA DO BOTAO</option>
+          <option value="[34] ALTERNADOR">ALTERNADOR</option>
+          <option value="[34] TROCA DA LANTERNA TRES MARIAS">TROCA DA LANTERNA TRES MARIAS</option>
+          <option value="[34] RADIO">RADIO</option>
+          <option value="[34] INATIVO">INATIVO</option>
+          <option value="[34] VERIFICAR ELETRICA">VERIFICAR ELETRICA</option>
+          <option value="[34] TERMINAL">TERMINAL</option>
+          <option value="[34] ENCERTO NA BATERIA">ENCERTO NA BATERIA</option>
+          <option value="[34] PARAMETRIZOU O MODULO">PARAMETRIZOU O MODULO</option>
+          <option value="[34] LUZ DE NEBLINA">LUZ DE NEBLINA</option>
+          <option value="[34] RASTREAMENTO">RASTREAMENTO</option>
+          <option value="[34] SOQUETE">SOQUETE</option>
+          <option value="[34] LUZ DE RE">LUZ DE RE</option>
+          <option value="[34] TROCA DO REGULADOR DE VOLTAGEM">TROCA DO REGULADOR DE VOLTAGEM</option>
+          <option value="[34] TROCA DA CHAVE DE SETA">TROCA DA CHAVE DE SETA</option>
+          <option value="[34] TROCA DE BOTAO">TROCA DE BOTAO</option>
+          <option value="[34] SISTEMA SCR">SISTEMA SCR</option>
+          <option value="[34] BOMBA ELETRICA 24V">BOMBA ELETRICA 24V</option>
+          <option value="[34] MARCADOR DE COMBUSTIVEL">MARCADOR DE COMBUSTIVEL</option>
+          <option value="[34] PROGRAMACAO">PROGRAMACAO</option>
+          <option value="[34] CHAVE DE IGNICAO">CHAVE DE IGNICAO</option>
+          <option value="[34] FALHA ELETRICA NO SISTEMA PNEUMATICO">FALHA ELETRICA NO SISTEMA PNEUMATICO</option>
+          <option value="[34] TOMADA DA MAO DE AMIGO">TOMADA DA MAO DE AMIGO</option>
+          <option value="[34] RELE">RELE</option>
+          <option value="[34] FALHA NA PARTIDA">FALHA NA PARTIDA</option>
+          <option value="[34] RADIO">RADIO</option>
+          <option value="[34] LUZ DE FREIO">LUZ DE FREIO</option>
+          <option value="[34] PROTECAO FISICA ANTI-ROUBO">PROTECAO FISICA ANTI-ROUBO</option>
+          <option value="[34] ESTABILIZADOR DE LED">ESTABILIZADOR DE LED</option>
+          <option value="[34] TROCA DE LAMPADA">TROCA DE LAMPADA</option>
+          <option value="[34] TROCA DE VISCOS DA HELICE">TROCA DE VISCOS DA HELICE</option>
+          <option value="[34] SUSPENSOR SISTEMA ELETRICO">SUSPENSOR SISTEMA ELETRICO</option>
+          <option value="[34] FALHA NA ACELERACAO">FALHA NA ACELERACAO</option>
+          <option value="[34] INSTALACAO ELETRICA">INSTALACAO ELETRICA</option>
+          <option value="[34] VIDRO ELETRICO">VIDRO ELETRICO</option>
+          <option value="[34] TROCA DE TOMADA">TROCA DE TOMADA</option>
+          <option value="[34] ASSISTENTE DE RAMPA">ASSISTENTE DE RAMPA</option>
+        </optgroup>
+        <optgroup label="35 — PNEUS">
+          <option value="[35] TROCA DE PNEUS">TROCA DE PNEUS</option>
+          <option value="[35] CALIBRAGEM">CALIBRAGEM</option>
+          <option value="[35] PNEU FURADO">PNEU FURADO</option>
+          <option value="[35] PNEU ESTOURADO">PNEU ESTOURADO</option>
+          <option value="[35] VERIFICACAO DE PNEUS">VERIFICACAO DE PNEUS</option>
+          <option value="[35] BALANCEAR">BALANCEAR</option>
+          <option value="[35] RODIZIO">RODIZIO</option>
+          <option value="[35] VIROU SENTIDO DO PNEU NA RODA">VIROU SENTIDO DO PNEU NA RODA</option>
+        </optgroup>
+        <optgroup label="36 — RODAS">
+          <option value="[36] TROCA DE RODAS">TROCA DE RODAS</option>
+          <option value="[36] VERIFICACAO DE RODAS">VERIFICACAO DE RODAS</option>
+          <option value="[36] PINTURA DAS RODAS">PINTURA DAS RODAS</option>
+          <option value="[36] ESPELHOS DE RODA">ESPELHOS DE RODA</option>
+          <option value="[36] CUBO">CUBO</option>
+          <option value="[36] PARAFUSO">PARAFUSO</option>
+          <option value="[36] TROCA DE VALVULA DE RODA">TROCA DE VALVULA DE RODA</option>
+          <option value="[36] REAPERTO DE PARAFUSO">REAPERTO DE PARAFUSO</option>
+          <option value="[36] TROCA DE CASTANHA">TROCA DE CASTANHA</option>
+          <option value="[36] TROCA DO RETENTOR">TROCA DO RETENTOR</option>
+          <option value="[36] ROLAMENTO">ROLAMENTO</option>
+          <option value="[36] TROCA DE PORCA E TRAVA ARANHA">TROCA DE PORCA E TRAVA ARANHA</option>
+          <option value="[36] INSTALAR ALONGADOR DE BICO">INSTALAR ALONGADOR DE BICO</option>
+        </optgroup>
+        <optgroup label="37 — CHASSI">
+          <option value="[37] LUBRIFICACAO">LUBRIFICACAO</option>
+          <option value="[37] SOLDAR TRAVESSA">SOLDAR TRAVESSA</option>
+          <option value="[37] SOLDA BERCO DO CHASSI">SOLDA BERCO DO CHASSI</option>
+          <option value="[37] PROTECAO DE CICLISTA">PROTECAO DE CICLISTA</option>
+          <option value="[37] TROCA DE PARALAMA">TROCA DE PARALAMA</option>
+          <option value="[37] TROCA DE LAMEIRO">TROCA DE LAMEIRO</option>
+          <option value="[37] TROCA DE SUPORTE DE PARALAMA">TROCA DE SUPORTE DE PARALAMA</option>
+          <option value="[37] PINTURA DE CHASSI">PINTURA DE CHASSI</option>
+          <option value="[37] CAIXA DE FERRAMENTAS">CAIXA DE FERRAMENTAS</option>
+          <option value="[37] SOLDA PARACHOQUE TRASEIRO">SOLDA PARACHOQUE TRASEIRO</option>
+          <option value="[37] TROCA DE FAIXA REFLETIVA">TROCA DE FAIXA REFLETIVA</option>
+          <option value="[37] SOLDA CHAPA BASE 5 RODA">SOLDA CHAPA BASE 5 RODA</option>
+          <option value="[37] TROCA DO PINO REI">TROCA DO PINO REI</option>
+          <option value="[37] 5 RODA">5 RODA</option>
+          <option value="[37] FIXACAO DOS PARALAMAS">FIXACAO DOS PARALAMAS</option>
+          <option value="[37] SUPORTE DE ESTEPE">SUPORTE DE ESTEPE</option>
+          <option value="[37] PES DE APOIO">PES DE APOIO</option>
+          <option value="[37] PARACHOQUE">PARACHOQUE</option>
+          <option value="[37] SUPORTE DE PARALAMA">SUPORTE DE PARALAMA</option>
+          <option value="[37] TANQUE">TANQUE</option>
+          <option value="[37] PROTECAO DO CICLISTA COM FOLGA">PROTECAO DO CICLISTA COM FOLGA</option>
+          <option value="[37] SISTEMA DE BASCULAR CABINE">SISTEMA DE BASCULAR CABINE</option>
+          <option value="[37] PARAFUSO">PARAFUSO</option>
+          <option value="[37] SOLDAR TRINCA">SOLDAR TRINCA</option>
+          <option value="[37] ADESIVO DE LIMITE DE COMPRIMENTO">ADESIVO DE LIMITE DE COMPRIMENTO</option>
+          <option value="[37] PARALAMAS">PARALAMAS</option>
+          <option value="[37] PORTA CONE">PORTA CONE</option>
+          <option value="[37] CAROTE">CAROTE</option>
+          <option value="[37] SUPORTE DOS CONES">SUPORTE DOS CONES</option>
+          <option value="[37] SUPORTE DE EXTINTOR">SUPORTE DE EXTINTOR</option>
+          <option value="[37] TAMPA DA BATERIA">TAMPA DA BATERIA</option>
+          <option value="[37] PLACA TRASEIRA MERCOSUL">PLACA TRASEIRA MERCOSUL</option>
+          <option value="[37] MESA PINO REI">MESA PINO REI</option>
+          <option value="[37] CARRETA DESALINHADA DO CAVALO">CARRETA DESALINHADA DO CAVALO</option>
+          <option value="[37] SOLDA NO SUPORTE DO CICLISTA">SOLDA NO SUPORTE DO CICLISTA</option>
+          <option value="[37] SAPATA DA 5 RODA">SAPATA DA 5 RODA</option>
+          <option value="[37] CINTA DO TANQUE">CINTA DO TANQUE</option>
+          <option value="[37] TROCAR CHAPA BASE DO PINO REI">TROCAR CHAPA BASE DO PINO REI</option>
+          <option value="[37] SUPORTE DA MAO DE AMIGO">SUPORTE DA MAO DE AMIGO</option>
+          <option value="[37] TROCA DO EMBUCHAMENTO DO PINO REI">TROCA DO EMBUCHAMENTO DO PINO REI</option>
+          <option value="[37] SUPORTE DE LANTERNA">SUPORTE DE LANTERNA</option>
+          <option value="[37] LANTERNAGEM">LANTERNAGEM</option>
+          <option value="[37] TAMPA DE TANQUE">TAMPA DE TANQUE</option>
+          <option value="[37] VERIFICACAO DE PARAFUSOS E PORCAS DO CHASSI">VERIFICACAO DE PARAFUSOS E PORCAS DO CHASSI</option>
+          <option value="[37] SOLDA NO SUPORTE DO CONE">SOLDA NO SUPORTE DO CONE</option>
+          <option value="[37] SUPORTE DE PLACA DE SIMBOLOGIA">SUPORTE DE PLACA DE SIMBOLOGIA</option>
+          <option value="[37] PLACA DE COMPRIMENTO">PLACA DE COMPRIMENTO</option>
+          <option value="[37] REAPERTO DE MANGUEIRA DE COMBUSTIVEL">REAPERTO DE MANGUEIRA DE COMBUSTIVEL</option>
+          <option value="[37] TROCA DO GRAMPO DE FIXACAO DO TANQUE">TROCA DO GRAMPO DE FIXACAO DO TANQUE</option>
+          <option value="[37] VAZAMENTO DE OLEO DIESEL EM MANGUEIRA">VAZAMENTO DE OLEO DIESEL EM MANGUEIRA</option>
+          <option value="[37] REPARO EM SUPORTE DO TANQUE">REPARO EM SUPORTE DO TANQUE</option>
+          <option value="[37] TROCAR FAIXA REFLETIVA DO PARACHOQUE">TROCAR FAIXA REFLETIVA DO PARACHOQUE</option>
+        </optgroup>
+        <optgroup label="38 — EIXOS">
+          <option value="[38] ALINHAMENTO">ALINHAMENTO</option>
+          <option value="[38] RALA">RALA</option>
+          <option value="[38] BARRA DE DIRECAO">BARRA DE DIRECAO</option>
+          <option value="[38] BARRA LONGA">BARRA LONGA</option>
+          <option value="[38] MANGA DE EIXO">MANGA DE EIXO</option>
+          <option value="[38] TROCA DE RETENTOR">TROCA DE RETENTOR</option>
+          <option value="[38] SUSPENSOR">SUSPENSOR</option>
+          <option value="[38] ROLAMENTO">ROLAMENTO</option>
+          <option value="[38] SUPORTE">SUPORTE</option>
+          <option value="[38] CARDAN">CARDAN</option>
+          <option value="[38] FOLGA NO EIXO">FOLGA NO EIXO</option>
+          <option value="[38] EMBUCHAMENTO DE EIXO">EMBUCHAMENTO DE EIXO</option>
+          <option value="[38] EMBUCHAMENTO DO FACAO">EMBUCHAMENTO DO FACAO</option>
+          <option value="[38] BALANCEAMENTO">BALANCEAMENTO</option>
+          <option value="[38] CRUZETA DO CARDAN">CRUZETA DO CARDAN</option>
+          <option value="[38] SEMIEIXO">SEMIEIXO</option>
+          <option value="[38] PONTERIA DO EIXO">PONTERIA DO EIXO</option>
+          <option value="[38] BARRA ESTABILIZADORA">BARRA ESTABILIZADORA</option>
+          <option value="[38] REAPERTO DE RODA">REAPERTO DE RODA</option>
+          <option value="[38] EIXO COM TRINCA">EIXO COM TRINCA</option>
+        </optgroup>
+        <optgroup label="39 — SUSPENSAO">
+          <option value="[39] TROCA DE MOLA">TROCA DE MOLA</option>
+          <option value="[39] TROCA DE PINO CENTRO">TROCA DE PINO CENTRO</option>
+          <option value="[39] TROCA DE BALANCA">TROCA DE BALANCA</option>
+          <option value="[39] TROCA DE BUCHAS DO JUMELO">TROCA DE BUCHAS DO JUMELO</option>
+          <option value="[39] TROCA DE BUCHAS DOS TIRANTES">TROCA DE BUCHAS DOS TIRANTES</option>
+          <option value="[39] TROCA DE AMORTECEDOR">TROCA DE AMORTECEDOR</option>
+          <option value="[39] TROCA DO DESLIZANTE">TROCA DO DESLIZANTE</option>
+          <option value="[39] CALIBRAGEM DE SUSPENSAO">CALIBRAGEM DE SUSPENSAO</option>
+          <option value="[39] BOLSA DO SUSPENSOR">BOLSA DO SUSPENSOR</option>
+          <option value="[39] BOLSA DA SUSPENSAO">BOLSA DA SUSPENSAO</option>
+          <option value="[39] VALVULA DO SUSPENSOR">VALVULA DO SUSPENSOR</option>
+          <option value="[39] BARRA V">BARRA V</option>
+          <option value="[39] MOLA (VERIFICACAO)">MOLA (VERIFICACAO)</option>
+          <option value="[39] TENSOR">TENSOR</option>
+          <option value="[39] VALVULA">VALVULA</option>
+          <option value="[39] CONEXAO">CONEXAO</option>
+          <option value="[39] EMBUCHAMENTO">EMBUCHAMENTO</option>
+          <option value="[39] SUPORTE">SUPORTE</option>
+          <option value="[39] SUPORTE DO SUSPENSOR">SUPORTE DO SUSPENSOR</option>
+          <option value="[39] GRAMPO DE MOLA">GRAMPO DE MOLA</option>
+          <option value="[39] REAPERTO DE TIRANTE">REAPERTO DE TIRANTE</option>
+          <option value="[39] LIMITADOR DO SUSPENSOR">LIMITADOR DO SUSPENSOR</option>
+          <option value="[39] TROCA DE GRAMPO">TROCA DE GRAMPO</option>
+          <option value="[39] SOLDA">SOLDA</option>
+          <option value="[39] FEIXE DE MOLA">FEIXE DE MOLA</option>
+          <option value="[39] SAPATA DE MOLA">SAPATA DE MOLA</option>
+          <option value="[39] REFORMA DO SUSPENSOR">REFORMA DO SUSPENSOR</option>
+          <option value="[39] PINO DA BALANCA">PINO DA BALANCA</option>
+          <option value="[39] BARRA LONGA">BARRA LONGA</option>
+          <option value="[39] BATENTE">BATENTE</option>
+          <option value="[39] BUCHA DO AMORTECEDOR">BUCHA DO AMORTECEDOR</option>
+          <option value="[39] BUCHA DA BARRA DA DIRECAO">BUCHA DA BARRA DA DIRECAO</option>
+          <option value="[39] VERIFICACAO">VERIFICACAO</option>
+          <option value="[39] SUSPENSOR">SUSPENSOR</option>
+          <option value="[39] ALGEMA">ALGEMA</option>
+          <option value="[39] BALANCA">BALANCA</option>
+          <option value="[39] BARRA DE DIRECAO">BARRA DE DIRECAO</option>
+          <option value="[39] PINO DE CENTRO">PINO DE CENTRO</option>
+          <option value="[39] HASTE NIVELADORA DA SUSPENSAO">HASTE NIVELADORA DA SUSPENSAO</option>
+          <option value="[39] DESLIZANTE COM FOLGA">DESLIZANTE COM FOLGA</option>
+          <option value="[39] TROCA DE PARAFUSO">TROCA DE PARAFUSO</option>
+          <option value="[39] BARULHO NA SUSPENSAO">BARULHO NA SUSPENSAO</option>
+          <option value="[39] TROCA DE ROLAMENTO DO FACAO">TROCA DE ROLAMENTO DO FACAO</option>
+          <option value="[39] TROCA DO RETENTOR DO FACAO">TROCA DO RETENTOR DO FACAO</option>
+          <option value="[39] TROCA DE BUCHA DE MOLA">TROCA DE BUCHA DE MOLA</option>
+          <option value="[39] TROCA DE JUMELO">TROCA DE JUMELO</option>
+          <option value="[39] TROCA PASTILHA DE MOLA">TROCA PASTILHA DE MOLA</option>
+          <option value="[39] REGULOU A SUSPENSAO">REGULOU A SUSPENSAO</option>
+          <option value="[39] ARQUEAR MOLA">ARQUEAR MOLA</option>
+          <option value="[39] BARRA ESTABILIZADORA">BARRA ESTABILIZADORA</option>
+        </optgroup>
+        <optgroup label="40 — IMPLEMENTO">
+          <option value="[40] SOLDA NO TANQUE">SOLDA NO TANQUE</option>
+          <option value="[40] DESCONTAMINACAO">DESCONTAMINACAO</option>
+          <option value="[40] PORTINHOLA">PORTINHOLA</option>
+          <option value="[40] BOCA DE VISITA">BOCA DE VISITA</option>
+          <option value="[40] VALVULA DE FUNDO (TICTAC)">VALVULA DE FUNDO (TICTAC)</option>
+          <option value="[40] VALVULA DE ALIVIO">VALVULA DE ALIVIO</option>
+          <option value="[40] MACARICO">MACARICO</option>
+          <option value="[40] TERMOMETRO">TERMOMETRO</option>
+          <option value="[40] REGISTRO">REGISTRO</option>
+          <option value="[40] SOLDA">SOLDA</option>
+          <option value="[40] GUARDA CORPO">GUARDA CORPO</option>
+          <option value="[40] DRENO">DRENO</option>
+          <option value="[40] PINTURA DE LOGO">PINTURA DE LOGO</option>
+          <option value="[40] ADESIVO">ADESIVO</option>
+          <option value="[40] SUPORTE DE PLACA">SUPORTE DE PLACA</option>
+          <option value="[40] PLACA DE IDENTIFICACAO">PLACA DE IDENTIFICACAO</option>
+          <option value="[40] SETA DE NIVEL">SETA DE NIVEL</option>
+          <option value="[40] MANGOTE">MANGOTE</option>
+          <option value="[40] SUPORTE DE MANGOTE">SUPORTE DE MANGOTE</option>
+          <option value="[40] ESCADA">ESCADA</option>
+          <option value="[40] VAZAMENTO DE AR">VAZAMENTO DE AR</option>
+          <option value="[40] BOTAO">BOTAO</option>
+          <option value="[40] PINO REI">PINO REI</option>
+          <option value="[40] CONEXAO">CONEXAO</option>
+          <option value="[40] PINTURA">PINTURA</option>
+          <option value="[40] RALA">RALA</option>
+          <option value="[40] BERCO">BERCO</option>
+          <option value="[40] ADEQUACAO">ADEQUACAO</option>
+          <option value="[40] EXTINTOR DE INCENDIO">EXTINTOR DE INCENDIO</option>
+          <option value="[40] FUNIL">FUNIL</option>
+          <option value="[40] COLETOR DE AMOSTRA">COLETOR DE AMOSTRA</option>
+          <option value="[40] VALVULA">VALVULA</option>
+          <option value="[40] TUBO">TUBO</option>
+          <option value="[40] VAZAMENTO NA PORTINHOLA">VAZAMENTO NA PORTINHOLA</option>
+          <option value="[40] PLACA TRASEIRA DE COMPRIMENTO">PLACA TRASEIRA DE COMPRIMENTO</option>
+          <option value="[40] TROCA DE FILTRO DA VALVULA DE FUNDO TIC-TAC">TROCA DE FILTRO DA VALVULA DE FUNDO TIC-TAC</option>
+          <option value="[40] BOCA DE DESCARGA">BOCA DE DESCARGA</option>
+          <option value="[40] FAIXA ANTI-DERRAPANTE">FAIXA ANTI-DERRAPANTE</option>
+          <option value="[40] FITA DE ACABAMENTO DO TANQUE">FITA DE ACABAMENTO DO TANQUE</option>
+          <option value="[40] CAIXA DA VALVULA TIC-TAC">CAIXA DA VALVULA TIC-TAC</option>
+          <option value="[40] INSTALACAO DE GAXETA">INSTALACAO DE GAXETA</option>
+          <option value="[40] EPICOTAGEM">EPICOTAGEM</option>
+          <option value="[40] SANFONADO DA DESCARGA">SANFONADO DA DESCARGA</option>
+          <option value="[40] BORRACHA DE VEDACAO">BORRACHA DE VEDACAO</option>
+          <option value="[40] PLACA DE SIMBOLOGIA">PLACA DE SIMBOLOGIA</option>
+          <option value="[40] TROCA DE ABRACADEIRA">TROCA DE ABRACADEIRA</option>
+          <option value="[40] PORTA MANGOTE">PORTA MANGOTE</option>
+          <option value="[40] REPARO NO TANQUE">REPARO NO TANQUE</option>
+          <option value="[40] SOLDA NA TAMPA SUPERIOR">SOLDA NA TAMPA SUPERIOR</option>
+        </optgroup>
+        <optgroup label="41 — FREIOS">
+          <option value="[41] TROCA DE LONAS">TROCA DE LONAS</option>
+          <option value="[41] TROCA DE PASTILHAS">TROCA DE PASTILHAS</option>
+          <option value="[41] REGULAGEM">REGULAGEM</option>
+          <option value="[41] CUICA">CUICA</option>
+          <option value="[41] TROCA DE CATRACA">TROCA DE CATRACA</option>
+          <option value="[41] FLEXIVEL DE CUICA">FLEXIVEL DE CUICA</option>
+          <option value="[41] TROCA DE TAMBOR">TROCA DE TAMBOR</option>
+          <option value="[41] CARA DE CAVALO">CARA DE CAVALO</option>
+          <option value="[41] BUCHA DO EIXO S">BUCHA DO EIXO S</option>
+          <option value="[41] VALVULA">VALVULA</option>
+          <option value="[41] BARULHO NOS FREIOS">BARULHO NOS FREIOS</option>
+          <option value="[41] MOLA QUEBRADA">MOLA QUEBRADA</option>
+          <option value="[41] EQUALIZACAO">EQUALIZACAO</option>
+          <option value="[41] TRAVAMENTO">TRAVAMENTO</option>
+          <option value="[41] VERIFICAR FREIOS">VERIFICAR FREIOS</option>
+          <option value="[41] CATRACA DE FREIO">CATRACA DE FREIO</option>
+          <option value="[41] TROCA DE PATINHO DE FREIO">TROCA DE PATINHO DE FREIO</option>
+          <option value="[41] FREIO ESTACIONARIO">FREIO ESTACIONARIO</option>
+          <option value="[41] TROCA DE ROLETE DE FREIO">TROCA DE ROLETE DE FREIO</option>
+          <option value="[41] TROCA DE MOLA DE FREIO">TROCA DE MOLA DE FREIO</option>
+          <option value="[41] RODA FONICA">RODA FONICA</option>
+          <option value="[41] LIMPEZA DOS FREIOS">LIMPEZA DOS FREIOS</option>
+          <option value="[41] SUPORTE DO EIXO S">SUPORTE DO EIXO S</option>
+          <option value="[41] EIXO S">EIXO S</option>
+        </optgroup>
+        <optgroup label="42 — SISTEMA PNEUMATICO">
+          <option value="[42] LIMPEZA DO SISTEMA PNEUMATICO">LIMPEZA DO SISTEMA PNEUMATICO</option>
+          <option value="[42] TUBO DO COMPRESSOR">TUBO DO COMPRESSOR</option>
+          <option value="[42] VAZAMENTO DE AR">VAZAMENTO DE AR</option>
+          <option value="[42] MANGUEIRA">MANGUEIRA</option>
+          <option value="[42] MANGUEIRA DA MAO DE AMIGO">MANGUEIRA DA MAO DE AMIGO</option>
+          <option value="[42] COMPRESSOR DE AR">COMPRESSOR DE AR</option>
+          <option value="[42] VALVULA APM SECADORA DE AR">VALVULA APM SECADORA DE AR</option>
+          <option value="[42] VERIFICAR VALVULA PU">VERIFICAR VALVULA PU</option>
+          <option value="[42] SOLDA NO SUPORTE">SOLDA NO SUPORTE</option>
+          <option value="[42] RELOGIO DE MEDICAO DE PRESSAO">RELOGIO DE MEDICAO DE PRESSAO</option>
+          <option value="[42] SISTEMA DE AR">SISTEMA DE AR</option>
+          <option value="[42] MANETE DE FREIOS">MANETE DE FREIOS</option>
+          <option value="[42] VALVULA">VALVULA</option>
+          <option value="[42] VALVULA DESCARGA RAPIDA">VALVULA DESCARGA RAPIDA</option>
+          <option value="[42] FILTRO PU">FILTRO PU</option>
+          <option value="[42] BALAO DE AR">BALAO DE AR</option>
+          <option value="[42] LIMPEZA DO SISTEMA PNEUMATICO">LIMPEZA DO SISTEMA PNEUMATICO</option>
+          <option value="[42] SERPENTINA">SERPENTINA</option>
+          <option value="[42] TUBO DA SERPENTINA">TUBO DA SERPENTINA</option>
+          <option value="[42] TROCA DO FILTRO DE LINHA">TROCA DO FILTRO DE LINHA</option>
+          <option value="[42] TROCA DE ENGATE RAPIDO">TROCA DE ENGATE RAPIDO</option>
+        </optgroup>
+        <optgroup label="43 — SISTEMA DE ARLA">
+          <option value="[43] BOMBA DE ARLA">BOMBA DE ARLA</option>
+          <option value="[43] FILTRO DE ARLA">FILTRO DE ARLA</option>
+          <option value="[43] BICO DOSADOR">BICO DOSADOR</option>
+          <option value="[43] SENSOR DE NOX">SENSOR DE NOX</option>
+          <option value="[43] MANGUEIRA DE PRESSAO">MANGUEIRA DE PRESSAO</option>
+          <option value="[43] VAZAMENTO">VAZAMENTO</option>
+          <option value="[43] TANQUE DE ARLA">TANQUE DE ARLA</option>
+          <option value="[43] TAMPA DO RESERVATORIO">TAMPA DO RESERVATORIO</option>
+          <option value="[43] RESET">RESET</option>
+          <option value="[43] LIMPEZA">LIMPEZA</option>
+          <option value="[43] FALHA NO SISTEMA DO ARLA">FALHA NO SISTEMA DO ARLA</option>
+          <option value="[43] TROCOU O ARLA">TROCOU O ARLA</option>
+          <option value="[43] VERIFICAR BOMBA DO ARLA">VERIFICAR BOMBA DO ARLA</option>
+          <option value="[43] VERIFICAR ARLA">VERIFICAR ARLA</option>
+          <option value="[43] TAMPA DO TANQUE ARLA">TAMPA DO TANQUE ARLA</option>
+          <option value="[43] VALVULA DOSADORA DO ARLA">VALVULA DOSADORA DO ARLA</option>
+          <option value="[43] TESTE DE DOSAGEM">TESTE DE DOSAGEM</option>
+        </optgroup>
+        <optgroup label="44 — OUTROS SERVICOS">
+          <option value="[44] LAVAR E LUBRIFICAR">LAVAR E LUBRIFICAR</option>
+          <option value="[44] PLANO DE PREVENTIVA">PLANO DE PREVENTIVA</option>
+          <option value="[44] PINTURA">PINTURA</option>
+          <option value="[44] ITENS CRITICOS">ITENS CRITICOS</option>
+          <option value="[44] ADEQUACAO DE EQUIPAMENTO PARA CARREGAMENTO">ADEQUACAO DE EQUIPAMENTO PARA CARREGAMENTO</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Descrição do Defeito *</label>
+      <textarea class="modal-textarea" id="nos-desc" placeholder="Descreva o defeito ou serviço necessário..."></textarea>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Mecânico Responsável</label>
+      <input class="modal-input" id="nos-mec" type="text" placeholder="Nome do mecânico (opcional)">
+    </div>
+    <button class="btn-salvar" onclick="salvarNovaOS()">✓ Abrir O.S.</button>
+  </div>
+</div>
+
+<!-- Modal Adicionar Serviço -->
+<div class="overlay" id="modal-add-sv">
+  <div class="modal">
+    <div class="modal-title">
+      <span>➕ Adicionar Serviço</span>
+      <span class="modal-close" onclick="fecharModal('modal-add-sv')">✕</span>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Tipo de Serviço *</label>
+      <select class="modal-select" id="asv-tipo">
+
+        <optgroup label="30 — CABINE">
+          <option value="[30] AR CONDICIONADO">AR CONDICIONADO</option>
+          <option value="[30] PARABRISA DANIFICADO">PARABRISA DANIFICADO</option>
+          <option value="[30] PALHETAS DO LIMPADOR">PALHETAS DO LIMPADOR</option>
+          <option value="[30] PORTA NAO ABRE">PORTA NAO ABRE</option>
+          <option value="[30] RETROVISOR">RETROVISOR</option>
+          <option value="[30] LANTERNAGEM">LANTERNAGEM</option>
+          <option value="[30] INTERCLIMA">INTERCLIMA</option>
+          <option value="[30] EMBUCHAMENTO DE CABINE">EMBUCHAMENTO DE CABINE</option>
+          <option value="[30] PISTAO DE BASCULA">PISTAO DE BASCULA</option>
+          <option value="[30] CORTINA">CORTINA</option>
+          <option value="[30] AMORTECEDOR DE CABINE">AMORTECEDOR DE CABINE</option>
+          <option value="[30] ESCADA">ESCADA</option>
+          <option value="[30] HIGIENIZACAO">HIGIENIZACAO</option>
+          <option value="[30] TETO SOLAR">TETO SOLAR</option>
+          <option value="[30] VIDRO ELETRICO">VIDRO ELETRICO</option>
+          <option value="[30] GELADEIRA">GELADEIRA</option>
+          <option value="[30] VALVULA NIVELADORA">VALVULA NIVELADORA</option>
+          <option value="[30] CINTO DE SEGURANCA">CINTO DE SEGURANCA</option>
+          <option value="[30] TAPETE">TAPETE</option>
+          <option value="[30] CAMA">CAMA</option>
+          <option value="[30] CHAVE DE IGNICAO">CHAVE DE IGNICAO</option>
+          <option value="[30] FILTRO DE AR DA CABINE">FILTRO DE AR DA CABINE</option>
+          <option value="[30] BANCO DO MOTORISTA/PASSAGEIRO">BANCO DO MOTORISTA/PASSAGEIRO</option>
+          <option value="[30] PLACA DE SIMBOLOGIA">PLACA DE SIMBOLOGIA</option>
+          <option value="[30] PLACA DE IDENTIFICACAO">PLACA DE IDENTIFICACAO</option>
+          <option value="[30] GAVETA LATERAL">GAVETA LATERAL</option>
+          <option value="[30] MANGUEIRA DE ASSOPRAR">MANGUEIRA DE ASSOPRAR</option>
+          <option value="[30] AFERICAO DO TACOGRAFO">AFERICAO DO TACOGRAFO</option>
+          <option value="[30] RADIO NAO FUNCIONA">RADIO NAO FUNCIONA</option>
+          <option value="[30] QUEBRA-SOL">QUEBRA-SOL</option>
+          <option value="[30] SOPRADOR DA CABINE">SOPRADOR DA CABINE</option>
+          <option value="[30] VENTILADOR DA CABINE">VENTILADOR DA CABINE</option>
+          <option value="[30] VELOCIMETRO OSCILANDO">VELOCIMETRO OSCILANDO</option>
+          <option value="[30] MACANETA SOLTA">MACANETA SOLTA</option>
+          <option value="[30] TAMBOR DA IGNICAO">TAMBOR DA IGNICAO</option>
+          <option value="[30] ESGUICHO DO PARABRISA">ESGUICHO DO PARABRISA</option>
+          <option value="[30] LIMPEZA DO INTERCLIMA">LIMPEZA DO INTERCLIMA</option>
+          <option value="[30] MARCADOR DE COMBUSTIVEL">MARCADOR DE COMBUSTIVEL</option>
+          <option value="[30] VOLANTE">VOLANTE</option>
+          <option value="[30] HASTE DE REGULAGEM DE ALTURA DA CABINE">HASTE DE REGULAGEM DE ALTURA DA CABINE</option>
+          <option value="[30] POLIMENTO DE CABINE">POLIMENTO DE CABINE</option>
+          <option value="[30] SAIA DO PARACHOQUE">SAIA DO PARACHOQUE</option>
+          <option value="[30] DEFLETOR GLOBE-TROTTER">DEFLETOR GLOBE-TROTTER</option>
+          <option value="[30] BOLSA DA CABINE">BOLSA DA CABINE</option>
+          <option value="[30] PAINEL APRESENTA FALHA">PAINEL APRESENTA FALHA</option>
+          <option value="[30] TROCA DO EXTINTOR">TROCA DO EXTINTOR</option>
+          <option value="[30] TROCA DE BATENTE ESTOURADO">TROCA DE BATENTE ESTOURADO</option>
+          <option value="[30] BARRA DE TORCAO DA CABINE">BARRA DE TORCAO DA CABINE</option>
+          <option value="[30] TROCA DE BATERIA DO CONTROLE">TROCA DE BATERIA DO CONTROLE</option>
+          <option value="[30] POLIMENTO DE PARACHOQUE">POLIMENTO DE PARACHOQUE</option>
+          <option value="[30] LANTERNAGEM EM PARACHOQUE">LANTERNAGEM EM PARACHOQUE</option>
+          <option value="[30] NIVELADORA DA CABINE TRAVANDO">NIVELADORA DA CABINE TRAVANDO</option>
+        </optgroup>
+        <optgroup label="31 — MOTOR">
+          <option value="[31] TROCA DE OLEO">TROCA DE OLEO</option>
+          <option value="[31] COMPLETAR OLEO">COMPLETAR OLEO</option>
+          <option value="[31] TROCA DE FILTROS">TROCA DE FILTROS</option>
+          <option value="[31] MOTOR DE PARTIDA">MOTOR DE PARTIDA</option>
+          <option value="[31] FREIO MOTOR">FREIO MOTOR</option>
+          <option value="[31] PERDA DE POTENCIA">PERDA DE POTENCIA</option>
+          <option value="[31] REVISAO DO MOTOR">REVISAO DO MOTOR</option>
+          <option value="[31] UNIDADE INJETORA">UNIDADE INJETORA</option>
+          <option value="[31] CORREIA DE HELICE">CORREIA DE HELICE</option>
+          <option value="[31] ESTADOR DE CORREIA DE HELICE">ESTADOR DE CORREIA DE HELICE</option>
+          <option value="[31] CORREIA DO ALTERNADOR">CORREIA DO ALTERNADOR</option>
+          <option value="[31] ESTICADOR DE CORREIA DO ALTERNADOR">ESTICADOR DE CORREIA DO ALTERNADOR</option>
+          <option value="[31] TUBO DE ESCAPE">TUBO DE ESCAPE</option>
+          <option value="[31] CATALISADOR">CATALISADOR</option>
+          <option value="[31] REGULAGEM DE VALVULAS">REGULAGEM DE VALVULAS</option>
+          <option value="[31] VAZAMENTO DE AGUA">VAZAMENTO DE AGUA</option>
+          <option value="[31] VAZAMENTO DE OLEO">VAZAMENTO DE OLEO</option>
+          <option value="[31] BOMBA D'AGUA">BOMBA D'AGUA</option>
+          <option value="[31] VAVULA TERMOSTATICA">VAVULA TERMOSTATICA</option>
+          <option value="[31] MANGUEIRA DO INTERCOOLER">MANGUEIRA DO INTERCOOLER</option>
+          <option value="[31] MANGUEIRA DE AGUA">MANGUEIRA DE AGUA</option>
+          <option value="[31] ENTRADA DE AR">ENTRADA DE AR</option>
+          <option value="[31] BARULHO NO MOTOR">BARULHO NO MOTOR</option>
+          <option value="[31] MACHADINHA DE AGUA">MACHADINHA DE AGUA</option>
+          <option value="[31] BOMBA DE COMBUSTIVEL">BOMBA DE COMBUSTIVEL</option>
+          <option value="[31] COXIM DE MOTOR">COXIM DE MOTOR</option>
+          <option value="[31] TURBINA">TURBINA</option>
+          <option value="[31] INTERCOOLER">INTERCOOLER</option>
+          <option value="[31] RADIADOR">RADIADOR</option>
+          <option value="[31] TROCADOR DE CALOR">TROCADOR DE CALOR</option>
+          <option value="[31] RESERVATORIO DE AGUA">RESERVATORIO DE AGUA</option>
+          <option value="[31] COMPLETAR ADITIVO">COMPLETAR ADITIVO</option>
+          <option value="[31] RETENTOR">RETENTOR</option>
+          <option value="[31] VARETA DE NIVEL DE OLEO">VARETA DE NIVEL DE OLEO</option>
+          <option value="[31] HELICE DO RADIADOR">HELICE DO RADIADOR</option>
+          <option value="[31] CORTANDO ACELERACAO">CORTANDO ACELERACAO</option>
+          <option value="[31] FUMACA ESCURA">FUMACA ESCURA</option>
+          <option value="[31] CREMALHEIRA">CREMALHEIRA</option>
+          <option value="[31] VOLANTE DO MOTOR">VOLANTE DO MOTOR</option>
+          <option value="[31] SELO DE AGUA">SELO DE AGUA</option>
+          <option value="[31] VALVULA">VALVULA</option>
+          <option value="[31] ESCAPAMENTO">ESCAPAMENTO</option>
+          <option value="[31] MANGUEIRA DO HIDRAULICO">MANGUEIRA DO HIDRAULICO</option>
+          <option value="[31] SISTEMA ARLA">SISTEMA ARLA</option>
+          <option value="[31] PREVENTIVA CONCESSIONARIA">PREVENTIVA CONCESSIONARIA</option>
+          <option value="[31] CONJUNTO ROTATIVO TURBINA">CONJUNTO ROTATIVO TURBINA</option>
+          <option value="[31] TUBO DE COMBUSTIVEL">TUBO DE COMBUSTIVEL</option>
+          <option value="[31] BOMBA HIDRAULICA">BOMBA HIDRAULICA</option>
+          <option value="[31] VERIFICACAO">VERIFICACAO</option>
+          <option value="[31] CANETAS DE INJECAO">CANETAS DE INJECAO</option>
+          <option value="[31] TUBO DE ADMISSAO">TUBO DE ADMISSAO</option>
+          <option value="[31] REAPERTO DE FILTRO">REAPERTO DE FILTRO</option>
+          <option value="[31] CAIXA DE DIRECAO">CAIXA DE DIRECAO</option>
+          <option value="[31] FALHA NO MOTOR">FALHA NO MOTOR</option>
+          <option value="[31] MOTOR VIBRANDO">MOTOR VIBRANDO</option>
+          <option value="[31] TROCA DO CAVALETE">TROCA DO CAVALETE</option>
+          <option value="[31] MANGUEIRA DA TURBINA">MANGUEIRA DA TURBINA</option>
+          <option value="[31] TROCA DE CORREIA DO MOTOR">TROCA DE CORREIA DO MOTOR</option>
+          <option value="[31] TROCA DE JUNTA">TROCA DE JUNTA</option>
+          <option value="[31] TROCA DO CARTER">TROCA DO CARTER</option>
+          <option value="[31] DEFLETOR DO MOTOR">DEFLETOR DO MOTOR</option>
+          <option value="[31] CABECOTE">CABECOTE</option>
+          <option value="[31] COMPLETOU OLEO HIDRAULICO">COMPLETOU OLEO HIDRAULICO</option>
+          <option value="[31] TROCA DE POLIA">TROCA DE POLIA</option>
+          <option value="[31] VALVULA TOPBRAK FREIO MOTOR">VALVULA TOPBRAK FREIO MOTOR</option>
+          <option value="[31] BICOS INJETORES">BICOS INJETORES</option>
+          <option value="[31] TROCA DO TENSOR">TROCA DO TENSOR</option>
+          <option value="[31] BOMBA INJETORA DE ALTA">BOMBA INJETORA DE ALTA</option>
+          <option value="[31] REGENERACAO DE GASES">REGENERACAO DE GASES</option>
+          <option value="[31] SETOR DE DIRECAO">SETOR DE DIRECAO</option>
+          <option value="[31] PROTECAO DE CALOR">PROTECAO DE CALOR</option>
+          <option value="[31] MANGUEIRA DO MACACO DE BASCULAR">MANGUEIRA DO MACACO DE BASCULAR</option>
+          <option value="[31] VALVULA TERMOSTATICA">VALVULA TERMOSTATICA</option>
+          <option value="[31] TROCA DO ADITIVO DO RADIADOR">TROCA DO ADITIVO DO RADIADOR</option>
+          <option value="[31] TROCA DE ABRACADEIRA">TROCA DE ABRACADEIRA</option>
+          <option value="[31] FALHA DE PRESSAO DE COMBUSTIVEL">FALHA DE PRESSAO DE COMBUSTIVEL</option>
+          <option value="[31] SUPORTE DO MOTOR">SUPORTE DO MOTOR</option>
+          <option value="[31] TUBO DE ENTRADA DA TURBINA">TUBO DE ENTRADA DA TURBINA</option>
+          <option value="[31] MACACO DE CABINAR">MACACO DE CABINAR</option>
+          <option value="[31] SISTEMA DE ALIMENTACAO">SISTEMA DE ALIMENTACAO</option>
+          <option value="[31] REAPERTO">REAPERTO</option>
+          <option value="[31] VERIFICAR CONSUMO DE COMBUSTIVEL">VERIFICAR CONSUMO DE COMBUSTIVEL</option>
+          <option value="[31] DIRECAO PESADA">DIRECAO PESADA</option>
+          <option value="[31] CALSO DO MOTOR">CALSO DO MOTOR</option>
+          <option value="[31] VAZAMENTO DE DIESEL">VAZAMENTO DE DIESEL</option>
+          <option value="[31] SISTEMA DE ADMISSAO">SISTEMA DE ADMISSAO</option>
+          <option value="[31] TROCA DE TUBULACAO DE DIESEL">TROCA DE TUBULACAO DE DIESEL</option>
+          <option value="[31] BALANCIN">BALANCIN</option>
+          <option value="[31] FALHA NO SISTEMA DE REGENERACAO">FALHA NO SISTEMA DE REGENERACAO</option>
+          <option value="[31] MANGUEIRA DE DIESEL">MANGUEIRA DE DIESEL</option>
+          <option value="[31] SOLDA NO TANQUE DE COMBUSTIVEL">SOLDA NO TANQUE DE COMBUSTIVEL</option>
+        </optgroup>
+        <optgroup label="32 — CAIXA">
+          <option value="[32] EMBREAGEM">EMBREAGEM</option>
+          <option value="[32] ATUADOR DE EMBREAGEM">ATUADOR DE EMBREAGEM</option>
+          <option value="[32] TROCA DE OLEO">TROCA DE OLEO</option>
+          <option value="[32] COMPLETAR OLEO">COMPLETAR OLEO</option>
+          <option value="[32] MANGUEIRA DE AGUA">MANGUEIRA DE AGUA</option>
+          <option value="[32] VALVULA">VALVULA</option>
+          <option value="[32] SELETORA DE MARCHAS">SELETORA DE MARCHAS</option>
+          <option value="[32] CAIXA DANDO TRANCO">CAIXA DANDO TRANCO</option>
+          <option value="[32] REVISAO DA CAIXA">REVISAO DA CAIXA</option>
+          <option value="[32] CAPA SECA">CAPA SECA</option>
+          <option value="[32] ESCAPANDO MARCHA">ESCAPANDO MARCHA</option>
+          <option value="[32] SERVO DE EMBREAGEM">SERVO DE EMBREAGEM</option>
+          <option value="[32] RETARDER">RETARDER</option>
+          <option value="[32] BARULHO CAIXA">BARULHO CAIXA</option>
+          <option value="[32] LUBRIFICACAO DO CARDAN">LUBRIFICACAO DO CARDAN</option>
+          <option value="[32] RETENTOR">RETENTOR</option>
+          <option value="[32] BOMBA DE DESCARGA">BOMBA DE DESCARGA</option>
+          <option value="[32] FALHA NO ENGATE DE MARCHAS">FALHA NO ENGATE DE MARCHAS</option>
+          <option value="[32] CARDAN">CARDAN</option>
+          <option value="[32] VAZAMENTO DE AR">VAZAMENTO DE AR</option>
+          <option value="[32] VAZAMENTO DE OLEO">VAZAMENTO DE OLEO</option>
+          <option value="[32] FALHA NA CAIXA">FALHA NA CAIXA</option>
+          <option value="[32] TRANSFERENCIA DA CAIXA">TRANSFERENCIA DA CAIXA</option>
+          <option value="[32] TRAMBULADOR">TRAMBULADOR</option>
+          <option value="[32] TOMADA DE FORCA">TOMADA DE FORCA</option>
+          <option value="[32] FALHA NA EMBREAGEM">FALHA NA EMBREAGEM</option>
+          <option value="[32] CAIXA COM BARULHO">CAIXA COM BARULHO</option>
+          <option value="[32] INSTALAR CAIXA">INSTALAR CAIXA</option>
+          <option value="[32] ATUADOR DO CAMBIO">ATUADOR DO CAMBIO</option>
+          <option value="[32] RETIFICA DE VOLANTE">RETIFICA DE VOLANTE</option>
+          <option value="[32] ROLAMENTO DE VOLANTE">ROLAMENTO DE VOLANTE</option>
+          <option value="[32] PLATAFORMA DE PROTECAO SUPERIOR">PLATAFORMA DE PROTECAO SUPERIOR</option>
+          <option value="[32] TROCA DO CILINDRO ATUADOR DA EMBREAGEM">TROCA DO CILINDRO ATUADOR DA EMBREAGEM</option>
+          <option value="[32] CALIBRAR CAIXA">CALIBRAR CAIXA</option>
+          <option value="[32] TRACAO PATINANDO">TRACAO PATINANDO</option>
+          <option value="[32] TROCA DO FLEXIVEL">TROCA DO FLEXIVEL</option>
+        </optgroup>
+        <optgroup label="33 — DIFERENCIAL">
+          <option value="[33] TROCA DE OLEO">TROCA DE OLEO</option>
+          <option value="[33] COMPLETAR OLEO">COMPLETAR OLEO</option>
+          <option value="[33] BARULHO NO DIFERENCIAL">BARULHO NO DIFERENCIAL</option>
+          <option value="[33] RETENTOR">RETENTOR</option>
+          <option value="[33] CARCACA">CARCACA</option>
+          <option value="[33] FOLGA NA FLANGE">FOLGA NA FLANGE</option>
+          <option value="[33] REVISAO DO DIFERENCIAL">REVISAO DO DIFERENCIAL</option>
+          <option value="[33] BARRA ESTABILIZADORA">BARRA ESTABILIZADORA</option>
+          <option value="[33] CARDANZINHO">CARDANZINHO</option>
+          <option value="[33] BLOQUEIO DO DIFERENCIAL">BLOQUEIO DO DIFERENCIAL</option>
+          <option value="[33] VAZAMENTO DE OLEO">VAZAMENTO DE OLEO</option>
+          <option value="[33] VERIFICACAO">VERIFICACAO</option>
+          <option value="[33] CAIXA SATELITE">CAIXA SATELITE</option>
+          <option value="[33] ASTE DO DIFERENCIAL">ASTE DO DIFERENCIAL</option>
+          <option value="[33] TROCA DE TRAVA ARANHA">TROCA DE TRAVA ARANHA</option>
+        </optgroup>
+        <optgroup label="34 — ELETRICA">
+          <option value="[34] SENSOR">SENSOR</option>
+          <option value="[34] FUSIVEL">FUSIVEL</option>
+          <option value="[34] REVISAO DE ALTERNADOR">REVISAO DE ALTERNADOR</option>
+          <option value="[34] LANTERNA TRASEIRA">LANTERNA TRASEIRA</option>
+          <option value="[34] LANTERNAS LATERAIS">LANTERNAS LATERAIS</option>
+          <option value="[34] TROCA DE RELE">TROCA DE RELE</option>
+          <option value="[34] SIRENE DE RE">SIRENE DE RE</option>
+          <option value="[34] FAROLETE">FAROLETE</option>
+          <option value="[34] LENTE DE FAROL/LANTERNAS">LENTE DE FAROL/LANTERNAS</option>
+          <option value="[34] ALERTA DE FALHAS NO PAINEL">ALERTA DE FALHAS NO PAINEL</option>
+          <option value="[34] BATERIA">BATERIA</option>
+          <option value="[34] SISTEMA DE ABS">SISTEMA DE ABS</option>
+          <option value="[34] SIRENES DE SETA">SIRENES DE SETA</option>
+          <option value="[34] REVISAO ELETRICA">REVISAO ELETRICA</option>
+          <option value="[34] SISTEMA DE EBS">SISTEMA DE EBS</option>
+          <option value="[34] SISTEMA DE INJECAO">SISTEMA DE INJECAO</option>
+          <option value="[34] FALHA NA SUSPENSAO">FALHA NA SUSPENSAO</option>
+          <option value="[34] FALHA NO MODULO">FALHA NO MODULO</option>
+          <option value="[34] TOMADA DE 24 VOLTS">TOMADA DE 24 VOLTS</option>
+          <option value="[34] BUZINA ELETRICA">BUZINA ELETRICA</option>
+          <option value="[34] BUZINA A AR">BUZINA A AR</option>
+          <option value="[34] ATERRAMENTO">ATERRAMENTO</option>
+          <option value="[34] FAROL">FAROL</option>
+          <option value="[34] CHAVE GERAL">CHAVE GERAL</option>
+          <option value="[34] SETA">SETA</option>
+          <option value="[34] CHICOTE">CHICOTE</option>
+          <option value="[34] LUZ DE PLACA">LUZ DE PLACA</option>
+          <option value="[34] CONECTOR">CONECTOR</option>
+          <option value="[34] SISTEMA EGR">SISTEMA EGR</option>
+          <option value="[34] TOMADA 12 VOLTS">TOMADA 12 VOLTS</option>
+          <option value="[34] COMANDOS DO VOLANTE">COMANDOS DO VOLANTE</option>
+          <option value="[34] CANETA DO BOTAO">CANETA DO BOTAO</option>
+          <option value="[34] ALTERNADOR">ALTERNADOR</option>
+          <option value="[34] TROCA DA LANTERNA TRES MARIAS">TROCA DA LANTERNA TRES MARIAS</option>
+          <option value="[34] RADIO">RADIO</option>
+          <option value="[34] INATIVO">INATIVO</option>
+          <option value="[34] VERIFICAR ELETRICA">VERIFICAR ELETRICA</option>
+          <option value="[34] TERMINAL">TERMINAL</option>
+          <option value="[34] ENCERTO NA BATERIA">ENCERTO NA BATERIA</option>
+          <option value="[34] PARAMETRIZOU O MODULO">PARAMETRIZOU O MODULO</option>
+          <option value="[34] LUZ DE NEBLINA">LUZ DE NEBLINA</option>
+          <option value="[34] RASTREAMENTO">RASTREAMENTO</option>
+          <option value="[34] SOQUETE">SOQUETE</option>
+          <option value="[34] LUZ DE RE">LUZ DE RE</option>
+          <option value="[34] TROCA DO REGULADOR DE VOLTAGEM">TROCA DO REGULADOR DE VOLTAGEM</option>
+          <option value="[34] TROCA DA CHAVE DE SETA">TROCA DA CHAVE DE SETA</option>
+          <option value="[34] TROCA DE BOTAO">TROCA DE BOTAO</option>
+          <option value="[34] SISTEMA SCR">SISTEMA SCR</option>
+          <option value="[34] BOMBA ELETRICA 24V">BOMBA ELETRICA 24V</option>
+          <option value="[34] MARCADOR DE COMBUSTIVEL">MARCADOR DE COMBUSTIVEL</option>
+          <option value="[34] PROGRAMACAO">PROGRAMACAO</option>
+          <option value="[34] CHAVE DE IGNICAO">CHAVE DE IGNICAO</option>
+          <option value="[34] FALHA ELETRICA NO SISTEMA PNEUMATICO">FALHA ELETRICA NO SISTEMA PNEUMATICO</option>
+          <option value="[34] TOMADA DA MAO DE AMIGO">TOMADA DA MAO DE AMIGO</option>
+          <option value="[34] RELE">RELE</option>
+          <option value="[34] FALHA NA PARTIDA">FALHA NA PARTIDA</option>
+          <option value="[34] RADIO">RADIO</option>
+          <option value="[34] LUZ DE FREIO">LUZ DE FREIO</option>
+          <option value="[34] PROTECAO FISICA ANTI-ROUBO">PROTECAO FISICA ANTI-ROUBO</option>
+          <option value="[34] ESTABILIZADOR DE LED">ESTABILIZADOR DE LED</option>
+          <option value="[34] TROCA DE LAMPADA">TROCA DE LAMPADA</option>
+          <option value="[34] TROCA DE VISCOS DA HELICE">TROCA DE VISCOS DA HELICE</option>
+          <option value="[34] SUSPENSOR SISTEMA ELETRICO">SUSPENSOR SISTEMA ELETRICO</option>
+          <option value="[34] FALHA NA ACELERACAO">FALHA NA ACELERACAO</option>
+          <option value="[34] INSTALACAO ELETRICA">INSTALACAO ELETRICA</option>
+          <option value="[34] VIDRO ELETRICO">VIDRO ELETRICO</option>
+          <option value="[34] TROCA DE TOMADA">TROCA DE TOMADA</option>
+          <option value="[34] ASSISTENTE DE RAMPA">ASSISTENTE DE RAMPA</option>
+        </optgroup>
+        <optgroup label="35 — PNEUS">
+          <option value="[35] TROCA DE PNEUS">TROCA DE PNEUS</option>
+          <option value="[35] CALIBRAGEM">CALIBRAGEM</option>
+          <option value="[35] PNEU FURADO">PNEU FURADO</option>
+          <option value="[35] PNEU ESTOURADO">PNEU ESTOURADO</option>
+          <option value="[35] VERIFICACAO DE PNEUS">VERIFICACAO DE PNEUS</option>
+          <option value="[35] BALANCEAR">BALANCEAR</option>
+          <option value="[35] RODIZIO">RODIZIO</option>
+          <option value="[35] VIROU SENTIDO DO PNEU NA RODA">VIROU SENTIDO DO PNEU NA RODA</option>
+        </optgroup>
+        <optgroup label="36 — RODAS">
+          <option value="[36] TROCA DE RODAS">TROCA DE RODAS</option>
+          <option value="[36] VERIFICACAO DE RODAS">VERIFICACAO DE RODAS</option>
+          <option value="[36] PINTURA DAS RODAS">PINTURA DAS RODAS</option>
+          <option value="[36] ESPELHOS DE RODA">ESPELHOS DE RODA</option>
+          <option value="[36] CUBO">CUBO</option>
+          <option value="[36] PARAFUSO">PARAFUSO</option>
+          <option value="[36] TROCA DE VALVULA DE RODA">TROCA DE VALVULA DE RODA</option>
+          <option value="[36] REAPERTO DE PARAFUSO">REAPERTO DE PARAFUSO</option>
+          <option value="[36] TROCA DE CASTANHA">TROCA DE CASTANHA</option>
+          <option value="[36] TROCA DO RETENTOR">TROCA DO RETENTOR</option>
+          <option value="[36] ROLAMENTO">ROLAMENTO</option>
+          <option value="[36] TROCA DE PORCA E TRAVA ARANHA">TROCA DE PORCA E TRAVA ARANHA</option>
+          <option value="[36] INSTALAR ALONGADOR DE BICO">INSTALAR ALONGADOR DE BICO</option>
+        </optgroup>
+        <optgroup label="37 — CHASSI">
+          <option value="[37] LUBRIFICACAO">LUBRIFICACAO</option>
+          <option value="[37] SOLDAR TRAVESSA">SOLDAR TRAVESSA</option>
+          <option value="[37] SOLDA BERCO DO CHASSI">SOLDA BERCO DO CHASSI</option>
+          <option value="[37] PROTECAO DE CICLISTA">PROTECAO DE CICLISTA</option>
+          <option value="[37] TROCA DE PARALAMA">TROCA DE PARALAMA</option>
+          <option value="[37] TROCA DE LAMEIRO">TROCA DE LAMEIRO</option>
+          <option value="[37] TROCA DE SUPORTE DE PARALAMA">TROCA DE SUPORTE DE PARALAMA</option>
+          <option value="[37] PINTURA DE CHASSI">PINTURA DE CHASSI</option>
+          <option value="[37] CAIXA DE FERRAMENTAS">CAIXA DE FERRAMENTAS</option>
+          <option value="[37] SOLDA PARACHOQUE TRASEIRO">SOLDA PARACHOQUE TRASEIRO</option>
+          <option value="[37] TROCA DE FAIXA REFLETIVA">TROCA DE FAIXA REFLETIVA</option>
+          <option value="[37] SOLDA CHAPA BASE 5 RODA">SOLDA CHAPA BASE 5 RODA</option>
+          <option value="[37] TROCA DO PINO REI">TROCA DO PINO REI</option>
+          <option value="[37] 5 RODA">5 RODA</option>
+          <option value="[37] FIXACAO DOS PARALAMAS">FIXACAO DOS PARALAMAS</option>
+          <option value="[37] SUPORTE DE ESTEPE">SUPORTE DE ESTEPE</option>
+          <option value="[37] PES DE APOIO">PES DE APOIO</option>
+          <option value="[37] PARACHOQUE">PARACHOQUE</option>
+          <option value="[37] SUPORTE DE PARALAMA">SUPORTE DE PARALAMA</option>
+          <option value="[37] TANQUE">TANQUE</option>
+          <option value="[37] PROTECAO DO CICLISTA COM FOLGA">PROTECAO DO CICLISTA COM FOLGA</option>
+          <option value="[37] SISTEMA DE BASCULAR CABINE">SISTEMA DE BASCULAR CABINE</option>
+          <option value="[37] PARAFUSO">PARAFUSO</option>
+          <option value="[37] SOLDAR TRINCA">SOLDAR TRINCA</option>
+          <option value="[37] ADESIVO DE LIMITE DE COMPRIMENTO">ADESIVO DE LIMITE DE COMPRIMENTO</option>
+          <option value="[37] PARALAMAS">PARALAMAS</option>
+          <option value="[37] PORTA CONE">PORTA CONE</option>
+          <option value="[37] CAROTE">CAROTE</option>
+          <option value="[37] SUPORTE DOS CONES">SUPORTE DOS CONES</option>
+          <option value="[37] SUPORTE DE EXTINTOR">SUPORTE DE EXTINTOR</option>
+          <option value="[37] TAMPA DA BATERIA">TAMPA DA BATERIA</option>
+          <option value="[37] PLACA TRASEIRA MERCOSUL">PLACA TRASEIRA MERCOSUL</option>
+          <option value="[37] MESA PINO REI">MESA PINO REI</option>
+          <option value="[37] CARRETA DESALINHADA DO CAVALO">CARRETA DESALINHADA DO CAVALO</option>
+          <option value="[37] SOLDA NO SUPORTE DO CICLISTA">SOLDA NO SUPORTE DO CICLISTA</option>
+          <option value="[37] SAPATA DA 5 RODA">SAPATA DA 5 RODA</option>
+          <option value="[37] CINTA DO TANQUE">CINTA DO TANQUE</option>
+          <option value="[37] TROCAR CHAPA BASE DO PINO REI">TROCAR CHAPA BASE DO PINO REI</option>
+          <option value="[37] SUPORTE DA MAO DE AMIGO">SUPORTE DA MAO DE AMIGO</option>
+          <option value="[37] TROCA DO EMBUCHAMENTO DO PINO REI">TROCA DO EMBUCHAMENTO DO PINO REI</option>
+          <option value="[37] SUPORTE DE LANTERNA">SUPORTE DE LANTERNA</option>
+          <option value="[37] LANTERNAGEM">LANTERNAGEM</option>
+          <option value="[37] TAMPA DE TANQUE">TAMPA DE TANQUE</option>
+          <option value="[37] VERIFICACAO DE PARAFUSOS E PORCAS DO CHASSI">VERIFICACAO DE PARAFUSOS E PORCAS DO CHASSI</option>
+          <option value="[37] SOLDA NO SUPORTE DO CONE">SOLDA NO SUPORTE DO CONE</option>
+          <option value="[37] SUPORTE DE PLACA DE SIMBOLOGIA">SUPORTE DE PLACA DE SIMBOLOGIA</option>
+          <option value="[37] PLACA DE COMPRIMENTO">PLACA DE COMPRIMENTO</option>
+          <option value="[37] REAPERTO DE MANGUEIRA DE COMBUSTIVEL">REAPERTO DE MANGUEIRA DE COMBUSTIVEL</option>
+          <option value="[37] TROCA DO GRAMPO DE FIXACAO DO TANQUE">TROCA DO GRAMPO DE FIXACAO DO TANQUE</option>
+          <option value="[37] VAZAMENTO DE OLEO DIESEL EM MANGUEIRA">VAZAMENTO DE OLEO DIESEL EM MANGUEIRA</option>
+          <option value="[37] REPARO EM SUPORTE DO TANQUE">REPARO EM SUPORTE DO TANQUE</option>
+          <option value="[37] TROCAR FAIXA REFLETIVA DO PARACHOQUE">TROCAR FAIXA REFLETIVA DO PARACHOQUE</option>
+        </optgroup>
+        <optgroup label="38 — EIXOS">
+          <option value="[38] ALINHAMENTO">ALINHAMENTO</option>
+          <option value="[38] RALA">RALA</option>
+          <option value="[38] BARRA DE DIRECAO">BARRA DE DIRECAO</option>
+          <option value="[38] BARRA LONGA">BARRA LONGA</option>
+          <option value="[38] MANGA DE EIXO">MANGA DE EIXO</option>
+          <option value="[38] TROCA DE RETENTOR">TROCA DE RETENTOR</option>
+          <option value="[38] SUSPENSOR">SUSPENSOR</option>
+          <option value="[38] ROLAMENTO">ROLAMENTO</option>
+          <option value="[38] SUPORTE">SUPORTE</option>
+          <option value="[38] CARDAN">CARDAN</option>
+          <option value="[38] FOLGA NO EIXO">FOLGA NO EIXO</option>
+          <option value="[38] EMBUCHAMENTO DE EIXO">EMBUCHAMENTO DE EIXO</option>
+          <option value="[38] EMBUCHAMENTO DO FACAO">EMBUCHAMENTO DO FACAO</option>
+          <option value="[38] BALANCEAMENTO">BALANCEAMENTO</option>
+          <option value="[38] CRUZETA DO CARDAN">CRUZETA DO CARDAN</option>
+          <option value="[38] SEMIEIXO">SEMIEIXO</option>
+          <option value="[38] PONTERIA DO EIXO">PONTERIA DO EIXO</option>
+          <option value="[38] BARRA ESTABILIZADORA">BARRA ESTABILIZADORA</option>
+          <option value="[38] REAPERTO DE RODA">REAPERTO DE RODA</option>
+          <option value="[38] EIXO COM TRINCA">EIXO COM TRINCA</option>
+        </optgroup>
+        <optgroup label="39 — SUSPENSAO">
+          <option value="[39] TROCA DE MOLA">TROCA DE MOLA</option>
+          <option value="[39] TROCA DE PINO CENTRO">TROCA DE PINO CENTRO</option>
+          <option value="[39] TROCA DE BALANCA">TROCA DE BALANCA</option>
+          <option value="[39] TROCA DE BUCHAS DO JUMELO">TROCA DE BUCHAS DO JUMELO</option>
+          <option value="[39] TROCA DE BUCHAS DOS TIRANTES">TROCA DE BUCHAS DOS TIRANTES</option>
+          <option value="[39] TROCA DE AMORTECEDOR">TROCA DE AMORTECEDOR</option>
+          <option value="[39] TROCA DO DESLIZANTE">TROCA DO DESLIZANTE</option>
+          <option value="[39] CALIBRAGEM DE SUSPENSAO">CALIBRAGEM DE SUSPENSAO</option>
+          <option value="[39] BOLSA DO SUSPENSOR">BOLSA DO SUSPENSOR</option>
+          <option value="[39] BOLSA DA SUSPENSAO">BOLSA DA SUSPENSAO</option>
+          <option value="[39] VALVULA DO SUSPENSOR">VALVULA DO SUSPENSOR</option>
+          <option value="[39] BARRA V">BARRA V</option>
+          <option value="[39] MOLA (VERIFICACAO)">MOLA (VERIFICACAO)</option>
+          <option value="[39] TENSOR">TENSOR</option>
+          <option value="[39] VALVULA">VALVULA</option>
+          <option value="[39] CONEXAO">CONEXAO</option>
+          <option value="[39] EMBUCHAMENTO">EMBUCHAMENTO</option>
+          <option value="[39] SUPORTE">SUPORTE</option>
+          <option value="[39] SUPORTE DO SUSPENSOR">SUPORTE DO SUSPENSOR</option>
+          <option value="[39] GRAMPO DE MOLA">GRAMPO DE MOLA</option>
+          <option value="[39] REAPERTO DE TIRANTE">REAPERTO DE TIRANTE</option>
+          <option value="[39] LIMITADOR DO SUSPENSOR">LIMITADOR DO SUSPENSOR</option>
+          <option value="[39] TROCA DE GRAMPO">TROCA DE GRAMPO</option>
+          <option value="[39] SOLDA">SOLDA</option>
+          <option value="[39] FEIXE DE MOLA">FEIXE DE MOLA</option>
+          <option value="[39] SAPATA DE MOLA">SAPATA DE MOLA</option>
+          <option value="[39] REFORMA DO SUSPENSOR">REFORMA DO SUSPENSOR</option>
+          <option value="[39] PINO DA BALANCA">PINO DA BALANCA</option>
+          <option value="[39] BARRA LONGA">BARRA LONGA</option>
+          <option value="[39] BATENTE">BATENTE</option>
+          <option value="[39] BUCHA DO AMORTECEDOR">BUCHA DO AMORTECEDOR</option>
+          <option value="[39] BUCHA DA BARRA DA DIRECAO">BUCHA DA BARRA DA DIRECAO</option>
+          <option value="[39] VERIFICACAO">VERIFICACAO</option>
+          <option value="[39] SUSPENSOR">SUSPENSOR</option>
+          <option value="[39] ALGEMA">ALGEMA</option>
+          <option value="[39] BALANCA">BALANCA</option>
+          <option value="[39] BARRA DE DIRECAO">BARRA DE DIRECAO</option>
+          <option value="[39] PINO DE CENTRO">PINO DE CENTRO</option>
+          <option value="[39] HASTE NIVELADORA DA SUSPENSAO">HASTE NIVELADORA DA SUSPENSAO</option>
+          <option value="[39] DESLIZANTE COM FOLGA">DESLIZANTE COM FOLGA</option>
+          <option value="[39] TROCA DE PARAFUSO">TROCA DE PARAFUSO</option>
+          <option value="[39] BARULHO NA SUSPENSAO">BARULHO NA SUSPENSAO</option>
+          <option value="[39] TROCA DE ROLAMENTO DO FACAO">TROCA DE ROLAMENTO DO FACAO</option>
+          <option value="[39] TROCA DO RETENTOR DO FACAO">TROCA DO RETENTOR DO FACAO</option>
+          <option value="[39] TROCA DE BUCHA DE MOLA">TROCA DE BUCHA DE MOLA</option>
+          <option value="[39] TROCA DE JUMELO">TROCA DE JUMELO</option>
+          <option value="[39] TROCA PASTILHA DE MOLA">TROCA PASTILHA DE MOLA</option>
+          <option value="[39] REGULOU A SUSPENSAO">REGULOU A SUSPENSAO</option>
+          <option value="[39] ARQUEAR MOLA">ARQUEAR MOLA</option>
+          <option value="[39] BARRA ESTABILIZADORA">BARRA ESTABILIZADORA</option>
+        </optgroup>
+        <optgroup label="40 — IMPLEMENTO">
+          <option value="[40] SOLDA NO TANQUE">SOLDA NO TANQUE</option>
+          <option value="[40] DESCONTAMINACAO">DESCONTAMINACAO</option>
+          <option value="[40] PORTINHOLA">PORTINHOLA</option>
+          <option value="[40] BOCA DE VISITA">BOCA DE VISITA</option>
+          <option value="[40] VALVULA DE FUNDO (TICTAC)">VALVULA DE FUNDO (TICTAC)</option>
+          <option value="[40] VALVULA DE ALIVIO">VALVULA DE ALIVIO</option>
+          <option value="[40] MACARICO">MACARICO</option>
+          <option value="[40] TERMOMETRO">TERMOMETRO</option>
+          <option value="[40] REGISTRO">REGISTRO</option>
+          <option value="[40] SOLDA">SOLDA</option>
+          <option value="[40] GUARDA CORPO">GUARDA CORPO</option>
+          <option value="[40] DRENO">DRENO</option>
+          <option value="[40] PINTURA DE LOGO">PINTURA DE LOGO</option>
+          <option value="[40] ADESIVO">ADESIVO</option>
+          <option value="[40] SUPORTE DE PLACA">SUPORTE DE PLACA</option>
+          <option value="[40] PLACA DE IDENTIFICACAO">PLACA DE IDENTIFICACAO</option>
+          <option value="[40] SETA DE NIVEL">SETA DE NIVEL</option>
+          <option value="[40] MANGOTE">MANGOTE</option>
+          <option value="[40] SUPORTE DE MANGOTE">SUPORTE DE MANGOTE</option>
+          <option value="[40] ESCADA">ESCADA</option>
+          <option value="[40] VAZAMENTO DE AR">VAZAMENTO DE AR</option>
+          <option value="[40] BOTAO">BOTAO</option>
+          <option value="[40] PINO REI">PINO REI</option>
+          <option value="[40] CONEXAO">CONEXAO</option>
+          <option value="[40] PINTURA">PINTURA</option>
+          <option value="[40] RALA">RALA</option>
+          <option value="[40] BERCO">BERCO</option>
+          <option value="[40] ADEQUACAO">ADEQUACAO</option>
+          <option value="[40] EXTINTOR DE INCENDIO">EXTINTOR DE INCENDIO</option>
+          <option value="[40] FUNIL">FUNIL</option>
+          <option value="[40] COLETOR DE AMOSTRA">COLETOR DE AMOSTRA</option>
+          <option value="[40] VALVULA">VALVULA</option>
+          <option value="[40] TUBO">TUBO</option>
+          <option value="[40] VAZAMENTO NA PORTINHOLA">VAZAMENTO NA PORTINHOLA</option>
+          <option value="[40] PLACA TRASEIRA DE COMPRIMENTO">PLACA TRASEIRA DE COMPRIMENTO</option>
+          <option value="[40] TROCA DE FILTRO DA VALVULA DE FUNDO TIC-TAC">TROCA DE FILTRO DA VALVULA DE FUNDO TIC-TAC</option>
+          <option value="[40] BOCA DE DESCARGA">BOCA DE DESCARGA</option>
+          <option value="[40] FAIXA ANTI-DERRAPANTE">FAIXA ANTI-DERRAPANTE</option>
+          <option value="[40] FITA DE ACABAMENTO DO TANQUE">FITA DE ACABAMENTO DO TANQUE</option>
+          <option value="[40] CAIXA DA VALVULA TIC-TAC">CAIXA DA VALVULA TIC-TAC</option>
+          <option value="[40] INSTALACAO DE GAXETA">INSTALACAO DE GAXETA</option>
+          <option value="[40] EPICOTAGEM">EPICOTAGEM</option>
+          <option value="[40] SANFONADO DA DESCARGA">SANFONADO DA DESCARGA</option>
+          <option value="[40] BORRACHA DE VEDACAO">BORRACHA DE VEDACAO</option>
+          <option value="[40] PLACA DE SIMBOLOGIA">PLACA DE SIMBOLOGIA</option>
+          <option value="[40] TROCA DE ABRACADEIRA">TROCA DE ABRACADEIRA</option>
+          <option value="[40] PORTA MANGOTE">PORTA MANGOTE</option>
+          <option value="[40] REPARO NO TANQUE">REPARO NO TANQUE</option>
+          <option value="[40] SOLDA NA TAMPA SUPERIOR">SOLDA NA TAMPA SUPERIOR</option>
+        </optgroup>
+        <optgroup label="41 — FREIOS">
+          <option value="[41] TROCA DE LONAS">TROCA DE LONAS</option>
+          <option value="[41] TROCA DE PASTILHAS">TROCA DE PASTILHAS</option>
+          <option value="[41] REGULAGEM">REGULAGEM</option>
+          <option value="[41] CUICA">CUICA</option>
+          <option value="[41] TROCA DE CATRACA">TROCA DE CATRACA</option>
+          <option value="[41] FLEXIVEL DE CUICA">FLEXIVEL DE CUICA</option>
+          <option value="[41] TROCA DE TAMBOR">TROCA DE TAMBOR</option>
+          <option value="[41] CARA DE CAVALO">CARA DE CAVALO</option>
+          <option value="[41] BUCHA DO EIXO S">BUCHA DO EIXO S</option>
+          <option value="[41] VALVULA">VALVULA</option>
+          <option value="[41] BARULHO NOS FREIOS">BARULHO NOS FREIOS</option>
+          <option value="[41] MOLA QUEBRADA">MOLA QUEBRADA</option>
+          <option value="[41] EQUALIZACAO">EQUALIZACAO</option>
+          <option value="[41] TRAVAMENTO">TRAVAMENTO</option>
+          <option value="[41] VERIFICAR FREIOS">VERIFICAR FREIOS</option>
+          <option value="[41] CATRACA DE FREIO">CATRACA DE FREIO</option>
+          <option value="[41] TROCA DE PATINHO DE FREIO">TROCA DE PATINHO DE FREIO</option>
+          <option value="[41] FREIO ESTACIONARIO">FREIO ESTACIONARIO</option>
+          <option value="[41] TROCA DE ROLETE DE FREIO">TROCA DE ROLETE DE FREIO</option>
+          <option value="[41] TROCA DE MOLA DE FREIO">TROCA DE MOLA DE FREIO</option>
+          <option value="[41] RODA FONICA">RODA FONICA</option>
+          <option value="[41] LIMPEZA DOS FREIOS">LIMPEZA DOS FREIOS</option>
+          <option value="[41] SUPORTE DO EIXO S">SUPORTE DO EIXO S</option>
+          <option value="[41] EIXO S">EIXO S</option>
+        </optgroup>
+        <optgroup label="42 — SISTEMA PNEUMATICO">
+          <option value="[42] LIMPEZA DO SISTEMA PNEUMATICO">LIMPEZA DO SISTEMA PNEUMATICO</option>
+          <option value="[42] TUBO DO COMPRESSOR">TUBO DO COMPRESSOR</option>
+          <option value="[42] VAZAMENTO DE AR">VAZAMENTO DE AR</option>
+          <option value="[42] MANGUEIRA">MANGUEIRA</option>
+          <option value="[42] MANGUEIRA DA MAO DE AMIGO">MANGUEIRA DA MAO DE AMIGO</option>
+          <option value="[42] COMPRESSOR DE AR">COMPRESSOR DE AR</option>
+          <option value="[42] VALVULA APM SECADORA DE AR">VALVULA APM SECADORA DE AR</option>
+          <option value="[42] VERIFICAR VALVULA PU">VERIFICAR VALVULA PU</option>
+          <option value="[42] SOLDA NO SUPORTE">SOLDA NO SUPORTE</option>
+          <option value="[42] RELOGIO DE MEDICAO DE PRESSAO">RELOGIO DE MEDICAO DE PRESSAO</option>
+          <option value="[42] SISTEMA DE AR">SISTEMA DE AR</option>
+          <option value="[42] MANETE DE FREIOS">MANETE DE FREIOS</option>
+          <option value="[42] VALVULA">VALVULA</option>
+          <option value="[42] VALVULA DESCARGA RAPIDA">VALVULA DESCARGA RAPIDA</option>
+          <option value="[42] FILTRO PU">FILTRO PU</option>
+          <option value="[42] BALAO DE AR">BALAO DE AR</option>
+          <option value="[42] LIMPEZA DO SISTEMA PNEUMATICO">LIMPEZA DO SISTEMA PNEUMATICO</option>
+          <option value="[42] SERPENTINA">SERPENTINA</option>
+          <option value="[42] TUBO DA SERPENTINA">TUBO DA SERPENTINA</option>
+          <option value="[42] TROCA DO FILTRO DE LINHA">TROCA DO FILTRO DE LINHA</option>
+          <option value="[42] TROCA DE ENGATE RAPIDO">TROCA DE ENGATE RAPIDO</option>
+        </optgroup>
+        <optgroup label="43 — SISTEMA DE ARLA">
+          <option value="[43] BOMBA DE ARLA">BOMBA DE ARLA</option>
+          <option value="[43] FILTRO DE ARLA">FILTRO DE ARLA</option>
+          <option value="[43] BICO DOSADOR">BICO DOSADOR</option>
+          <option value="[43] SENSOR DE NOX">SENSOR DE NOX</option>
+          <option value="[43] MANGUEIRA DE PRESSAO">MANGUEIRA DE PRESSAO</option>
+          <option value="[43] VAZAMENTO">VAZAMENTO</option>
+          <option value="[43] TANQUE DE ARLA">TANQUE DE ARLA</option>
+          <option value="[43] TAMPA DO RESERVATORIO">TAMPA DO RESERVATORIO</option>
+          <option value="[43] RESET">RESET</option>
+          <option value="[43] LIMPEZA">LIMPEZA</option>
+          <option value="[43] FALHA NO SISTEMA DO ARLA">FALHA NO SISTEMA DO ARLA</option>
+          <option value="[43] TROCOU O ARLA">TROCOU O ARLA</option>
+          <option value="[43] VERIFICAR BOMBA DO ARLA">VERIFICAR BOMBA DO ARLA</option>
+          <option value="[43] VERIFICAR ARLA">VERIFICAR ARLA</option>
+          <option value="[43] TAMPA DO TANQUE ARLA">TAMPA DO TANQUE ARLA</option>
+          <option value="[43] VALVULA DOSADORA DO ARLA">VALVULA DOSADORA DO ARLA</option>
+          <option value="[43] TESTE DE DOSAGEM">TESTE DE DOSAGEM</option>
+        </optgroup>
+        <optgroup label="44 — OUTROS SERVICOS">
+          <option value="[44] LAVAR E LUBRIFICAR">LAVAR E LUBRIFICAR</option>
+          <option value="[44] PLANO DE PREVENTIVA">PLANO DE PREVENTIVA</option>
+          <option value="[44] PINTURA">PINTURA</option>
+          <option value="[44] ITENS CRITICOS">ITENS CRITICOS</option>
+          <option value="[44] ADEQUACAO DE EQUIPAMENTO PARA CARREGAMENTO">ADEQUACAO DE EQUIPAMENTO PARA CARREGAMENTO</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Descrição *</label>
+      <textarea class="modal-textarea" id="asv-desc" placeholder="Descreva o serviço..."></textarea>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Mecânico</label>
+      <input class="modal-input" id="asv-mec" type="text" placeholder="Nome do mecânico">
+    </div>
+    <button class="btn-salvar" onclick="salvarAddSV()">✓ Adicionar Serviço</button>
+  </div>
+</div>
+
+<!-- Modal Concluir Serviço -->
+<div class="overlay" id="modal-concluir">
+  <div class="modal">
+    <div class="modal-title">
+      <span>✓ Concluir Serviço</span>
+      <span class="modal-close" onclick="fecharModal('modal-concluir')">✕</span>
+    </div>
+    <div id="concl-info" style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.6"></div>
+    <div class="modal-field">
+      <label class="modal-label">Solução aplicada *</label>
+      <textarea class="modal-textarea" id="concl-sol" placeholder="Descreva o que foi feito..."></textarea>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Mecânico</label>
+      <input class="modal-input" id="concl-mec" type="text" placeholder="Nome do mecânico">
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Tempo gasto</label>
+      <input class="modal-input" id="concl-tempo" type="text" placeholder="Ex: 1h30, 2h, 45min">
+    </div>
+    <button class="btn-salvar" onclick="confirmarConcluir()">✅ Confirmar Conclusão</button>
+  </div>
+</div>
+
+<!-- Modal Pendência -->
+<div class="overlay" id="modal-pend">
+  <div class="modal">
+    <div class="modal-title">
+      <span>⏸ Marcar como Pendência</span>
+      <span class="modal-close" onclick="fecharModal('modal-pend')">✕</span>
+    </div>
+    <div id="pend-info" style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.6"></div>
+    <div class="modal-field">
+      <label class="modal-label">Motivo da pendência *</label>
+      <textarea class="modal-textarea" id="pend-motivo" placeholder="Ex: Veículo liberado com urgência — farol traseiro aguarda peça..."></textarea>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Mecânico</label>
+      <input class="modal-input" id="pend-mec" type="text" placeholder="Nome do mecânico">
+    </div>
+    <div class="modal-opts" style="margin-top:8px">
+      <div class="mopt amarelo" onclick="confirmarPendencia()">⏸ Confirmar — veículo liberado com pendência</div>
+      <div class="mopt cancel" onclick="fecharModal('modal-pend')">Cancelar</div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Atribuir Mecânico -->
+<div class="overlay" id="modal-mec">
+  <div class="modal">
+    <div class="modal-title">
+      <span>👤 Atribuir Mecânico</span>
+      <span class="modal-close" onclick="fecharModal('modal-mec')">✕</span>
+    </div>
+    <div id="mec-info" style="font-size:11px;color:var(--muted);margin-bottom:12px"></div>
+    <div class="modal-field">
+      <label class="modal-label">Mecânico</label>
+      <input class="modal-input" id="mec-nome" type="text" placeholder="Nome do mecânico">
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Tempo gasto (se já trabalhou)</label>
+      <input class="modal-input" id="mec-tempo" type="text" placeholder="Ex: 1h30 (opcional)">
+    </div>
+    <button class="btn-salvar" onclick="confirmarMec()">✓ Salvar</button>
+  </div>
+</div>
+
+<!-- Modal Ag. Peça -->
+<div class="overlay" id="modal-agpeca">
+  <div class="modal">
+    <div class="modal-title">
+      <span>🔵 Aguardando Peça</span>
+      <span class="modal-close" onclick="fecharModal('modal-agpeca')">✕</span>
+    </div>
+    <div id="agp-info" style="font-size:11px;color:var(--muted);margin-bottom:12px"></div>
+    <div class="modal-field">
+      <label class="modal-label">Qual peça? *</label>
+      <input class="modal-input" id="agp-peca" type="text" placeholder="Ex: Pneu 295/80, Módulo ECU Bosch...">
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Previsão de chegada</label>
+      <input class="modal-input" id="agp-prev" type="date">
+    </div>
+    <button class="btn-salvar" onclick="confirmarAgPeca()">✓ Confirmar</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  CONSTANTES E ESTADO
+// ════════════════════════════════════════════════════════════
+var OS_KEY = 'twm_manutencao_os';
+var ordens = [];
+var _ctxOS  = null; // OS em contexto
+var _ctxSV  = null; // Serviço em contexto
+var _ctxCol = 'aberta'; // Coluna para nova OS
+
+var COLS = ['aberta','andando','agpeca','externa','concl'];
+
+var STATUS_LABEL = {
+  aberta: 'Aberta', andando: 'Andamento', agpeca: 'Ag. Peça',
+  externa: 'Of. Externa', concl: 'Concluída', pend: 'Pendência'
+};
+
+var TIPO_VEI_CLASS = {
+  'Cavalo Mecânico': 'cav',
+  'Carreta': 'car',
+  'Carro de Apoio': 'ext'
+};
+
+// ════════════════════════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════════════════════════
+function lerOS(){ try{ return JSON.parse(localStorage.getItem(OS_KEY)||'[]'); }catch(e){return [];} }
+function salvarOS(){ localStorage.setItem(OS_KEY, JSON.stringify(ordens)); }
+function uid(){ return Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,5).toUpperCase(); }
+function pad(n){ return n<10?'0'+n:''+n; }
+function agora(){ var d=new Date(); return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear(); }
+
+function toast(msg, tipo){
+  var el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast on'+(tipo?' '+tipo:'');
+  setTimeout(function(){ el.className='toast'; }, 3000);
+}
+
+// ════════════════════════════════════════════════════════════
+//  MODAL
+// ════════════════════════════════════════════════════════════
+function abrirModal(id){ document.getElementById(id).classList.add('on'); }
+function fecharModal(id){ document.getElementById(id).classList.remove('on'); }
+
+document.querySelectorAll('.overlay').forEach(function(el){
+  el.addEventListener('click', function(e){ if(e.target===el) el.classList.remove('on'); });
+});
+
+// ════════════════════════════════════════════════════════════
+//  RENDER
+// ════════════════════════════════════════════════════════════
+function render(){
+  ordens = lerOS();
+  var contadores = {aberta:0, andando:0, agpeca:0, externa:0, concl:0};
+
+  COLS.forEach(function(col){
+    var el = document.getElementById('col-'+col);
+    if(!el) return;
+    var lista = ordens.filter(function(o){ return o.status===col; });
+    contadores[col] = lista.length;
+    el.innerHTML = lista.length ? lista.map(function(o){ return renderCard(o); }).join('') :
+      '<div class="empty-col">Nenhuma O.S.<br>nesta coluna</div>';
+  });
+
+  // Atualiza contadores
+  COLS.forEach(function(col){
+    var el = document.getElementById('lbl-'+col);
+    if(el) el.textContent = contadores[col];
+  });
+  // Resumo
+  var t = setText;
+  t('cnt-ab',  contadores.aberta);
+  t('cnt-and', contadores.andando);
+  t('cnt-ag',  contadores.agpeca);
+  t('cnt-ext', contadores.externa);
+  t('cnt-ok',  contadores.concl);
+}
+
+function setText(id, v){ var e=document.getElementById(id); if(e) e.textContent=v; }
+
+function renderCard(os){
+  var cls = TIPO_VEI_CLASS[os.tipo_vei] || 'cav';
+  var prioLabel = os.prioridade==='urgente'?'🔴 Urgente':os.prioridade==='baixa'?'Baixa':'Normal';
+  var prioCls   = os.prioridade==='urgente'?'p-urg':os.prioridade==='baixa'?'p-bai':'p-nor';
+  var nsv = (os.servicos||[]).length;
+  var origemBadge = os.origem==='checklist'
+    ? '<div class="card-origem">📋 Aberta pelo Check List Frota &nbsp;·&nbsp; '+os.motorista+'</div>'
+    : '';
+
+  var svHtml = (os.servicos||[]).map(function(sv, idx){
+    return renderServico(os.id, sv, idx, os.servicos.length);
+  }).join('');
+
+  return '<div class="card" id="card-'+os.id+'">'+
+    '<div class="card-hd">'+
+      '<div class="card-fr-row">'+
+        '<div>'+
+          '<div class="card-frota '+cls+'">'+os.frota+'</div>'+
+          '<div class="card-tipo-vei">'+os.tipo_vei+'</div>'+
+        '</div>'+
+        '<span class="card-prio '+prioCls+'">'+prioLabel+'</span>'+
+      '</div>'+
+      '<div class="card-info-row">'+
+        '<span>'+(nsv>1 ? nsv+' serviços':'1 serviço')+'</span>'+
+        '<span>'+os.data_aber+'</span>'+
+      '</div>'+
+      origemBadge+
+    '</div>'+
+    '<div class="svs">'+svHtml+'</div>'+
+    '<div class="add-sv" onclick="abrirAddSV(\''+os.id+'\')">＋ Adicionar serviço</div>'+
+  '</div>';
+}
+
+function renderServico(osId, sv, idx, total){
+  var stCls  = {'aberta':'s-aberta','andando':'s-andando','concl':'s-concl','pend':'s-pend','agpeca':'s-agpeca','externa':'s-externa'}[sv.status]||'s-aberta';
+  var stTag  = {'aberta':'<span class="sv-tag t-ab">Aberta</span>',
+                'andando':'<span class="sv-tag t-and">🟡 Andamento</span>',
+                'concl':'<span class="sv-tag t-ok">✅ Concluído</span>',
+                'pend':'<span class="sv-tag t-pend">⏸ Pendência</span>',
+                'agpeca':'<span class="sv-tag t-ag">🔵 Ag. Peça</span>',
+                'externa':'<span class="sv-tag t-ext">🏭 Externa</span>'}[sv.status]||'';
+
+  // Mecânico
+  var mecHtml = sv.mecanico
+    ? '<div class="sv-mec">👤 <b>'+sv.mecanico+'</b>'+(sv.tempo?' <span class="sv-mec-tempo">· ⏱ '+sv.tempo+'</span>':'')+'<button class="btn-mec" onclick="abrirMec(\''+osId+'\',\''+sv.id+'\')">✎</button></div>'
+    : '<div class="sv-mec">👤 <span style="color:var(--muted)">Sem mecânico</span> <button class="btn-mec" onclick="abrirMec(\''+osId+'\',\''+sv.id+'\')">+ Atribuir</button></div>';
+
+  // Solução
+  var solHtml = sv.solucao ? '<div class="sv-sol">✅ '+sv.solucao+'</div>' : '';
+
+  // Pendência
+  var pendHtml = sv.status==='pend'
+    ? '<div class="sv-pend-av">⚠️ Veículo liberado com pendência</div>'+(sv.pend_nota?'<div class="sv-pend-note">'+sv.pend_nota+'</div>':'')
+    : '';
+
+  // Ag. Peça
+  var agHtml = sv.status==='agpeca' && sv.ag_peca
+    ? '<div style="font-size:8px;color:var(--cyan);font-weight:600;margin-bottom:4px">⏳ Peça: '+sv.ag_peca+(sv.ag_prev?' · Prev. '+sv.ag_prev:'')+'</div>'
+    : '';
+
+  // Botões de ação
+  var acts = '';
+  if(sv.status==='aberta'||sv.status==='andando'){
+    acts += '<button class="btn-a btn-ok" onclick="abrirConcluir(\''+osId+'\',\''+sv.id+'\')">✓ Concluir</button>';
+    acts += '<button class="btn-a btn-pend" onclick="abrirPend(\''+osId+'\',\''+sv.id+'\')">⏸ Pendência</button>';
+    if(sv.status==='aberta')
+      acts += '<button class="btn-a btn-mv" onclick="moverSV(\''+osId+'\',\''+sv.id+'\',\'andando\')">→ Andamento</button>';
+    acts += '<button class="btn-a btn-ag" onclick="abrirAgPeca(\''+osId+'\',\''+sv.id+'\')">🔵 Ag. Peça</button>';
+  } else if(sv.status==='agpeca'){
+    acts += '<button class="btn-a btn-ok" onclick="abrirConcluir(\''+osId+'\',\''+sv.id+'\')">✓ Peça chegou</button>';
+    acts += '<button class="btn-a btn-pend" onclick="abrirPend(\''+osId+'\',\''+sv.id+'\')">⏸ Pendência</button>';
+  } else if(sv.status==='pend'){
+    acts += '<button class="btn-a btn-ok" onclick="abrirConcluir(\''+osId+'\',\''+sv.id+'\')">✓ Concluir agora</button>';
+    acts += '<button class="btn-a btn-mv" onclick="moverSV(\''+osId+'\',\''+sv.id+'\',\'aberta\')">↩ Reabrir</button>';
+  }
+
+  var sep = (idx < total-1) ? '<div class="sv-sep"></div>' : '';
+
+  return '<div class="sv '+stCls+'" id="sv-'+sv.id+'">'+
+    '<div class="sv-top"><div class="sv-tipo">'+sv.tipo+'</div>'+stTag+'</div>'+
+    '<div class="sv-desc">'+sv.descricao+'</div>'+
+    solHtml+pendHtml+agHtml+mecHtml+
+    (acts ? '<div class="sv-acts">'+acts+'</div>' : '')+
+  '</div>'+sep;
+}
+
+// ════════════════════════════════════════════════════════════
+//  NOVA OS
+// ════════════════════════════════════════════════════════════
+function abrirModalNovaOS(col){
+  _ctxCol = col;
+  document.getElementById('nos-frota').value='';
+  document.getElementById('nos-mec').value='';
+  document.getElementById('nos-desc').value='';
+  abrirModal('modal-nova-os');
+}
+
+function salvarNovaOS(){
+  var frota  = document.getElementById('nos-frota').value.trim().toUpperCase();
+  var tipoV  = document.getElementById('nos-tipo-vei').value;
+  var prio   = document.getElementById('nos-prio').value;
+  var tipoSV = document.getElementById('nos-tipo-sv').value;
+  var desc   = document.getElementById('nos-desc').value.trim();
+  var mec    = document.getElementById('nos-mec').value.trim();
+  if(!frota){ toast('Informe a frota','err'); return; }
+  if(!desc){  toast('Descreva o defeito','err'); return; }
+  ordens = lerOS();
+  var novaOS = {
+    id: 'OS-'+uid(),
+    frota: frota,
+    tipo_vei: tipoV,
+    prioridade: prio,
+    status: _ctxCol,
+    origem: 'manual',
+    motorista: '—',
+    data_aber: agora(),
+    ts: Date.now(),
+    servicos: [{
+      id: 'SV-'+uid(),
+      tipo: tipoSV,
+      descricao: desc,
+      mecanico: mec,
+      tempo: '',
+      status: _ctxCol==='concl'?'concl':'aberta',
+      solucao: '',
+      pendencia: false,
+      ts: Date.now()
+    }]
+  };
+  ordens.unshift(novaOS);
+  salvarOS();
+  fecharModal('modal-nova-os');
+  render();
+  toast('✅ O.S. aberta — '+frota, 'ok');
+}
+
+// ════════════════════════════════════════════════════════════
+//  ADICIONAR SERVIÇO A OS EXISTENTE
+// ════════════════════════════════════════════════════════════
+function abrirAddSV(osId){
+  _ctxOS = osId;
+  document.getElementById('asv-desc').value='';
+  document.getElementById('asv-mec').value='';
+  abrirModal('modal-add-sv');
+}
+
+function salvarAddSV(){
+  var tipo = document.getElementById('asv-tipo').value;
+  var desc = document.getElementById('asv-desc').value.trim();
+  var mec  = document.getElementById('asv-mec').value.trim();
+  if(!desc){ toast('Descreva o serviço','err'); return; }
+  ordens = lerOS();
+  var os = ordens.find(function(o){ return o.id===_ctxOS; });
+  if(!os) return;
+  os.servicos.push({
+    id: 'SV-'+uid(),
+    tipo: tipo,
+    descricao: desc,
+    mecanico: mec,
+    tempo: '',
+    status: 'aberta',
+    solucao: '',
+    pendencia: false,
+    ts: Date.now()
+  });
+  salvarOS();
+  fecharModal('modal-add-sv');
+  render();
+  toast('✅ Serviço adicionado', 'ok');
+}
+
+// ════════════════════════════════════════════════════════════
+//  CONCLUIR SERVIÇO
+// ════════════════════════════════════════════════════════════
+function abrirConcluir(osId, svId){
+  _ctxOS=osId; _ctxSV=svId;
+  var os = (lerOS()).find(function(o){ return o.id===osId; });
+  var sv = os && os.servicos.find(function(s){ return s.id===svId; });
+  var el = document.getElementById('concl-info');
+  if(el) el.innerHTML = '<b>'+os.frota+'</b> — '+sv.tipo+'<br><span style="color:var(--muted)">Este serviço será concluído. Os outros serviços permanecem no status atual.</span>';
+  document.getElementById('concl-sol').value = sv.solucao||'';
+  document.getElementById('concl-mec').value = sv.mecanico||'';
+  document.getElementById('concl-tempo').value = sv.tempo||'';
+  abrirModal('modal-concluir');
+}
+
+function confirmarConcluir(){
+  var sol   = document.getElementById('concl-sol').value.trim();
+  var mec   = document.getElementById('concl-mec').value.trim();
+  var tempo = document.getElementById('concl-tempo').value.trim();
+  if(!sol){ toast('Informe a solução aplicada','err'); return; }
+  ordens = lerOS();
+  var os = ordens.find(function(o){ return o.id===_ctxOS; });
+  var sv = os && os.servicos.find(function(s){ return s.id===_ctxSV; });
+  if(!sv) return;
+  sv.status='concl'; sv.solucao=sol; sv.mecanico=mec; sv.tempo=tempo;
+  // Se todos concluídos, move OS para concl
+  var todos = os.servicos.every(function(s){ return s.status==='concl'||s.status==='pend'; });
+  if(todos) os.status='concl';
+  salvarOS();
+  fecharModal('modal-concluir');
+  render();
+  toast('✅ Serviço concluído!', 'ok');
+}
+
+// ════════════════════════════════════════════════════════════
+//  PENDÊNCIA
+// ════════════════════════════════════════════════════════════
+function abrirPend(osId, svId){
+  _ctxOS=osId; _ctxSV=svId;
+  var os = (lerOS()).find(function(o){ return o.id===osId; });
+  var sv = os && os.servicos.find(function(s){ return s.id===svId; });
+  var el = document.getElementById('pend-info');
+  if(el) el.innerHTML = '<b>'+os.frota+'</b> — '+sv.tipo+'<br>O veículo será <b>liberado sem realizar este serviço</b>. Ficará marcado como pendência.';
+  document.getElementById('pend-motivo').value='';
+  document.getElementById('pend-mec').value = sv.mecanico||'';
+  abrirModal('modal-pend');
+}
+
+function confirmarPendencia(){
+  var motivo = document.getElementById('pend-motivo').value.trim();
+  var mec    = document.getElementById('pend-mec').value.trim();
+  if(!motivo){ toast('Informe o motivo da pendência','err'); return; }
+  ordens = lerOS();
+  var os = ordens.find(function(o){ return o.id===_ctxOS; });
+  var sv = os && os.servicos.find(function(s){ return s.id===_ctxSV; });
+  if(!sv) return;
+  sv.status='pend'; sv.pend_nota=motivo; if(mec) sv.mecanico=mec;
+  salvarOS();
+  fecharModal('modal-pend');
+  render();
+  toast('⏸ Marcado como pendência', '');
+}
+
+// ════════════════════════════════════════════════════════════
+//  MOVER SERVIÇO DE STATUS
+// ════════════════════════════════════════════════════════════
+function moverSV(osId, svId, novoStatus){
+  ordens = lerOS();
+  var os = ordens.find(function(o){ return o.id===osId; });
+  var sv = os && os.servicos.find(function(s){ return s.id===svId; });
+  if(!sv) return;
+  sv.status = novoStatus;
+  // Verifica se OS deve mudar de coluna
+  atualizarStatusOS(os);
+  salvarOS();
+  render();
+  toast('Status atualizado', 'ok');
+}
+
+function atualizarStatusOS(os){
+  var svs = os.servicos;
+  if(svs.every(function(s){ return s.status==='concl'||s.status==='pend'; })) os.status='concl';
+  else if(svs.some(function(s){ return s.status==='andando'; })) os.status='andando';
+  else if(svs.some(function(s){ return s.status==='agpeca'; })) os.status='agpeca';
+  else if(svs.some(function(s){ return s.status==='externa'; })) os.status='externa';
+  else os.status='aberta';
+}
+
+// ════════════════════════════════════════════════════════════
+//  ATRIBUIR MECÂNICO
+// ════════════════════════════════════════════════════════════
+function abrirMec(osId, svId){
+  _ctxOS=osId; _ctxSV=svId;
+  var os = (lerOS()).find(function(o){ return o.id===osId; });
+  var sv = os && os.servicos.find(function(s){ return s.id===svId; });
+  var el = document.getElementById('mec-info');
+  if(el) el.innerHTML = '<b>'+os.frota+'</b> — '+sv.tipo;
+  document.getElementById('mec-nome').value = sv.mecanico||'';
+  document.getElementById('mec-tempo').value = sv.tempo||'';
+  abrirModal('modal-mec');
+}
+
+function confirmarMec(){
+  var nome  = document.getElementById('mec-nome').value.trim();
+  var tempo = document.getElementById('mec-tempo').value.trim();
+  ordens = lerOS();
+  var os = ordens.find(function(o){ return o.id===_ctxOS; });
+  var sv = os && os.servicos.find(function(s){ return s.id===_ctxSV; });
+  if(!sv) return;
+  sv.mecanico=nome; sv.tempo=tempo;
+  if(sv.status==='aberta'&&nome) sv.status='andando';
+  atualizarStatusOS(os);
+  salvarOS();
+  fecharModal('modal-mec');
+  render();
+  toast('👤 Mecânico atribuído', 'ok');
+}
+
+// ════════════════════════════════════════════════════════════
+//  AGUARDANDO PEÇA
+// ════════════════════════════════════════════════════════════
+function abrirAgPeca(osId, svId){
+  _ctxOS=osId; _ctxSV=svId;
+  var os = (lerOS()).find(function(o){ return o.id===osId; });
+  var sv = os && os.servicos.find(function(s){ return s.id===svId; });
+  var el = document.getElementById('agp-info');
+  if(el) el.innerHTML = '<b>'+os.frota+'</b> — '+sv.tipo;
+  document.getElementById('agp-peca').value='';
+  document.getElementById('agp-prev').value='';
+  abrirModal('modal-agpeca');
+}
+
+function confirmarAgPeca(){
+  var peca = document.getElementById('agp-peca').value.trim();
+  var prev = document.getElementById('agp-prev').value;
+  if(!peca){ toast('Informe a peça','err'); return; }
+  ordens = lerOS();
+  var os = ordens.find(function(o){ return o.id===_ctxOS; });
+  var sv = os && os.servicos.find(function(s){ return s.id===_ctxSV; });
+  if(!sv) return;
+  sv.status='agpeca'; sv.ag_peca=peca;
+  if(prev){ var p=prev.split('-'); sv.ag_prev=p[2]+'/'+p[1]+'/'+p[0]; }
+  os.status='agpeca';
+  salvarOS();
+  fecharModal('modal-agpeca');
+  render();
+  toast('🔵 Aguardando peça registrado', '');
+}
+
+// ════════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════════
+window.onload = function(){
+  render();
+};
+</script>
+</body>
+</html>
