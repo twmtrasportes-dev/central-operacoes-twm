@@ -132,9 +132,28 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 
 .empty{text-align:center;padding:24px;color:var(--muted);font-size:12px;line-height:1.6}
 
-@media print{body *{visibility:hidden!important}#print-area,#print-area *{visibility:visible!important}#print-area{position:fixed!important;top:0!important;left:0!important;width:100%!important;background:white!important;z-index:9999!important;padding:20px!important}@page{margin:15mm;size:A4 landscape}}
+@media print{body *{visibility:hidden!important}#print-area,#print-area *{visibility:visible!important}#print-area{position:fixed!important;top:0!important;left:0!important;width:100%!important;background:white!important;z-index:9999!important;padding:8mm 10mm!important}@page{margin:8mm 10mm;size:A4 portrait}}
 #print-area{display:none}#print-area.printing{display:block}
 </style>
+
+<style id="print-css">
+@media print {
+  body { font-family: 'Barlow', Arial, sans-serif !important; }
+  #print-area {
+    font-size: 8px !important;
+    line-height: 1.3 !important;
+  }
+  /* Garante que CONDIÇÕES DO VEÍCULO começa na página 2 */
+  #print-area .page-break-before { page-break-before: always !important; }
+  /* Evita quebra dentro de uma seção */
+  #print-area > div { page-break-inside: avoid; }
+  @page {
+    size: A4 portrait;
+    margin: 8mm 10mm;
+  }
+}
+</style>
+
 </head>
 <body>
 
@@ -896,128 +915,188 @@ function visualizarSeg(idx){
   pb.scrollIntoView({behavior:'smooth'});
 }
 
-// ── Monta o documento no formato exato FQ-TWM-CO-19-01 ───────────
+// ── Monta o documento IDÊNTICO ao PDF/XLS FQ-TWM-CO-19-01 Rev.06 ──
+// Layout: máximo 2 folhas A4, estilo igual ao app (roxo/verde)
 function montarDocumentoSeg(r){
   if(!r) return '';
-  var respostas = r.respostas || {};
+  var resp = r.respostas || {};
 
-  function resp(n){
-    var v = respostas[n] || respostas['item_'+n] || '';
-    return {
-      sim: v==='sim'||v==='SIM'||v===true||v==='S'?'✓':'',
-      nao: v==='nao'||v==='NAO'||v===false||v==='N'?'✗':'',
-      na:  v==='na'||v==='NA'||v==='N/A'?'—':''
-    };
+  function val(n){
+    var v = String(resp[n]||resp['item_'+n]||'').toLowerCase().trim();
+    return v;
+  }
+  function btnS(n){ var v=val(n); return '<span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;font-size:10px;font-weight:700;border:1.5px solid '+(v==='sim'?'#10B981':'#ccc')+';background:'+(v==='sim'?'rgba(16,185,129,.15)':'transparent')+';color:'+(v==='sim'?'#059669':'#aaa')+'">S</span>'; }
+  function btnN(n){ var v=val(n); return '<span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;font-size:10px;font-weight:700;border:1.5px solid '+(v==='nao'?'#EF4444':'#ccc')+';background:'+(v==='nao'?'rgba(239,68,68,.12)':'transparent')+';color:'+(v==='nao'?'#DC2626':'#aaa')+'">N</span>'; }
+  function btnNA(n){ var v=val(n); return '<span style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:26px;border-radius:6px;font-size:9px;font-weight:700;border:1.5px solid '+(v==='na'?'#7A7890':'#ccc')+';background:'+(v==='na'?'rgba(122,120,144,.12)':'transparent')+';color:'+(v==='na'?'#6B7280':'#aaa')+'">N/A</span>'; }
+  function btns(n){ return '<div style="display:flex;gap:3px;flex-shrink:0">'+btnS(n)+btnN(n)+btnNA(n)+'</div>'; }
+
+  var SECOES_PRINT = [
+    {emoji:'👤', titulo:'MOTORISTA / VEÍCULO', itens:[
+      {n:1,txt:'CNH e curso MOPP dentro da validade'},
+      {n:2,txt:'CRLV (do ano corrente, placa confere com a identificada no veículo)'},
+      {n:3,txt:'CIV (cavalo e carreta dentro da validade)'},
+      {n:4,txt:'CIPP (carreta dentro da validade)'},
+      {n:5,txt:'Laudo de verificação do INMETRO (dentro da data de validade)'},
+      {n:6,txt:'Cronotacógrafo (dentro da data de validade)'},
+      {n:7,txt:'01 pasta contendo as Licenças Ambientais das empresas (Licenças dentro da validade)'},
+      {n:8,txt:'Sem sinais de embriaguez, sonolência ou problemas físicos'},
+    ]},
+    {emoji:'🦺', titulo:'EQUIPAMENTOS DE PROTEÇÃO INDIVIDUAL', itens:[
+      {n:9,txt:'Calçado de Segurança'},{n:10,txt:'Luvas de PVC'},
+      {n:11,txt:'Capacete com protetor facial (Produto escuro) sem protetor facial para produto claro'},
+      {n:12,txt:'Óculos de segurança'},{n:13,txt:'Cinto de segurança tipo pára-quedista'},
+      {n:14,txt:'Respirador com purificador de ar (Produto escuro)'},
+      {n:15,txt:'Avental de Raspa (Produto escuro)'},{n:16,txt:'Protetor Auditivo'},
+    ]},
+    {emoji:'🚨', titulo:'EQUIPAMENTOS DE SEGURANÇA / EMERGÊNCIA', itens:[
+      {n:17,txt:'Extintores PQS 08 Kg (ABC) produto claro, PQS 12 kg (BC) produto escuro, com selo, recarga na validade, manômetro na posição verde'},
+      {n:18,txt:'01 Extintor ABC 02 Kg (na cabine do veículo), com selo, recarga na validade, manômetro na posição verde'},
+      {n:19,txt:'Cabo terra sem emenda com capa transparente'},{n:20,txt:'Balde em alumínio com cabo terra'},
+      {n:21,txt:'Calço de rodas: 2 para caminhão trator e semi-reboque e 04 para caminhão reboque bitrem ou bitrenzão'},
+      {n:22,txt:'Cones — Cor laranja com faixa refletiva e emborrachado conforme legislação vigente (4 peças)'},
+      {n:23,txt:'Painéis de segurança, rótulo de risco e número ONU conforme produto a ser carregado e em boas condições de uso'},
+      {n:24,txt:'Triângulo de sinalização, Macaco, chave de roda, pino para reboque'},
+      {n:25,txt:'Jogo de Ferramentas contendo no mínimo: Alicate universal, Chave de fenda ou philips e chave de boca (fixa) para desconexão do cabo da bateria'},
+      {n:26,txt:'Kit para pequenos derrames (4 Batoques, 2 cordões, 6 mantas absorventes, 1 lona plástica, 1 martelo de borracha, 1 sabão em pedra, 2 cx de durepóxi, 1 pct de pó absorvente, 1 colete refletivo, 10 sacos plásticos 50L, 1 pá de plástico)'},
+      {n:27,txt:'Chave de bascular cabine'},
+      {n:28,txt:'Porta mangotes / mangotes de borracha com mínimo 4 metros de comprimento e em perfeita condição de uso e sem vazamentos'},
+      {n:29,txt:'Mangueira de Dreno do Tanque (Cocho) Desobstruída'},
+      {n:30,txt:'Ausência de arames, barbantes, cordas, pedaço de pano na estrutura do caminhão'},
+    ]},
+    {emoji:'🚛', titulo:'CONDIÇÕES DO VEÍCULO', itens:[
+      {n:31,txt:'Rodas com parafusos e sem amassados'},
+      {n:32,txt:'Pneus em bom estado de conservação, com sulcos mínimos de 1,6 mm'},
+      {n:33,txt:'Protetor de rodas traseiras em bom estado de conservação'},
+      {n:34,txt:'Chave geral blindada com indicação L/D, ligada no pólo positivo da bateria'},
+      {n:35,txt:'Ligação do tanque no chassis (continuidade elétrica). Pontos de aterramento nas laterais do tanque isentos de pintura e corrosão'},
+      {n:36,txt:'Faróis, Lanternas e setas, luz de placa em bom estado, sem trincas e funcionando'},
+      {n:37,txt:'Fiação contida em dutos (emendas só nas caixas de passagem), isolamento perfeito, bateria isolada'},
+      {n:38,txt:'Todas as saídas do produto com pontos de lacração e isentos de vazamentos'},
+      {n:39,txt:'Escada e passadiço com piso antiderrapante'},
+      {n:40,txt:'Espelhos retrovisores regulamentários e adicionais isentos de trincas'},
+      {n:41,txt:'(Para-sol) proteção interna contra o sol para o motorista em boas condições'},
+      {n:42,txt:'Buzina e sirene de Marcha ré funcionando'},
+      {n:43,txt:'Ponto baixo dotado de dreno e estanqueidade em relação à penetração de água e outros contaminantes'},
+      {n:44,txt:'Proteção do suspensor (cavalo e carreta)'},
+    ]},
+    {emoji:'🏷', titulo:'CARACTERIZAÇÃO DO VEÍCULO', itens:[
+      {n:45,txt:'Adesivo de Informação de TARA dos dois lados do veículo, legíveis'},
+      {n:46,txt:'Adesivo com identificação do número de frota em boas condições de visibilidade'},
+      {n:47,txt:'Adesivo com a identificação da caixa de ferramentas em boas condições de visibilidade'},
+      {n:48,txt:'Números dos telefones de emergência em ambos os lados do semi-reboque'},
+      {n:49,txt:'Capacidade dos compartimentos demarcada no bocal de descarga e nas bocas de visita'},
+      {n:50,txt:'Placa traseira com a informação de "COMO ESTOU DIRIGINDO", legível'},
+      {n:51,txt:'Adesivo contendo a placa do reboque fixado na traseira do mesmo, legível'},
+      {n:52,txt:'Faixa refletiva ao redor do reboque e parachoque em boas condições de visibilidade'},
+      {n:53,txt:'Placa traseira com a informação de "VEÍCULO LONGO" em boas condições de visibilidade'},
+    ]},
+  ];
+
+  // Campos de identificação
+  function campo2(label, val, w){
+    return '<div style="flex:'+(w||1)+';min-width:0">'+
+      '<div style="font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6B6880;margin-bottom:2px">'+label+'</div>'+
+      '<div style="background:#F4F3FF;border:1px solid #E0DEFF;border-radius:6px;padding:5px 8px;font-size:9px;font-weight:600;color:#1A1A2E;min-height:22px">'+( val||'—')+'</div></div>';
   }
 
-  var html = '<div style="font-family:Arial,sans-serif;color:#000;font-size:9px;line-height:1.3">';
+  var aprovado = (r.aprovado||'').toUpperCase()==='SIM';
+
+  var html = '<div style="font-family:Barlow,Arial,sans-serif;color:#1A1A2E;font-size:9px;line-height:1.4">';
 
   // ── CABEÇALHO ──
-  html += '<div style="background:#1e3a8a;color:#fff;padding:8px 12px;margin-bottom:0;display:flex;align-items:center;justify-content:space-between">' +
-    '<div>' +
-      '<div style="font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:.5px">CHECK-LIST MENSAL DE SEGURANÇA DOS VEÍCULOS</div>' +
-      '<div style="font-size:8px;opacity:.8;margin-top:2px">FQ-TWM-CO-19-01 &nbsp;|&nbsp; Rev.:06 &nbsp;|&nbsp; TWM Transportes Especiais Ltda</div>' +
-    '</div>' +
-    '<div style="text-align:right">' +
-      '<div style="font-size:10px;font-weight:700">'+(r.data||r.data_hora||'—')+'</div>' +
-      '<div style="font-size:8px;opacity:.8">Data da inspeção</div>' +
-    '</div>' +
+  html += '<div style="text-align:center;border:1.5px solid #7B3FE4;border-radius:8px;padding:6px 10px;margin-bottom:8px">'+
+    '<div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;color:#1A1A2E">CHECK-LIST MENSAL DOS VEÍCULOS — FQ-TWM-CO-19-01 Rev.:06 — 30/06/2025</div>'+
+    '<div style="display:flex;gap:16px;font-size:8px;color:#6B6880;margin-top:3px;justify-content:center">'+
+      '<span>Motorista: <b style="color:#1A1A2E">'+(r.motorista||'—')+'</b></span>'+
+      '<span>VP: <b style="color:#1A1A2E">'+(r.frota||'—')+'</b></span>'+
+      '<span>KM: <b style="color:#1A1A2E">'+(r.km_atual||'—')+'</b></span>'+
+      '<span>Placa Cavalo: <b style="color:#1A1A2E">'+(r.placa_cav||'—')+'</b></span>'+
+      '<span>Placa Carreta: <b style="color:#1A1A2E">'+(r.placa_car||r.rb||'—')+'</b></span>'+
+    '</div>'+
   '</div>';
 
-  // ── DADOS DO VEÍCULO ──
-  html += '<div style="background:#dbeafe;border:1px solid #93c5fd;padding:6px 10px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:0">' +
-    campo('MOTORISTA', r.motorista||'—') +
-    campo('VEÍCULO (VP)', r.frota||r.veiculo||'—') +
-    campo('KM', r.km_atual||r.km||'—') +
-    campo('PLACA CAVALO', r.placa_cav||r.placa||'—') +
-    campo('PLACA CARRETA / RB', r.placa_car||r.rb||'—') +
-    campo('ANO FAB. CAVALO', r.ano_cav||'—') +
-  '</div>' +
-  '<div style="background:#dbeafe;border:1px solid #93c5fd;border-top:none;padding:6px 10px;display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px">' +
-    campo('LOCAL DA INSPEÇÃO', r.local||'—') +
-    campo('RESPONSÁVEL PELA INSPEÇÃO', r.responsavel||'—') +
+  // ── IDENTIFICAÇÃO ──
+  html += '<div style="border:1px solid #E0DEFF;border-radius:8px;padding:8px;margin-bottom:6px">'+
+    '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#7B3FE4;margin-bottom:6px">📋 IDENTIFICAÇÃO</div>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:5px">'+
+      campo2('DATA',      r.data_hora ? r.data_hora.split(' ')[0] : '—', 1)+
+      campo2('HORA',      r.data_hora ? r.data_hora.split(' ')[1] : '—', 1)+
+      campo2('KM ATUAL',  r.km_atual||'—', 1)+
+      campo2('MOTORISTA', r.motorista||'—', 2)+
+    '</div>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:5px">'+
+      campo2('PLACA CAVALO', r.placa_cav||'—', 1)+
+      campo2('VP (FROTA)',   r.frota||'—', 1)+
+      campo2('ANO FAB. CAVALO', r.ano_cav||'—', 1)+
+    '</div>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:5px">'+
+      campo2('PLACA CARRETA', r.placa_car||'—', 1)+
+      campo2('RB (FROTA)',    r.rb||'—', 1)+
+      campo2('ANO FAB. CARRETA', r.ano_car||'—', 1)+
+    '</div>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
+      campo2('LOCAL DA INSPEÇÃO',         r.local||'—', 2)+
+      campo2('RESPONSÁVEL PELA INSPEÇÃO', r.responsavel||'—', 2)+
+    '</div>'+
   '</div>';
 
-  // ── CABEÇALHO DA TABELA ──
-  html += '<table style="width:100%;border-collapse:collapse;margin-bottom:6px">' +
-    '<thead><tr style="background:#1e3a8a">' +
-      '<th style="color:#fff;padding:4px 6px;text-align:center;width:28px;font-size:8px;font-weight:700">Nº</th>' +
-      '<th style="color:#fff;padding:4px 6px;text-align:left;font-size:8px;font-weight:700">ITEM DE VERIFICAÇÃO</th>' +
-      '<th style="color:#fff;padding:4px 6px;text-align:center;width:32px;font-size:8px;font-weight:700">SIM</th>' +
-      '<th style="color:#fff;padding:4px 6px;text-align:center;width:32px;font-size:8px;font-weight:700">NÃO</th>' +
-      '<th style="color:#fff;padding:4px 6px;text-align:center;width:32px;font-size:8px;font-weight:700">N/A</th>' +
-    '</tr></thead><tbody>';
+  // ── SEÇÕES DE ITENS ──
+  SECOES_PRINT.forEach(function(sec){
+    html += '<div style="border:1px solid #E0DEFF;border-radius:8px;overflow:hidden;margin-bottom:5px">'+
+      '<div style="background:linear-gradient(135deg,#6B21A8,#7B3FE4);padding:5px 10px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#fff">'+
+        sec.emoji+' '+sec.titulo+
+      '</div>';
 
-  SECOES_CLS.forEach(function(sec){
-    // Linha de seção
-    html += '<tr style="background:#dbeafe"><td colspan="5" style="padding:4px 8px;font-weight:700;font-size:8px;color:#1e3a8a;text-transform:uppercase;letter-spacing:.5px">'+sec.titulo+'</td></tr>';
     sec.itens.forEach(function(item, idx){
-      var bg = idx%2===0?'#fff':'#f0f9ff';
-      var rv = resp(item.n);
-      html += '<tr style="background:'+bg+'">' +
-        '<td style="padding:3px 6px;text-align:center;font-weight:700;font-size:8px;border-bottom:1px solid #e0e0e0">'+item.n+'</td>' +
-        '<td style="padding:3px 6px;font-size:8px;border-bottom:1px solid #e0e0e0">'+item.txt+'</td>' +
-        '<td style="padding:3px 6px;text-align:center;font-size:11px;font-weight:700;color:#16a34a;border-bottom:1px solid #e0e0e0">'+rv.sim+'</td>' +
-        '<td style="padding:3px 6px;text-align:center;font-size:11px;font-weight:700;color:#dc2626;border-bottom:1px solid #e0e0e0">'+rv.nao+'</td>' +
-        '<td style="padding:3px 6px;text-align:center;font-size:9px;color:#6b7280;border-bottom:1px solid #e0e0e0">'+rv.na+'</td>' +
-      '</tr>';
+      var bg = idx%2===0 ? '#fff' : '#FAFAFE';
+      html += '<div style="display:flex;align-items:center;background:'+bg+';padding:3px 10px;border-top:'+(idx===0?'none':'1px solid #F0EEFF')+'">'+
+        '<span style="font-family:Barlow Condensed,sans-serif;font-size:12px;font-weight:800;color:#7B3FE4;min-width:22px;flex-shrink:0">'+item.n+'</span>'+
+        '<span style="flex:1;font-size:8px;color:#1A1A2E;padding:0 6px;line-height:1.3">'+item.txt+'</span>'+
+        btns(item.n)+
+      '</div>';
     });
+
+    html += '</div>';
   });
 
-  html += '</tbody></table>';
-
-  // ── JUSTIFICATIVA E OBSERVAÇÕES ──
-  html += '<div style="border:1px solid #ccc;padding:6px 8px;margin-bottom:6px">' +
-    '<div style="font-weight:700;font-size:8px;text-transform:uppercase;color:#1e3a8a;margin-bottom:4px">SE ASSINALOU (N) EM ALGUM ITEM — JUSTIFIQUE:</div>' +
-    '<div style="min-height:24px;font-size:8px;border-top:1px solid #eee;padding-top:4px">'+(r.justificativa||r.obs||'&nbsp;')+'</div>' +
-  '</div>';
-
-  // ── SOLICITAÇÃO DE MANUTENÇÃO ──
-  if(r.solicitacao_manutencao){
-    html += '<div style="border:1px solid #fca5a5;background:#fef2f2;padding:6px 8px;margin-bottom:6px">' +
-      '<div style="font-weight:700;font-size:8px;text-transform:uppercase;color:#dc2626;margin-bottom:4px">⚠️ SOLICITAÇÃO DE MANUTENÇÃO:</div>' +
-      '<div style="font-size:8px">'+(r.solicitacao_manutencao)+'</div>' +
+  // ── OBSERVAÇÕES ──
+  if(r.justificativa || r.solicitacao_manutencao){
+    html += '<div style="border:1px solid #E0DEFF;border-radius:8px;padding:7px 10px;margin-bottom:5px">'+
+      '<div style="font-size:8px;font-weight:700;text-transform:uppercase;color:#6B6880;margin-bottom:3px">OBSERVAÇÕES</div>'+
+      '<div style="font-size:8px;color:#1A1A2E">'+(r.justificativa||r.solicitacao_manutencao||'—')+'</div>'+
     '</div>';
   }
 
-  // ── RESULTADO ──
-  var aprovado = r.aprovado==='SIM';
-  html += '<div style="display:flex;align-items:center;justify-content:space-between;border:2px solid '+(aprovado?'#16a34a':'#dc2626')+';padding:6px 12px;margin-bottom:8px;border-radius:4px">' +
-    '<div style="font-weight:900;font-size:10px;text-transform:uppercase;color:'+(aprovado?'#14532d':'#991b1b')+'">VEÍCULO APROVADO PARA OPERAÇÃO?</div>' +
-    '<div style="font-size:14px;font-weight:900;color:'+(aprovado?'#16a34a':'#dc2626')+'">'+(aprovado?'✓ SIM':'✗ NÃO')+'</div>' +
-  '</div>';
-
-  // ── ASSINATURAS ──
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:8px">' +
-    assinatura('Motorista / Operador', r.motorista||'') +
-    assinatura('Responsável pela Inspeção', r.responsavel||'') +
+  // ── VEÍCULO APROVADO ──
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'+
+    '<div style="border:1.5px solid '+(aprovado?'#10B981':'#ddd')+';border-radius:8px;padding:8px;text-align:center;background:'+(aprovado?'rgba(16,185,129,.06)':'transparent')+'">'+
+      '<span style="font-size:11px;font-weight:800;color:'+(aprovado?'#059669':'#aaa')+'">'+( aprovado?'☑ SIM':'☐ SIM')+'</span>'+
+    '</div>'+
+    '<div style="border:1.5px solid '+(!aprovado?'#EF4444':'#ddd')+';border-radius:8px;padding:8px;text-align:center;background:'+(!aprovado?'rgba(239,68,68,.06)':'transparent')+'">'+
+      '<span style="font-size:11px;font-weight:800;color:'+(!aprovado?'#DC2626':'#aaa')+'">'+(!aprovado?'☑ NÃO':'☐ NÃO')+'</span>'+
+    '</div>'+
   '</div>';
 
   // ── RODAPÉ ──
-  html += '<div style="margin-top:10px;padding-top:6px;border-top:1px solid #e0e0e0;display:flex;justify-content:space-between;font-size:7px;color:#9ca3af">' +
-    '<span>FQ-TWM-CO-19-01 | Rev.:06 | TWM Transportes Especiais Ltda</span>' +
-    '<span>Emitido em: '+dtEmit()+'</span>' +
+  html += '<div style="display:flex;justify-content:space-between;border-top:1px solid #E0DEFF;padding-top:5px;font-size:7px;color:#9ca3af">'+
+    '<span>TWM Transportes Especiais Ltda — FQ-TWM-CO-19-01 Rev.:06 — 30/06/2025</span>'+
+    '<span>Emitido em: '+dtEmit()+'</span>'+
   '</div>';
 
   html += '</div>';
   return html;
 }
 
-function campo(label, val){
-  return '<div><div style="font-size:7px;font-weight:700;text-transform:uppercase;color:#1e40af;letter-spacing:.5px">'+label+'</div>'+
-    '<div style="font-size:9px;font-weight:600;color:#1e3a8a">'+val+'</div></div>';
-}
-function assinatura(label, nome){
-  return '<div style="text-align:center">' +
-    '<div style="border-top:1px solid #000;padding-top:4px;font-size:8px;font-weight:700">'+nome+'</div>' +
-    '<div style="font-size:7px;color:#6b7280;text-transform:uppercase">'+label+'</div>' +
-  '</div>';
-}
-
 function imprimirSeg(){
   if(!_rsAtual){toast('Selecione um registro primeiro','err');return;}
-  var doc=document.getElementById('rs-doc');
-  imprimir(doc?doc.innerHTML:'');
+  var html = montarDocumentoSeg(_rsAtual);
+  // Insere quebra de página antes da seção CONDIÇÕES DO VEÍCULO (item 31)
+  // para garantir 2 páginas A4
+  html = html.replace(
+    '<div style="border:1px solid #E0DEFF;border-radius:8px;overflow:hidden;margin-bottom:5px"><div style="background:linear-gradient(135deg,#6B21A8,#7B3FE4);padding:5px 10px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#fff">🚛 CONDIÇÕES DO VEÍCULO',
+    '<div style="page-break-before:always"></div><div style="border:1px solid #E0DEFF;border-radius:8px;overflow:hidden;margin-bottom:5px"><div style="background:linear-gradient(135deg,#6B21A8,#7B3FE4);padding:5px 10px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#fff">🚛 CONDIÇÕES DO VEÍCULO'
+  );
+  imprimir(html);
 }
 function pdfSeg(){toast('💡 Escolha Salvar como PDF','');setTimeout(imprimirSeg,600);}
 
