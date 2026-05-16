@@ -13,6 +13,37 @@
 :root{--bg:#0A0A0F;--bg2:#0F0F18;--bg3:#13131E;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.14);--text:#F0EEF8;--muted:#7A7890;--diesel:#F59E0B;--arla:#06B6D4;--green:#10B981;--red:#EF4444;--accent:#7B3FE4;--accent2:#A855F7;--gold:#F59E0B}
 body.light{--bg:#F4F3FF;--bg2:#FFFFFF;--bg3:#FAFAFA;--border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.13);--text:#1A1A2E;--muted:#6B6880}
 body.light .app-header{box-shadow:0 1px 8px rgba(0,0,0,.08)}
+
+/* ── RELATÓRIO & CONFIG COMPARTILHADO ─────────────── */
+.rel-section{background:var(--bg3);border:1px solid var(--border2);border-radius:14px;padding:14px;margin-bottom:12px}
+.rel-section-title{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:12px}
+.filtros-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.filtro-group label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:block;margin-bottom:5px}
+.filtro-group select,.filtro-group input[type=date],.filtro-group input[type=text]{width:100%;background:var(--bg);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Barlow',sans-serif;font-size:13px;padding:9px 11px;outline:none;-webkit-appearance:none}
+.filtro-group select:focus,.filtro-group input:focus{border-color:#1e3a8a}
+.check-list{display:flex;flex-wrap:wrap;gap:6px}
+.check-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text);cursor:pointer;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:5px 10px}
+.check-item input{width:14px;height:14px;accent-color:#1e3a8a;cursor:pointer}
+.check-item.on{border-color:#1e3a8a;background:rgba(30,58,138,.08)}
+.btn-visualizar{width:100%;padding:13px;background:linear-gradient(135deg,#1e3a8a,#3b82f6);border:none;border-radius:12px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(30,58,138,.3);margin-top:4px}
+.preview-box{background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:12px;margin-top:12px;display:none}
+.preview-box.on{display:block}
+.preview-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.btn-print{padding:11px;border:none;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-print-azul{background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#fff}
+.btn-print-pdf{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:#ef4444}
+.preview-mini{background:#fff;border-radius:8px;padding:10px;font-size:8px;color:#1a1a2e;overflow-x:auto}
+.resumo-nums{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+.resumo-num{background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:8px 6px;text-align:center}
+.resumo-num .n{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;color:#3b82f6;line-height:1}
+.resumo-num .l{font-size:8px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:2px}
+/* Config admin_master */
+.cfg-bloqueado{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:20px;text-align:center;margin-bottom:12px}
+.cfg-bloqueado-icon{font-size:32px;margin-bottom:8px}
+.cfg-bloqueado-txt{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#ef4444}
+.cfg-bloqueado-sub{font-size:11px;color:var(--muted);margin-top:4px}
+@media print{body *{visibility:hidden!important}#print-area,#print-area *{visibility:visible!important}#print-area{position:fixed!important;top:0!important;left:0!important;width:100%!important;background:white!important;z-index:9999!important;padding:20px!important}@page{margin:15mm;size:A4 landscape}}
+#print-area{display:none}#print-area.printing{display:block}
 </style>
 <script>
 (function() {
@@ -149,9 +180,12 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
     <div class="form-title">⛽ Novo Abastecimento</div>
     <div class="field">
       <label>Frota / Prefixo *</label>
-      <select id="reg-frota" onchange="onFrotaChange()">
-        <option value="">Carregando frotas...</option>
-      </select>
+      <input type="text" id="reg-frota" placeholder="Ex: VP-183, VPL-190, ABC-1234 (terceiro)..."
+             autocomplete="off" autocapitalize="characters"
+             oninput="this.value=this.value.toUpperCase()" onchange="onFrotaChange()">
+      <div style="font-size:9px;color:var(--muted);margin-top:4px">
+        ✏️ Digite o prefixo da frota ou placa — inclui veículos terceirizados
+      </div>
     </div>
     <div class="field">
       <label>Motorista *</label>
@@ -212,23 +246,97 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
   <div id="lista-hist"></div>
 </div>
 
+
+
+
 <!-- ABA RELATÓRIO -->
 <div class="page" id="page-relatorio">
-  <div class="rel-grid">
-    <div class="scard d"><div class="sn" id="rel-diesel">0</div><div class="sl">Total Diesel (L)</div></div>
-    <div class="scard a"><div class="sn" id="rel-arla">0</div><div class="sl">Total Arla (L)</div></div>
-    <div class="scard t"><div class="sn" id="rel-frotas">0</div><div class="sl">Frotas</div></div>
+
+  <div class="rel-section">
+    <div class="rel-section-title">🗓️ Período</div>
+    <div class="filtros-grid">
+      <div class="filtro-group"><label>De</label><input type="date" id="abrel-de"></div>
+      <div class="filtro-group"><label>Até</label><input type="date" id="abrel-ate"></div>
+    </div>
   </div>
-  <div class="rel-datas">
-    <div class="field" style="margin:0"><label>De</label><input type="date" id="rel-de"></div>
-    <div class="field" style="margin:0"><label>Até</label><input type="date" id="rel-ate"></div>
+
+  <div class="rel-section">
+    <div class="rel-section-title">🔍 Filtros</div>
+    <div class="filtros-grid" style="margin-bottom:10px">
+      <div class="filtro-group">
+        <label>Combustível</label>
+        <select id="abrel-comb">
+          <option value="todos">Todos</option>
+          <option value="diesel">Diesel</option>
+          <option value="arla">Arla</option>
+        </select>
+      </div>
+      <div class="filtro-group">
+        <label>Frota específica</label>
+        <input type="text" id="abrel-frota" placeholder="Ex: VP-183">
+      </div>
+    </div>
   </div>
-  <button class="btn-ghost" onclick="gerarRelatorio()" style="margin-bottom:14px">📊 Gerar Relatório</button>
-  <div id="lista-rel"></div>
+
+  <div class="rel-section">
+    <div class="rel-section-title">📋 Colunas</div>
+    <div class="check-list" id="abrel-cols">
+      <label class="check-item on"><input type="checkbox" value="frota" checked> Frota</label>
+      <label class="check-item on"><input type="checkbox" value="motorista" checked> Motorista</label>
+      <label class="check-item on"><input type="checkbox" value="km" checked> KM</label>
+      <label class="check-item on"><input type="checkbox" value="diesel" checked> Diesel (L)</label>
+      <label class="check-item on"><input type="checkbox" value="arla" checked> Arla (L)</label>
+      <label class="check-item on"><input type="checkbox" value="posto" checked> Posto</label>
+      <label class="check-item on"><input type="checkbox" value="dataHora" checked> Data/Hora</label>
+    </div>
+  </div>
+
+  <button class="btn-visualizar" onclick="gerarRelAbast()">👁️ Visualizar Relatório</button>
+
+  <div class="resumo-nums" id="abrel-resumo" style="display:none">
+    <div class="resumo-num"><div class="n" id="abres-total">0</div><div class="l">Registros</div></div>
+    <div class="resumo-num"><div class="n" id="abres-diesel">0</div><div class="l">Diesel (L)</div></div>
+    <div class="resumo-num"><div class="n" id="abres-arla">0</div><div class="l">Arla (L)</div></div>
+    <div class="resumo-num"><div class="n" id="abres-frotas">0</div><div class="l">Frotas</div></div>
+  </div>
+
+  <div class="preview-box" id="abrel-preview">
+    <div class="rel-section-title" style="margin-bottom:8px">📄 Preview</div>
+    <div class="preview-mini" id="abrel-mini"></div>
+    <div class="preview-actions">
+      <button class="btn-print btn-print-azul" onclick="imprimirAbast()">🖨️ Imprimir</button>
+      <button class="btn-print btn-print-pdf"  onclick="pdfAbast()">📥 PDF</button>
+    </div>
+  </div>
 </div>
+
 
 <!-- ABA CONFIG -->
 <div class="page" id="page-config">
+  <div id="cfg-master-block-abast"></div>
+  <div id="cfg-master-content-abast">
+    <div class="cfg-card">
+      <div class="cfg-title">Google Apps Script</div>
+      <div class="field">
+        <label>SCRIPT URL</label>
+        <input type="text" id="cfg-script" placeholder="https://script.google.com/...">
+      </div>
+      <button class="btn-ghost" onclick="salvarConfig()" style="margin-top:8px">💾 Salvar</button>
+    </div>
+    <div class="cfg-card">
+      <div class="cfg-title">Frotas cadastradas</div>
+      <div class="cfg-note" style="margin-bottom:10px">Lista carregada automaticamente da planilha.<br>Carretas (RB, RA, RBL) são ignoradas.</div>
+      <button class="btn-ghost" onclick="carregarFrotas()">🔄 Atualizar lista agora</button>
+    </div>
+    <div class="cfg-card">
+      <div class="cfg-title">Dados locais</div>
+      <button class="btn-ghost" onclick="limparDados()" style="color:#EF4444;border-color:#EF4444">🗑️ Limpar histórico local</button>
+    </div>
+  </div>
+</div>
+
+<!-- FIM CONFIG -->
+<div style="display:none" id="page-config-OLD">
   <div class="cfg-card">
     <div class="cfg-title">Google Apps Script</div>
     <div class="field">
@@ -256,8 +364,6 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 //  CONSTANTES
 // ═══════════════════════════════════════════════
 var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4BZz60sy9BsFACdqKktKpzJOfP8mj0U6s1G7Em5pwhaC_kQHCk-GPbLNZOlwjvrOwsw/exec';
-var FROTA_CSV  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQx62CxMqSchj3wdG83U48YiyM8eH9vIj8Jv7Gg1QVWm0Ow7abDlyYWtAEecM4iCPWTvH8e5Y84jJdf/pub?gid=644783428&single=true&output=csv';
-var COL_CAVALO = 7;
 var REG_KEY    = 'twm_abast_reg';
 var CFG_KEY    = 'twm_abast_cfg';
 
@@ -318,63 +424,46 @@ function iniciarRelogio() {
 function carregarFrotas() {
   var sel = document.getElementById('reg-frota');
   if (!sel) return;
-  sel.innerHTML = '<option value="">Buscando frotas...</option>';
-
-  var xhr = new XMLHttpRequest();
-  xhr.timeout = 10000;
-  xhr.open('GET', FROTA_CSV + '&_=' + Date.now(), true);
-
-  xhr.onreadystatechange = function() {
-    if (xhr.readyState !== 4) return;
-    if (xhr.status === 200 && xhr.responseText) {
-      var frotas = parsearCSV(xhr.responseText);
-      if (frotas.length > 0) {
-        salvar('twm_frotas_cache', frotas);
-        preencherFrotas(sel, frotas);
-      } else {
-        usarCacheFrotas(sel);
-      }
-    } else {
-      usarCacheFrotas(sel);
-    }
-  };
-
-  xhr.onerror   = function() { usarCacheFrotas(sel); };
-  xhr.ontimeout = function() { usarCacheFrotas(sel); };
-  xhr.send();
-}
-
-function parsearCSV(txt) {
-  var frotas = [], vistas = {};
-  var linhas = txt.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
-  for (var i = 1; i < linhas.length; i++) {
-    var linha = linhas[i].trim();
-    if (!linha) continue;
-    var cols = [], cur = '', inQ = false;
-    for (var j = 0; j < linha.length; j++) {
-      var ch = linha[j];
-      if (ch === '"') { inQ = !inQ; }
-      else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
-      else { cur += ch; }
-    }
-    cols.push(cur.trim());
-    var cav = (cols[COL_CAVALO] || '').trim().toUpperCase();
-    if (!cav) continue;
-    // Apenas cavalos — ignora carretas
-    if (cav.indexOf('RB') === 0 || cav.indexOf('RA') === 0 || cav.indexOf('RBL') === 0) continue;
-    if (!vistas[cav]) { vistas[cav] = true; frotas.push(cav); }
-  }
-  frotas.sort();
-  return frotas;
-}
-
-function usarCacheFrotas(sel) {
-  var cache = ler('twm_frotas_cache');
+  // Mostra cache imediatamente se tiver
+  var cache = ler('twm_frotas_abast');
   if (cache && cache.length) {
     preencherFrotas(sel, cache);
   } else {
-    sel.innerHTML = '<option value="">Sem frotas — verifique conexão</option>';
+    sel.innerHTML = '<option value="">Buscando frotas...</option>';
   }
+  // Busca do Apps Script — mesma fonte dos pneus
+  var xhr = new XMLHttpRequest();
+  xhr.timeout = 10000;
+  xhr.open('GET', SCRIPT_URL + '?action=getFrota&_=' + Date.now(), true);
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState !== 4) return;
+    try {
+      var resp = JSON.parse(xhr.responseText);
+      if (resp.ok) {
+        var frotas = [], vistas = {};
+        // Apenas cavalos — carretas não abastecem
+        (resp.cavalos || []).forEach(function(v) {
+          var f = (v.f || '').trim().toUpperCase();
+          if (f && !vistas[f]) { vistas[f] = 1; frotas.push(f); }
+        });
+        frotas.sort();
+        if (frotas.length > 0) {
+          salvar('twm_frotas_abast', frotas);
+          preencherFrotas(sel, frotas);
+        }
+      }
+    } catch(e) {
+      if (!ler('twm_frotas_abast')) {
+        sel.innerHTML = '<option value="">Erro ao carregar — tente novamente</option>';
+      }
+    }
+  };
+  xhr.onerror = xhr.ontimeout = function() {
+    if (!ler('twm_frotas_abast')) {
+      sel.innerHTML = '<option value="">Sem conexão</option>';
+    }
+  };
+  xhr.send();
 }
 
 function preencherFrotas(sel, frotas) {
@@ -420,7 +509,7 @@ function registrar() {
   var posto     = document.getElementById('reg-posto').value.trim();
   var obs       = document.getElementById('reg-obs').value.trim();
 
-  if (!frota)    { toast('⚠️ Selecione a frota', 'err'); return; }
+  if (!frota)    { toast('⚠️ Informe a frota ou placa', 'err'); return; }
   if (!motorista){ toast('⚠️ Informe o motorista', 'err'); return; }
   if (!combAtivos.diesel && !combAtivos.arla) { toast('⚠️ Selecione um combustível', 'err'); return; }
   if (combAtivos.diesel && diesel <= 0) { toast('⚠️ Informe os litros de diesel', 'err'); return; }
@@ -582,42 +671,7 @@ function renderStats() {
 // ═══════════════════════════════════════════════
 //  RELATÓRIO
 // ═══════════════════════════════════════════════
-function gerarRelatorio() {
-  var de  = document.getElementById('rel-de').value;
-  var ate = document.getElementById('rel-ate').value;
-
-  var lista = registros.filter(function(r) {
-    if (de  && r.isoDate < de)  return false;
-    if (ate && r.isoDate > ate) return false;
-    return true;
-  });
-
-  var td = 0, ta = 0, frotas = {};
-  for (var i = 0; i < lista.length; i++) {
-    td += lista[i].diesel || 0;
-    ta += lista[i].arla   || 0;
-    if (!frotas[lista[i].frota]) frotas[lista[i].frota] = {diesel:0, arla:0, n:0};
-    frotas[lista[i].frota].diesel += lista[i].diesel || 0;
-    frotas[lista[i].frota].arla   += lista[i].arla   || 0;
-    frotas[lista[i].frota].n++;
-  }
-
-  var el = document.getElementById('rel-diesel'); if(el) el.textContent = td.toFixed(0);
-  el = document.getElementById('rel-arla');       if(el) el.textContent = ta.toFixed(0);
-  el = document.getElementById('rel-frotas');     if(el) el.textContent = Object.keys(frotas).length;
-
-  var chaves = Object.keys(frotas).sort(function(a,b){ return frotas[b].diesel - frotas[a].diesel; });
-  var html = '';
-  for (var i = 0; i < chaves.length; i++) {
-    var f = chaves[i], d = frotas[f];
-    var chips = '';
-    if (d.diesel > 0) chips += '<span class="chip chip-d">⛽ ' + d.diesel.toFixed(1) + ' L</span>';
-    if (d.arla   > 0) chips += '<span class="chip chip-a">💧 ' + d.arla.toFixed(1)   + ' L</span>';
-    html += '<div class="hist-item"><div class="hi-top"><div class="hi-frota">' + f + '</div><div class="hi-dt">' + d.n + ' abast.</div></div><div class="hi-chips">' + chips + '</div></div>';
-  }
-  var lr = document.getElementById('lista-rel');
-  if (lr) lr.innerHTML = html || '<div class="empty">Nenhum registro no período.</div>';
-}
+// gerarRelatorio removida — use gerarRelAbast()
 
 // ═══════════════════════════════════════════════
 //  CONFIG
@@ -658,14 +712,136 @@ function goTab(id, el) {
   if (el) el.className = 'nav-tab on';
 
   if (id === 'historico') { renderStats(); renderHistorico(); }
-  if (id === 'relatorio') gerarRelatorio();
-  if (id === 'config')    carregarConfig();
+  if (id === 'relatorio') { var pb=document.getElementById('abrel-preview');if(pb)pb.classList.remove('on');var rn=document.getElementById('abrel-resumo');if(rn)rn.style.display='none'; }
+  if (id === 'config')    { carregarConfig(); verificarAdminMasterAbast(); }
 }
 
 // ═══════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════
+
+// ── Helpers de relatório (compartilhado) ──
+function _pad(n){return n<10?'0'+n:''+n;}
+function _fmtData(iso){if(!iso)return'—';var p=iso.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+function _dtEmit(){var d=new Date();return _pad(d.getDate())+'/'+_pad(d.getMonth()+1)+'/'+d.getFullYear();}
+function _statBox(n,l){return '<div style="border:1px solid #dbeafe;border-radius:5px;padding:5px;text-align:center"><div style="font-family:Barlow Condensed,sans-serif;font-size:16px;font-weight:800;color:#1e3a8a;line-height:1">'+n+'</div><div style="font-size:7px;text-transform:uppercase;letter-spacing:.5px;color:#7a7890;margin-top:1px">'+l+'</div></div>';}
+function _cabecalhoRel(titulo, periodo){
+  return '<div style="font-family:Barlow,sans-serif;color:#1a1a2e">'+
+    '<div style="display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:8px;border-bottom:3px solid #1e3a8a;margin-bottom:8px">'+
+      '<div style="display:flex;align-items:center">'+
+        '<div style="width:30px;height:30px;min-width:30px;background:linear-gradient(135deg,#1e3a8a,#3b82f6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:Barlow Condensed,sans-serif;font-size:10px;font-weight:900;color:#fff">TWM</div>'+
+        '<div style="margin-left:8px"><div style="font-family:Barlow Condensed,sans-serif;font-size:12px;font-weight:800;text-transform:uppercase">Transportes Especiais Ltda</div><div style="font-size:7px;color:#7a7890">CNPJ 00.000.000/0001-00</div></div>'+
+      '</div>'+
+      '<div style="text-align:right"><div style="font-family:Barlow Condensed,sans-serif;font-size:13px;font-weight:800;text-transform:uppercase;color:#1e3a8a">'+titulo+'</div><div style="font-size:7px;color:#7a7890">'+periodo+' · Emitido: '+_dtEmit()+'</div></div>'+
+    '</div>';
+}
+function _rodapeRel(total){
+  return '<div style="margin-top:6px;padding-top:6px;border-top:1px solid #e5e7eb;display:flex;justify-content:space-between;font-size:7px;color:#7a7890"><span>TWM Transportes Especiais — Central de Operações</span><span>Total: '+total+' registros</span></div></div>';
+}
+function _imprimirHTML(html){
+  var pa=document.getElementById('print-area');
+  if(!pa)return;
+  pa.innerHTML=html;pa.classList.add('printing');
+  window.print();
+  setTimeout(function(){pa.classList.remove('printing');pa.innerHTML='';},1200);
+}
+function _isAdminMaster(){
+  try{
+    var u=JSON.parse(localStorage.getItem('twm_user_cache')||'{}');
+    var p=u.permissoes||{};
+    return !!(p.admin_master||p.ADMIN_MASTER);
+  }catch(e){return false;}
+}
+
+// ── Relatório Abastecimento ──
+var _abRelDados = [];
+
+function gerarRelAbast(){
+  var de    = document.getElementById('abrel-de').value;
+  var ate   = document.getElementById('abrel-ate').value;
+  var comb  = document.getElementById('abrel-comb').value;
+  var frota = (document.getElementById('abrel-frota').value||'').trim().toUpperCase();
+
+  _abRelDados = registros.filter(function(r){
+    if(de  && r.isoDate < de)  return false;
+    if(ate && r.isoDate > ate) return false;
+    if(comb==='diesel' && !(r.diesel>0)) return false;
+    if(comb==='arla'   && !(r.arla>0))   return false;
+    if(frota && r.frota.toUpperCase().indexOf(frota)<0) return false;
+    return true;
+  });
+
+  if(!_abRelDados.length){toast('Nenhum registro encontrado','err');return;}
+
+  var tD=0,tA=0;
+  _abRelDados.forEach(function(r){tD+=r.diesel||0;tA+=r.arla||0;});
+  var nFrotas = new Set(_abRelDados.map(function(r){return r.frota;})).size;
+
+  var rn=document.getElementById('abrel-resumo');if(rn)rn.style.display='grid';
+  ['abres-total','abres-diesel','abres-arla','abres-frotas'].forEach(function(id,i){
+    var el=document.getElementById(id);
+    if(el) el.textContent=[_abRelDados.length,tD.toFixed(0),tA.toFixed(0),nFrotas][i];
+  });
+
+  var colunas=[];
+  document.querySelectorAll('#abrel-cols input:checked').forEach(function(cb){colunas.push(cb.value);});
+
+  var periodo=(de&&ate)?_fmtData(de)+' – '+_fmtData(ate):(de?'A partir de '+_fmtData(de):(ate?'Até '+_fmtData(ate):'Todos os registros'));
+  var colMap={
+    frota:    {l:'Frota',    fn:function(r){return '<b style="color:#1e3a8a">'+r.frota+'</b>';}},
+    motorista:{l:'Motorista',fn:function(r){return r.motorista||'—';}},
+    km:       {l:'KM',       fn:function(r){return r.km?Number(r.km).toLocaleString('pt-BR'):'—';}},
+    diesel:   {l:'Diesel(L)',fn:function(r){return r.diesel>0?r.diesel.toFixed(1):'—';}},
+    arla:     {l:'Arla(L)',  fn:function(r){return r.arla>0?r.arla.toFixed(1):'—';}},
+    posto:    {l:'Posto',    fn:function(r){return r.posto||'—';}},
+    dataHora: {l:'Data/Hora',fn:function(r){return r.dataHora||'—';}}
+  };
+
+  var ths=''; colunas.forEach(function(k){if(colMap[k])ths+='<th style="color:#fff;font-size:8px;padding:4px 6px;text-align:left">'+colMap[k].l+'</th>';});
+  var trs=''; _abRelDados.forEach(function(r,i){
+    var cells=''; colunas.forEach(function(k){if(colMap[k])cells+='<td style="padding:3px 5px;border-bottom:1px solid #dbeafe;font-size:8px">'+colMap[k].fn(r)+'</td>';});
+    trs+='<tr style="background:'+(i%2?'#eff6ff':'#fff')+'">'+cells+'</tr>';
+  });
+
+  var stats='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:8px">'+
+    _statBox(_abRelDados.length,'Registros')+_statBox(tD.toFixed(0),'Diesel (L)')+
+    _statBox(tA.toFixed(0),'Arla (L)')+_statBox(nFrotas,'Frotas')+'</div>';
+
+  var html=_cabecalhoRel('Controle de Abastecimento',periodo)+stats+
+    '<table style="width:100%;border-collapse:collapse"><thead><tr style="background:#1e3a8a">'+ths+'</tr></thead><tbody>'+trs+'</tbody></table>'+
+    _rodapeRel(_abRelDados.length);
+
+  var pm=document.getElementById('abrel-mini');if(pm)pm.innerHTML=html;
+  var pb=document.getElementById('abrel-preview');if(pb)pb.classList.add('on');
+  toast('✅ '+_abRelDados.length+' registros','ok');
+}
+
+function imprimirAbast(){if(!_abRelDados.length){toast('Gere o relatório primeiro','err');return;}var cols=[];document.querySelectorAll('#abrel-cols input:checked').forEach(function(cb){cols.push(cb.value);});var de=document.getElementById('abrel-de').value,ate=document.getElementById('abrel-ate').value;gerarRelAbast();var pm=document.getElementById('abrel-mini');_imprimirHTML(pm?pm.innerHTML:'');}
+function pdfAbast(){toast('💡 Escolha Salvar como PDF na impressão','');setTimeout(imprimirAbast,600);}
+
+// ── Config admin_master ──
+function verificarAdminMasterAbast(){
+  var content=document.getElementById('cfg-master-content-abast');
+  var block=document.getElementById('cfg-master-block-abast');
+  if(!content||!block)return;
+  if(_isAdminMaster()){
+    content.style.display='block';
+    block.innerHTML='';
+  } else {
+    content.style.display='none';
+    block.innerHTML='<div class="cfg-bloqueado"><div class="cfg-bloqueado-icon">🔒</div><div class="cfg-bloqueado-txt">Acesso Restrito</div><div class="cfg-bloqueado-sub">Apenas administradores master têm acesso às configurações.</div></div>';
+  }
+}
+
 window.onload = function() {
+  // Datas padrão
+  (function(){
+    var h=new Date(),pad=function(n){return n<10?"0"+n:""+n;};
+    var ini=new Date(h.getFullYear(),h.getMonth(),1);
+    var de=document.getElementById("abrel-de"),ate=document.getElementById("abrel-ate");
+    if(de) de.value=ini.getFullYear()+"-"+pad(ini.getMonth()+1)+"-"+pad(ini.getDate());
+    if(ate) ate.value=h.getFullYear()+"-"+pad(h.getMonth()+1)+"-"+pad(h.getDate());
+  })();
   // Carrega registros
   var r = ler(REG_KEY);
   if (r && r.length) registros = r;
@@ -673,12 +849,11 @@ window.onload = function() {
   // Inicia relógio
   iniciarRelogio();
 
-  // Carrega frotas do CSV
-  carregarFrotas();
 
   // Stats iniciais
   renderStats();
 };
 </script>
+<div id="print-area"></div>
 </body>
 </html>
