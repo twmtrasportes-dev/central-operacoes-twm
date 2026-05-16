@@ -939,13 +939,13 @@ function montarDocumentoSeg(r){
     return String(v).toLowerCase().trim();
   }
 
-  function botoes(n){
-    var v = val(n);
+  function botoes(num){
+    var v = val(num);
     var simA=(v==='sim'||v==='s'), naoA=(v==='nao'||v==='n'), naA=(v==='na'||v==='n/a');
-    var s='<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:18px;border-radius:3px;font-size:8.5px;font-weight:800;border:1.5px solid '+(simA?'#059669':'#ccc')+';background:'+(simA?'#dcfce7':'#fff')+';color:'+(simA?'#059669':'#bbb')+'">S</span>';
-    var n='<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:18px;border-radius:3px;font-size:8.5px;font-weight:800;border:1.5px solid '+(naoA?'#dc2626':'#ccc')+';background:'+(naoA?'#fee2e2':'#fff')+';color:'+(naoA?'#dc2626':'#bbb')+'">N</span>';
-    var na='<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:18px;border-radius:3px;font-size:7.5px;font-weight:700;border:1.5px solid '+(naA?'#7B3FE4':'#ccc')+';background:'+(naA?'#ede9fe':'#fff')+';color:'+(naA?'#7B3FE4':'#bbb')+'">N/A</span>';
-    return '<div style="display:flex;gap:2px;flex-shrink:0">'+s+n+na+'</div>';
+    var bS  ='<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:18px;border-radius:3px;font-size:8.5px;font-weight:800;border:1.5px solid '+(simA?'#059669':'#ccc')+';background:'+(simA?'#dcfce7':'#fff')+';color:'+(simA?'#059669':'#bbb')+'">S</span>';
+    var bN  ='<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:18px;border-radius:3px;font-size:8.5px;font-weight:800;border:1.5px solid '+(naoA?'#dc2626':'#ccc')+';background:'+(naoA?'#fee2e2':'#fff')+';color:'+(naoA?'#dc2626':'#bbb')+'">N</span>';
+    var bNA ='<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:18px;border-radius:3px;font-size:7.5px;font-weight:700;border:1.5px solid '+(naA?'#7B3FE4':'#ccc')+';background:'+(naA?'#ede9fe':'#fff')+';color:'+(naA?'#7B3FE4':'#bbb')+'">N/A</span>';
+    return '<div style="display:flex;gap:2px;flex-shrink:0">'+bS+bN+bNA+'</div>';
   }
 
   function linha(label, val){
@@ -1157,7 +1157,6 @@ function montarDocumentoSeg(r){
     '</div>'+
     // PÁGINA 2
     '<div>'+
-      cabecalho+
       p2itens+
       obs+
       rodape+
