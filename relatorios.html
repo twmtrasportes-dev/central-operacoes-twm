@@ -452,7 +452,21 @@ function cabRel(titulo,periodo){
       '<div style="font-size:7px;color:#7a7890">'+periodo+' · Emitido: '+dtEmit()+'</div></div></div>';
 }
 function rodapeRel(n){return '<div style="margin-top:6px;padding-top:6px;border-top:1px solid #e5e7eb;display:flex;justify-content:space-between;font-size:7px;color:#7a7890"><span>TWM Transportes Especiais — Central de Operações</span><span>Total: '+n+' registros</span></div></div>';}
-function imprimir(html){var pa=document.getElementById('print-area');pa.innerHTML=html;pa.classList.add('printing');window.print();setTimeout(function(){pa.classList.remove('printing');pa.innerHTML='';},1200);}
+function imprimir(html){
+  var win = window.open('','_blank','width=900,height=700');
+  if(!win){ toast('Permita pop-ups para imprimir','err'); return; }
+  win.document.write('<html><head><meta charset="UTF-8"><title>TWM — Impressão</title>'+
+    '<style>'+
+    '@page{size:A4 portrait;margin:8mm 10mm}'+
+    '*{box-sizing:border-box;margin:0;padding:0}'+
+    'body{font-family:Arial,sans-serif;font-size:8.5px;color:#1A1A2E;background:#fff}'+
+    '.no-print{display:none!important}'+
+    '</style></head><body>'+
+    html+
+    '<script>window.onload=function(){setTimeout(function(){window.print();setTimeout(function(){window.close();},500);},300);}<\/script>'+
+    '</body></html>');
+  win.document.close();
+}
 
 function toast(msg,tipo){
   var el=document.getElementById('toast');
@@ -1057,15 +1071,19 @@ function montarDocumentoSeg(r){
 
   var ITENS_HTML = '';
   var itemIdx = 0;
+  var secAberta = false;
 
   TODOS.forEach(function(linha){
     if(linha.sec){
-      // Quebra de página ANTES da seção (sem repetir cabeçalho)
+      // Fecha seção anterior se houver
+      if(secAberta) ITENS_HTML += '</div>';
+      // Quebra de página
       if(linha.pageBreak){
         ITENS_HTML += '<div style="page-break-before:always;height:0;margin:0;padding:0"></div>';
       }
       ITENS_HTML += '<div style="background:linear-gradient(135deg,#6B21A8,#7B3FE4);padding:4px 8px;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:#fff;border-radius:5px 5px 0 0;margin-top:'+(linha.pageBreak?'0':'4px')+'">'+linha.sec+'</div>';
       ITENS_HTML += '<div style="border:1px solid #E0DEFF;border-top:none;border-radius:0 0 5px 5px;margin-bottom:4px">';
+      secAberta = true;
       itemIdx = 0;
     } else {
       var bg = itemIdx%2===0 ? '#fff' : '#FAFAFE';
@@ -1075,11 +1093,10 @@ function montarDocumentoSeg(r){
         botoes(linha.n)+
       '</div>';
       itemIdx++;
-      // Fecha a div da seção no último item de cada grupo
     }
   });
   // Fecha última seção
-  ITENS_HTML += '</div>';
+  if(secAberta) ITENS_HTML += '</div>';
 
   // OBSERVAÇÕES + APROVADO + RODAPÉ
   var RODAPE =
